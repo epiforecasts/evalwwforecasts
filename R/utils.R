@@ -3,10 +3,8 @@
 #' @return The result of running the code.
 #' @export
 #' @examples
-#' library(cmdstanr)
-#' compile_model("stan/model.stan")
-#' quiet(fit_model("stan/model.stan", simulate_data_discrete()))
-#' out
+#' result <- quiet(message("This message should be suppressed"))
+#' print(result)
 quiet <- function(code) {
   sink(nullfile())
   on.exit(sink())

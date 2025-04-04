@@ -16,8 +16,6 @@ The result of running the code.
 Suppress output and messages for code.
 }
 \examples{
-library(cmdstanr)
-compile_model("stan/model.stan")
-quiet(fit_model("stan/model.stan", simulate_data_discrete()))
-out
+result <- quiet(message("This message should be suppressed"))
+print(result)
 }
