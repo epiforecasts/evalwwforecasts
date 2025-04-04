@@ -43,3 +43,4 @@ RoxygenNote: 7.3.2
 VignetteBuilder: knitr
 Remotes:
   wwinference=CDCgov/ww-inference-model
+Config/testthat/edition: 3
