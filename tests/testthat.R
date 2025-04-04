@@ -9,7 +9,7 @@
 library(testthat)
 library(evalwwforecasts)
 
-test_check("evalwwforecasts")
+test_results <- test_check("evalwwforecasts")
 
 if (any(as.data.frame(test_results)$warning > 0)) {
   stop("tests failed with warnings", call. = FALSE)
