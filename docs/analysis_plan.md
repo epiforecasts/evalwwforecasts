@@ -21,7 +21,6 @@ Hospital admissions data are reported by age group and state as 7-day rolling su
 We will fit and generate forecasts for all age groups, at the state-level.
 We will take the difference between successive days to compute daily hospital admissions incidence as an input into the model. 
 
-
 ### Addressing right-truncation
 The hospital admissions data provided are indexed by the data of the positive test -- which is sometimes well before patients end up hospitalised, leading to a right-truncation problem described in Wolffram et al.
 
