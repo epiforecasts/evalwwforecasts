@@ -1,14 +1,14 @@
 # Analysis plan
 
 This document describes the analysis plan to perform a retrospective evaluation of the impact of incorporating wastewater data on the forecast performance of a semi-mechanistic renewal-based model.
-Forecasts of COVID-19 hospital admissions will be generated weekly and evaluated
-against the final observed hospital admissions data, across all age groups.
+Forecasts of COVID-19 hospital admissions will be generated weekly and evaluated against the final observed hospital admissions data, across all age groups in Germany during the 2024-2025 respriatory virus season. 
 
 # Aims
 
 The goal of these analyses will be to assess:
-1. How does incorporating wastewater impact the forecast performance of the semi-mechanistic renewal model?
-2. How do characteristics of the forecast problem and the wastewater surveillance in that forecast problem impact variation in performance between models with and without wastewater? 
+1. How does incorporating wastewater impact the forecast performance of a semi-mechanistic renewal model? 
+3. How do characteristics of the wastewater surveillance system impact the relative forecast performance of the wastewater-informed model?
+
 
 # Data
 
@@ -70,7 +70,7 @@ We will then perform an exploratory analysis into the influence of different con
 The proposed structures of the meta-regression will be as follows:
 
 $$
-CRPS^{ww+hosp}_{t,l} \sim \beta + CRPS^{hosp}_{t,l} + s(location, bs = "re") + s(# of sites, k = 4) + s(trend, bs = "re") + s(pop_cov_ww, k = 10) + s(avg_freq_sampling, k = 10) + s(avg latency reporting, k = 10)
+CRPS^{ww+hosp}_{t,l} \sim \beta + CRPS^{hosp}_{t,l} + s(location, bs = "re") + s(# of sites) + s(trend, bs = "re") + s(pop_cov_ww) + s(avg_freq_sampling, k = 10) + s(avg latency reporting)
 $$
 
 The idea behind this analysis will be that the CRPS score for the hospital admissions only model defines the baseline "difficulty" in the forecast problem, and each of the additional components has some (assumed to be non-linear) positive or negative impact on the forecast accuracy of the wastewater-informed model. 
@@ -78,7 +78,7 @@ The idea behind this analysis will be that the CRPS score for the hospital admis
 We will plot the partial effects as a function of location, epidemic trend, number of sites, population coverage of wastewater surveillance, the average sampling frequency in the wastewater data and the average latency in reporting of the wastewater data. 
 
 The estimated $\beta$ reflects the adjusted (multiplicative) impact of incorporating wastewater on forecast performance compared to forecast performance using only hospital admissions in the same model. 
-We will implement this using a log-link function in the R package `mgcv`.
+We will implement this using a linear-link function in the R package `mgcv`.
 These exploratory analyses will be used to generate hypotheses into the impact of these characteristics on the performance of a wastewater-informed forecast. 
 
 ## Additional extension
