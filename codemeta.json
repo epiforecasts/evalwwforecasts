@@ -13,7 +13,7 @@
     "name": "R",
     "url": "https://r-project.org"
   },
-  "runtimePlatform": "R version 4.4.3 (2025-02-28)",
+  "runtimePlatform": "R version 4.5.0 (2025-04-11)",
   "author": [
     {
       "@type": "Person",
@@ -204,6 +204,7 @@
     },
     "SystemRequirements": null
   },
-  "fileSize": "2.639KB",
+  "fileSize": "3.825KB",
+  "releaseNotes": "https://github.com/epinowcast/baselinenowcast-paper/blob/master/NEWS.md",
   "readme": "https://github.com/epinowcast/baselinenowcast-paper/blob/main/README.md"
 }
