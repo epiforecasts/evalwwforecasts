@@ -35,18 +35,13 @@ We will jointly fit to all wastewater treatment plants within a state.
 
 # Models
 - `wwinference` (ww + hosp): This model will jointly fit to the daily hospital admissions at the state-level and the wastewater concentration data from the treatment plants within the state.
-- `wwinference` (normalized ww + hosp): This model will jointly fit to the daily hospital admissions at the state level and the flow-population normalized data from the individual treatment 
- plants within the state.
-- `wwinference` (state ww + hosp): This model will jointly fit to the daily hospital admissions and average wastewater concentration, both at the state-level. 
 - `wwinference` (hosp only): This model will be fit only to the daily hospital admissions at the state-level
-
-
 
 In the SI, we will compare performance of both these models to a baseline auto-ARIMA model fit only to the right-truncation corrected hospital admissions data.  
 
 # Forecasts
-Forecasts will be generated from each of the 4 models for all location-forecast dates where wastewater data is available.
-Forecasts will be generated at a daily temporal resolution, each week, for  a 28 day horizon ahead of the forecast date, from October 2024 to March 2025.
+Forecasts will be generated from each of the models for all location-forecast dates where wastewater data is available.
+Forecasts will be generated at a daily temporal resolution, each week, for a 28 day horizon ahead of the forecast date, from October 2024 to March 2025.
 
 ## Evaluation
 Visual comparisons of forecasts overlaid with evaluation data will be used to assess the forecast performance of each model.
@@ -80,11 +75,3 @@ We will plot the partial effects as a function of location, epidemic trend, numb
 The estimated $\beta$ reflects the adjusted (multiplicative) impact of incorporating wastewater on forecast performance compared to forecast performance using only hospital admissions in the same model. 
 We will implement this using a linear-link function in the R package `mgcv`.
 These exploratory analyses will be used to generate hypotheses into the impact of these characteristics on the performance of a wastewater-informed forecast. 
-
-## Additional extension
-
-We might consider incorporating an additional wastewater-informed model of an entirely different model type, e.g. a ML based approach. 
-This would expand the current scope a bit but would not change the planned analyses significantly as we would just add an additional model to all of the planned evaluation analyses (and consider doing a separate regression approach for a ML based approach with and without wastewater). 
-
-
-
