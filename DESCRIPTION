@@ -19,8 +19,8 @@ Authors@R:
            comment = c(ORCID = "0000-0002-2842-3406")))
 Description: Provides functions to evaluate wastewater-informed forecasts.
 License: MIT + file LICENSE
-URL: https://github.com/epinowcast/baselinenowcast-paper/
-BugReports: https://github.com/epinowcast/baselinenowcast-paper/issues
+URL: https://github.com/epiforecasts/evalwwforecasts/
+BugReports: https://github.com/epiforecasts/evalwwforecasts/issues
 Depends:
     R (>= 4.0.0)
 Imports:
