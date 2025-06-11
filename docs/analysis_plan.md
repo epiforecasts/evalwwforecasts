@@ -17,6 +17,7 @@ We will use GitHub's commit history of both repositories to generate snapshots o
 Weekly snapshots of both datasets will be created every Monday from October 2024 to March 2025.
 
 ## Hospital admissions data
+
 Hospital admissions data are reported by age group and state as 7-day rolling sums.
 We will fit and generate forecasts for all age groups, at the state-level.
 We will take the difference between successive days to compute daily hospital admissions incidence as an input into the model. 
