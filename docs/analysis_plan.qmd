@@ -1,12 +1,12 @@
 # Analysis plan
 
 This document describes the analysis plan to perform a retrospective evaluation of the impact of incorporating wastewater data on the forecast performance of a semi-mechanistic renewal-based model, specifically the model available in the [@wwinference] R package.
-Forecasts of COVID-19 hospital admissions will be generated weekly and evaluated against the final observed hospital admissions data, across all age groups in Germany during the 2024-2025 respiratory virus season. 
+Forecasts of COVID-19 hospital admissions will be generated weekly and evaluated against the final observed hospital admissions data, across all age groups in Germany during the 2024-2025 respiratory virus season.
 
 # Aims
 
 The goal of these analyses will be to assess:
-1. How does incorporating wastewater impact the forecast performance of a semi-mechanistic renewal model? 
+1. How does incorporating wastewater impact the forecast performance of a semi-mechanistic renewal model?
 3. How do characteristics of the wastewater surveillance system impact the relative forecast performance of the wastewater-informed model?
 
 
@@ -20,7 +20,7 @@ Weekly snapshots of both datasets will be created every Monday from October 2024
 
 Hospital admissions data are reported by age group and state as 7-day rolling sums.
 We will fit and generate forecasts for all age groups, at the state-level.
-We will take the difference between successive days to compute daily hospital admissions incidence as an input into the model. 
+We will take the difference between successive days to compute daily hospital admissions incidence as an input into the model.
 
 ### Addressing right-truncation
 The hospital admissions data provided are indexed by the data of the positive test -- which is sometimes well before patients end up hospitalised, leading to a right-truncation problem described in [@Wolffram2023].
@@ -37,7 +37,7 @@ We will jointly fit to all wastewater treatment plants within a state.
 - `wwinference` (ww + hosp): This model will jointly fit to the daily hospital admissions at the state-level and the wastewater concentration data from the treatment plants within the state.
 - `wwinference` (hosp only): This model will be fit only to the daily hospital admissions at the state-level
 
-In the SI, we will compare performance of both these models to a baseline auto-ARIMA model fit only to the right-truncation corrected hospital admissions data.  
+In the SI, we will compare performance of both these models to a baseline auto-ARIMA model fit only to the right-truncation corrected hospital admissions data.
 
 # Forecasts
 Forecasts will be generated from each of the models for all location-forecast dates where wastewater data is available.
@@ -53,21 +53,21 @@ Forecasts will be scored using proper scoring rules, with metrics including the 
 We will present the results by analysing the mean scores by model and then stratifying by location, forecast date, and horizon:
 - CRPS by model summarised across locations and forecast dates, broken down by under/over prediction and dispersion, in the form of a horizontal bar chart for each of the models, for 3 different horizons (7, 14, 28 day horizon).
 - CRPS by model stratified by location ordered by CRPS of the hosp-only model (stacked bar chart x-axis = location, y-axis = CRPS breakdown, color = model)
-- scatterplot of CRPS from wastewater model vs CRPS from hospital admissions only model summarised by location 
+- scatterplot of CRPS from wastewater model vs CRPS from hospital admissions only model summarised by location
 - CRPS by model stratified by forecast date (stacked bar chart x-axis = date, y-axis = CRPS breakdown, color = model)
-- scatterplot of CRPS from wastewater model vs CRPS from hospital admissions only model summarised by location 
+- scatterplot of CRPS from wastewater model vs CRPS from hospital admissions only model summarised by location
 - 50th and 90th interval coverage summarised across locations and forecast dates (horizontal bar chart, color = model)
 
 
 ### Model-based evaluation: model comparison
-**Note** Because this is a retrospective analysis in which both models have a complete set of forecasts for the same set of locations and forecast dates this component may not be necessary. I am currently leaning towards removing it and focusing on the model-based investigation into the drivers of differences in relative performance of the wastewater. 
+**Note** Because this is a retrospective analysis in which both models have a complete set of forecasts for the same set of locations and forecast dates this component may not be necessary. I am currently leaning towards removing it and focusing on the model-based investigation into the drivers of differences in relative performance of the wastewater.
 
-The above figures describe an attempt to understand trends in the performance of the two individual models by stratifying by forecast date, location, and horizon. 
+The above figures describe an attempt to understand trends in the performance of the two individual models by stratifying by forecast date, location, and horizon.
 To extend this analysis, we will also perform a model-based evaluation in an attempt to account for the impact of different confounding variables on forecast performance, similar to the approach described in [@Sherratt2025].
 
 We will account for the following confounding variables that we expect to have an impact on forecast performance:
 - location
-- forecast date and location 
+- forecast date and location
 - horizon
 - epidemic phase
 - model
@@ -77,11 +77,11 @@ Resulting in the following model formulation:
 $$
 CRPS_{h,d,l,m} \sim \beta + s(location, bs = "re") + s(forecastdate, by = location) + s(horizon, k ) + s(epidemicphase, bs = "re") + s(model, bs = "re")
 $$
-Where $h$ is the forecast horizon (from 1 to 28 days), $d$ is the forecast date, $l$ is the location of the forecast (in this case which state), and $m$ is the model (either `ww+hosp` or `hosp_only`). 
-The goal of this analysis will be to estimate the effect of the model via the $s(model, bs = "re")$ term while taking into account the many additional confounding variables that contribute to forecast performance. 
+Where $h$ is the forecast horizon (from 1 to 28 days), $d$ is the forecast date, $l$ is the location of the forecast (in this case which state), and $m$ is the model (either `ww+hosp` or `hosp_only`).
+The goal of this analysis will be to estimate the effect of the model via the $s(model, bs = "re")$ term while taking into account the many additional confounding variables that contribute to forecast performance.
 
 ## Model-based evaluation: investigation into drivers of differences in forecast performance with and without wastewater
-We will then perform an exploratory analysis into the factors that may contribute to the relative performance of the "ww + hosp" model compared to the "hosp only" model, acknowledging that there are likely many additional confounding factors that we are likely not capturing in this analysis. 
+We will then perform an exploratory analysis into the factors that may contribute to the relative performance of the "ww + hosp" model compared to the "hosp only" model, acknowledging that there are likely many additional confounding factors that we are likely not capturing in this analysis.
 
 We will include the following variables with which we would like to understand their impact on relative forecast performance:
 - score of the `hosp_only` model (as an offset)
@@ -90,17 +90,15 @@ We will include the following variables with which we would like to understand t
 - average sampling frequency across sites
 - average latency from last collection date to the forecast date
 
-Resulting in the following model formulation: 
+Resulting in the following model formulation:
 $$
 CRPS^{ww+hosp}_{h,d,l} \sim \beta + CRPS^{hosponly}_{h,d,l}+ s(numberofsites, k ) + s(popcoverageww, k ) + s(avgfreqsampling, k) + s(avglatencyreporting,k)
 $$
-The idea behind this analysis will be that including the CRPS score for the `hosp_only` model as an offset accounts for the baseline "difficulty"in that particular location $l$, at forecast date $d$ and horizon $h$. 
-Each of the additional components has some (assumed to be non-linear) positive or negative impact on the relative forecast performance of the wastewater-informed model that we would like to estimate. 
+The idea behind this analysis will be that including the CRPS score for the `hosp_only` model as an offset accounts for the baseline "difficulty"in that particular location $l$, at forecast date $d$ and horizon $h$.
+Each of the additional components has some (assumed to be non-linear) positive or negative impact on the relative forecast performance of the wastewater-informed model that we would like to estimate.
 
-We will plot the partial effects as a function of the number of sites, population coverage of wastewater surveillance, the average sampling frequency in the wastewater data and the average latency in reporting of the wastewater data. 
+We will plot the partial effects as a function of the number of sites, population coverage of wastewater surveillance, the average sampling frequency in the wastewater data and the average latency in reporting of the wastewater data.
 
-The estimated $\beta$ reflects the adjusted additive impact of incorporating wastewater on forecast performance taking into account the other confounding variables. 
+The estimated $\beta$ reflects the adjusted additive impact of incorporating wastewater on forecast performance taking into account the other confounding variables.
 We will implement this using a linear-link function in the R package `brms`.
-These exploratory analyses will be used to generate hypotheses into the impact of the characteristics of wastewater surveillance system on the performance of the `wwinference` model. 
-
-
+These exploratory analyses will be used to generate hypotheses into the impact of the characteristics of wastewater surveillance system on the performance of the `wwinference` model.
