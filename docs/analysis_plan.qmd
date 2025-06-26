@@ -9,37 +9,44 @@ The goal of these analyses will be to assess:
 1. How does incorporating wastewater impact the forecast performance of a semi-mechanistic renewal model?
 3. How do characteristics of the wastewater surveillance system impact the relative forecast performance of the wastewater-informed model?
 
+# Methods
 
-# Data
+## Data
 
 This analysis will use publicly available data from RKI of COVID-19 hospital admissions at the state-level and wastewater concentration data at the site-level in Germany during the 2024-2025 respiratory virus season.
 We will use GitHub's commit history of both repositories to generate snapshots of each data source available as of each forecast date.
 Weekly snapshots of both datasets will be created every Monday from October 2024 to March 2025.
 
-## Hospital admissions data
+### Hospital admissions data
 
 Hospital admissions data are reported by age group and state as 7-day rolling sums.
 We will fit and generate forecasts for all age groups, at the state-level.
 We will take the difference between successive days to compute daily hospital admissions incidence as an input into the model.
+
+### Wastewater concentration data
+Data on wastewater concentrations of SARS-CoV-2 are available from individual wastewater treatment plants (will refer to these as sites), indexed by sample collection date.
+Each wastewater treatment plant is contained within a state, and contains the metadata on the catchment area (population size) served by the wastewater treatment plant.
+We will assume all individuals served by the wastewater treatment plant reside within the state.
+We will jointly fit to all wastewater treatment plants within a state.
+
+## Model specification
+
+We will use the following models to produce forecasts of hospital admissions for 28 days ahead of the forecast date
+- `wwinference` (ww + hosp): This model will jointly fit to the daily hospital admissions at the state-level and the wastewater concentration data from the treatment plants within the state.
+- `wwinference` (hosp only): This model will be fit only to the daily hospital admissions at the state-level
+
+
+## Model validation
+In the SI, we will compare performance of both these models to a baseline auto-ARIMA model fit only to the right-truncation corrected hospital admissions data.
+
+## Implementation
 
 ### Addressing right-truncation
 The hospital admissions data provided are indexed by the data of the positive test -- which is sometimes well before patients end up hospitalised, leading to a right-truncation problem described in [@Wolffram2023].
 
 We will address this by separately estimating a delay distribution for each region and forecast date using `baselinenowcast`, and modifying the `wwinference` model to account for right-truncated data via incorporating a reporting delay in the observation model.
 
-## Wastewater concentration data
-Data on wastewater concentrations of SARS-CoV-2 are available from individual wastewater treatment plants (will refer to these as sites), indexed by sample collection date.
-Each wastewater treatment plant is contained within a state, and contains the metadata on the catchment area (population size) served by the wastewater treatment plant.
-We will assume all individuals served by the wastewater treatment plant reside within the state.
-We will jointly fit to all wastewater treatment plants within a state.
-
-# Models
-- `wwinference` (ww + hosp): This model will jointly fit to the daily hospital admissions at the state-level and the wastewater concentration data from the treatment plants within the state.
-- `wwinference` (hosp only): This model will be fit only to the daily hospital admissions at the state-level
-
-In the SI, we will compare performance of both these models to a baseline auto-ARIMA model fit only to the right-truncation corrected hospital admissions data.
-
-# Forecasts
+### Forecast generation
 Forecasts will be generated from each of the models for all location-forecast dates where wastewater data is available.
 Forecasts will be generated at a daily temporal resolution, each week, for a 28 day horizon ahead of the forecast date, from October 2024 to March 2025.
 
@@ -80,7 +87,7 @@ $$
 Where $h$ is the forecast horizon (from 1 to 28 days), $d$ is the forecast date, $l$ is the location of the forecast (in this case which state), and $m$ is the model (either `ww+hosp` or `hosp_only`).
 The goal of this analysis will be to estimate the effect of the model via the $s(model, bs = "re")$ term while taking into account the many additional confounding variables that contribute to forecast performance.
 
-## Model-based evaluation: investigation into drivers of differences in forecast performance with and without wastewater
+### Model-based evaluation: investigation into drivers of differences in forecast performance with and without wastewater
 We will then perform an exploratory analysis into the factors that may contribute to the relative performance of the "ww + hosp" model compared to the "hosp only" model, acknowledging that there are likely many additional confounding factors that we are likely not capturing in this analysis.
 
 We will include the following variables with which we would like to understand their impact on relative forecast performance:
