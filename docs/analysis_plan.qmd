@@ -1,3 +1,7 @@
+---
+bibliography: references.bib
+---
+
 # Analysis plan
 
 This document describes the analysis plan to perform a retrospective evaluation of the impact of incorporating wastewater data on the forecast performance of a semi-mechanistic renewal-based model, specifically the model available in the [@wwinference] R package.
@@ -89,11 +93,9 @@ We will account for the following confounding variables that we expect to have a
 
 Resulting in the following model formulation:
 
-$$
-CRPS_{h,d,l,m} \sim \beta + s(location, bs = "re") + s(forecastdate, by = location) + s(horizon, k ) + s(epidemicphase, bs = "re") + s(model, bs = "re")
-$$
+`CRPS_{h,d,l,m} \sim \beta + s(location, bs = "re") + s(forecastdate, by = location) + s(horizon, k ) + s(epidemicphase, bs = "re") + s(model, bs = "re")`
 Where $h$ is the forecast horizon (from 1 to 28 days), $d$ is the forecast date, $l$ is the location of the forecast (in this case which state), and $m$ is the model (either `ww+hosp` or `hosp_only`).
-The goal of this analysis will be to estimate the effect of the model via the $s(model, bs = "re")$ term while taking into account the many additional confounding variables that contribute to forecast performance.
+The goal of this analysis will be to estimate the effect of the model via the `s(model, bs = "re")` term while taking into account the many additional confounding variables that contribute to forecast performance.
 
 ### Model-based evaluation: investigation into drivers of differences in forecast performance with and without wastewater
 We will then perform an exploratory analysis into the factors that may contribute to the relative performance of the "ww + hosp" model compared to the "hosp only" model, acknowledging that there are likely many additional confounding factors that we are likely not capturing in this analysis.
@@ -106,9 +108,7 @@ We will include the following variables with which we would like to understand t
 - average latency from last collection date to the forecast date
 
 Resulting in the following model formulation:
-$$
-CRPS^{ww+hosp}_{h,d,l} \sim \beta + CRPS^{hosponly}_{h,d,l}+ s(numberofsites, k ) + s(popcoverageww, k ) + s(avgfreqsampling, k) + s(avglatencyreporting,k)
-$$
+`CRPS^{ww+hosp}_{h,d,l} \sim \beta + CRPS^{hosponly}_{h,d,l}+ s(numberofsites, k ) + s(popcoverageww, k ) + s(avgfreqsampling, k) + s(avglatencyreporting,k)`
 The idea behind this analysis will be that including the CRPS score for the `hosp_only` model as an offset accounts for the baseline "difficulty"in that particular location $l$, at forecast date $d$ and horizon $h$.
 Each of the additional components has some (assumed to be non-linear) positive or negative impact on the relative forecast performance of the wastewater-informed model that we would like to estimate.
 
