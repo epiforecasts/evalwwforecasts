@@ -50,8 +50,7 @@ The hospital admissions data provided are indexed by the data of the positive te
 
 We will address this in two ways:
 
-1. By using the vitnaged hospitalization datasets and separately estimating a delay PMF for each region and forecast date using `baselinenowcast`, and modifying the `wwinference` model to account for right-truncated data via incorporating a reporting delay in the observation model.
-We note that this is the same approach taken in the `EpiNow2` R package, which allows users to pass in a separaely estimated delay PMF.
+1. By using the vitnaged hospitalization datasets and separately estimating a delay PMF for each region and forecast date using `baselinenowcast`, and modifying the `wwinference` model to account for right-truncated data via incorporating a reporting delay in the observation model. We note that this is the same approach taken in the `EpiNow2` R package, which allows users to pass in a separately estimated delay PMF.
 2. As a supplemental analysis, we will also fit to reconstructed "final" datasets in which we impose any real-time reporting lags to only include days of data that would have been available as of the forecast date, but which are not right-truncated (as by this time they have been considered complete).
 ### Forecast generation
 Forecasts will be generated from each of the models for all location-forecast dates where wastewater data is available.
