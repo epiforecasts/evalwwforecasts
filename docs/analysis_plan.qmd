@@ -15,14 +15,16 @@ Forecasts of COVID-19 hospital admissions will be generated weekly and evaluated
 ## Aims
 
 The goal of these analyses will be to assess:
+
 1. How does incorporating wastewater impact the forecast performance of a semi-mechanistic renewal model?
-3. How do characteristics of the wastewater surveillance system impact the relative forecast performance of the wastewater-informed model?
+
+1. How do characteristics of the wastewater surveillance system impact the relative forecast performance of the wastewater-informed model?
 
 # Methods
 
 ## Data
 
-This analysis will use publicly available data from RKI of COVID-19 hospital admissions at the state-level and wastewater concentration data at the site-level in Germany during the 2024-2025 respiratory virus season.
+This analysis will use publicly available data from RKI of [COVID-19 hospital admissions at the state-level](https://github.com/robert-koch-institut/COVID-19-Hospitalisierungen_in_Deutschland/) and [wastewater concentration data](https://github.com/robert-koch-institut/Abwassersurveillance_AMELAG) at the site-level in Germany during the 2024-2025 respiratory virus season.
 We will use GitHub's commit history of both repositories to generate snapshots of each data source available as of each forecast date.
 Weekly snapshots of both datasets will be created every Monday from October 2024 to March 2025.
 
@@ -40,9 +42,11 @@ We will jointly fit to all wastewater treatment plants within a state.
 
 ## Model specification
 
-We will use the following models to produce forecasts of hospital admissions for 28 days ahead of the forecast date
-- `wwinference` (`ww + hosp`): This model will jointly fit to the daily hospital admissions at the state-level and the wastewater concentration data from the treatment plants within the state.
-- `wwinference` (`hosp only`): This model will be fit only to the daily hospital admissions at the state-level
+We will use the following models, implemented via the [R package](https://github.com/CDCgov/ww-inference-model) `wwinference`, to produce forecasts of hospital admissions for 28 days ahead of the forecast date:
+
+1. `wwinference` (`ww + hosp`): This model will jointly fit to the daily hospital admissions at the state-level and the wastewater concentration data from the treatment plants within the state.
+
+2. `wwinference` (`hosp only`): This model will be fit only to the daily hospital admissions at the state-level
 
 
 ## Model validation
@@ -55,7 +59,7 @@ The hospital admissions data provided are indexed by the data of the positive te
 
 We will address this in two ways:
 
-1. By using the vintaged hospitalization datasets and separately estimating a delay PMF for each region and forecast date using `baselinenowcast`, and modifying the `wwinference` model to account for right-truncated data via incorporating a reporting delay in the observation model. We note that this is one optional approach for handling right-truncation in the `EpiNow2` R package, which allows users to pass in a separately estimated delay PMF.
+1. By using the vintaged hospitalization datasets and separately estimating a delay PMF for each region and forecast date using the [R package](https://github.com/epinowcast/baselinenowcast) `baselinenowcast`, and modifying the `wwinference` model to account for right-truncated data via incorporating a reporting delay in the observation model. We note that this is one optional approach for handling right-truncation in the `EpiNow2` [R package](https://github.com/epiforecasts/EpiNow2), which allows users to pass in a separately estimated delay PMF.
 
 2. As a supplemental analysis, we will also fit to reconstructed "final" datasets in which we impose any real-time reporting lags to only include days of data that would have been available as of the forecast date, but which are not right-truncated (as by this time they have been considered complete).
 ### Forecast generation
@@ -104,9 +108,9 @@ We will include the following variables with which we would like to understand t
 
 Resulting in the following model formulation:
 
-`CRPS^{ww+hosp}_{h,d,l} \sim \beta + CRPS^{hosponly}_{h,d,l}+ s(numberofsites, k ) + s(popcoverageww, k ) + s(avgfreqsampling, k) + s(avglatencyreporting,k)`
+`CRPS^{ww+hosp}_{h,d,l} ~ \beta + CRPS^{hosponly}_{h,d,l}+ s(numberofsites, k ) + s(popcoverageww, k ) + s(avgfreqsampling, k) + s(avglatencyreporting,k)`
 
-The idea behind this analysis will be that including the CRPS score for the `hosp only` model as an offset accounts for the baseline "difficulty"in that particular location $l$, at forecast date $d$ and horizon $h$.
+The idea behind this analysis will be that including the CRPS score for the `hosp only` model as an offset accounts for the baseline "difficulty" in that particular location $l$, at forecast date $d$ and horizon $h$.
 Each of the additional components has some (assumed to be non-linear) positive or negative impact on the relative forecast performance of the wastewater-informed model that we would like to estimate.
 
 We will plot the partial effects as a function of the number of sites, population coverage of wastewater surveillance, the average sampling frequency in the wastewater data and the average latency in reporting of the wastewater data.
