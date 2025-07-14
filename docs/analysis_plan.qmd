@@ -10,7 +10,7 @@ date: 2025-07-03
 # Introduction
 
 This document describes the analysis plan to perform a retrospective evaluation of the impact of incorporating wastewater data on the forecast performance of a semi-mechanistic renewal-based model, specifically the model available in the [@wwinference] R package.
-Forecasts of COVID-19 hospital admissions will be generated weekly and evaluated against the final observed hospital admissions data, across all age groups in Germany during the 2024-2025 respiratory virus season.
+Forecasts of COVID-19 hospital admissions will be generated weekly and evaluated against the final observed hospital admissions data, summed across all age groups in Germany during the 2024-2025 respiratory virus season.
 
 ## Aims
 
@@ -31,7 +31,7 @@ Weekly snapshots of both datasets will be created every Monday from October 2024
 ### Hospital admissions data
 
 Hospital admissions data are reported by age group and state as 7-day rolling sums.
-We will fit and generate forecasts for all age groups, at the state-level.
+We will fit and generate forecasts for the number of admissions summed across all age groups, at the state-level.
 We will take the difference between successive days to compute daily hospital admissions incidence as an input into the model.
 
 ### Wastewater concentration data
