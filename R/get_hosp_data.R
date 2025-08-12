@@ -11,6 +11,7 @@
 #'    hospital admissions calibration data to extract. Default is `100`.
 #' @param lag Integer indicating the number of days from the forecast date of
 #'    the latest hospital admission. Default is `3`.
+#' @autoglobal
 get_hosp_data <- function(location_name,
                           location_abbr,
                           forecast_date,

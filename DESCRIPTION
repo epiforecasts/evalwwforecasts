@@ -36,9 +36,12 @@ Suggests:
     testthat (>= 3.1.9),
     usethis,
     withr,
-    knitr
+    knitr,
+    roxyglobals
 Encoding: UTF-8
-Roxygen: list(markdown = TRUE)
+Language: en-GB
+Roxygen: list(markdown = TRUE, roclets = c("collate", "namespace", "rd",
+    "roxyglobals::global_roclet"))
 RoxygenNote: 7.3.2
 VignetteBuilder: knitr
 Remotes:
