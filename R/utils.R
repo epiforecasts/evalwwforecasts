@@ -15,12 +15,13 @@ quiet <- function(code) {
 #' @param df dataframe to save
 #' @param filename name of dataframe
 #' @param path directory to save file in
+#' @importFrom readr write_csv
 #' @export
 save_csv <- function(df, filename, path, allow_empty = TRUE) {
   dir.create(path, recursive = TRUE, showWarnings = FALSE)
   path <- file.path(path, filename)
 
-  if (allow_empty | nrow(df) > 0) {
+  if (allow_empty || nrow(df) > 0) {
     write_csv(df, path)
   }
   return(path)

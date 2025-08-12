@@ -2,3 +2,10 @@
 
 export(quiet)
 export(save_csv)
+importFrom(dplyr,filter)
+importFrom(dplyr,mutate)
+importFrom(dplyr,rename)
+importFrom(lubridate,days)
+importFrom(lubridate,ymd)
+importFrom(readr,read_csv)
+importFrom(readr,write_csv)

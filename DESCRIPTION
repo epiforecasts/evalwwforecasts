@@ -26,6 +26,7 @@ Depends:
 Imports:
   cli,
   dplyr,
+  readr,
   ggplot2,
   wwinference
 Suggests:
@@ -37,6 +38,7 @@ Suggests:
     usethis,
     withr,
     knitr,
+    tidyr,
     roxyglobals
 Encoding: UTF-8
 Language: en-GB

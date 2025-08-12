@@ -12,6 +12,9 @@
 #' @param lag Integer indicating the number of days from the forecast date of
 #'    the latest hospital admission. Default is `3`.
 #' @autoglobal
+#' @importFrom dplyr rename mutate filter
+#' @importFrom readr read_csv
+#' @importFrom lubridate ymd days
 get_hosp_data <- function(location_name,
                           location_abbr,
                           forecast_date,
@@ -19,7 +22,7 @@ get_hosp_data <- function(location_name,
                           calibration_period = 100,
                           lag = 3) {
   if (isFALSE(right_trunc)) {
-    RKI_hosp_adj <- readr::read_csv("https://raw.githubusercontent.com/robert-koch-institut/COVID-19-Hospitalisierungen_in_Deutschland/refs/heads/main/Aktuell_Deutschland_adjustierte-COVID-19-Hospitalisierungen.csv")
+    RKI_hosp_adj <- read_csv("https://raw.githubusercontent.com/robert-koch-institut/COVID-19-Hospitalisierungen_in_Deutschland/refs/heads/main/Aktuell_Deutschland_adjustierte-COVID-19-Hospitalisierungen.csv") # nolint
 
     hosp_clean <- RKI_hosp_adj |>
       rename(
@@ -37,6 +40,7 @@ get_hosp_data <- function(location_name,
       mutate(state_abbr = location_abbr)
   } else {
     # Insert function to use git history to get the data as of the forecast date
+    hosp_clean <- NULL
   }
 
   return(hosp_clean)
