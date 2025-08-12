@@ -15,6 +15,8 @@ quiet <- function(code) {
 #' @param df dataframe to save
 #' @param filename name of dataframe
 #' @param path directory to save file in
+#' @param allow_empty Boolean indicating whether to save if df is empty,
+#'    Default is `TRUE`.
 #' @importFrom readr write_csv
 #' @export
 save_csv <- function(df, filename, path, allow_empty = TRUE) {

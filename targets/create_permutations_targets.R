@@ -9,7 +9,7 @@ create_permutations_targets <- list(
   tar_file(
     name = save_locations,
     command = save_csv(locations, "locations.csv",
-      path = "data/meta"
+      path = "metadata/meta"
     )
   ),
   tar_target(
@@ -21,7 +21,7 @@ create_permutations_targets <- list(
   tar_file(
     name = save_forecast_dates,
     command = save_csv(forecast_dates, "forecast_dates.csv",
-      path = "data/meta"
+      path = "metadata/meta"
     )
   ),
   tar_target(
@@ -33,7 +33,7 @@ create_permutations_targets <- list(
   tar_file(
     name = save_models,
     command = save_csv(models, "models.csv",
-      path = "data/meta"
+      path = "metadata/meta"
     )
   ),
   tar_target(
@@ -45,7 +45,7 @@ create_permutations_targets <- list(
   tar_file(
     name = save_ww,
     command = save_csv(ww, "ww.csv",
-      path = "data/meta"
+      path = "metadata/meta"
     )
   ),
   tar_target(
@@ -57,7 +57,7 @@ create_permutations_targets <- list(
   tar_file(
     name = save_right_trunc,
     command = save_csv(right_trunc, "right_trunc.csv",
-      path = "data/meta"
+      path = "metadata/meta"
     )
   ),
   tar_group_by(

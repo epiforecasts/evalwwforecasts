@@ -12,6 +12,9 @@ save_csv(df, filename, path, allow_empty = TRUE)
 \item{filename}{name of dataframe}
 
 \item{path}{directory to save file in}
+
+\item{allow_empty}{Boolean indicating whether to save if df is empty,
+Default is \code{TRUE}.}
 }
 \description{
 Save a dataframe to a csv and return the path for targets
