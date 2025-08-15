@@ -1,4 +1,90 @@
 fit_model_targets <- list(
+   # Pull in parameters from the package
+  tar_target(
+    name = params,
+    command = get_params(
+      system.file("extdata", "example_params.toml",
+                  package = "wwinference"
+      )
+    )
+  ),
+  tar_target(
+    name = ww_data_preprocessed,
+    command = wwinference::preprocess_ww_data(
+      ww_data,
+      conc_col_name = "log_genome_copies_per_ml",
+      lod_col_name = "log_lod"
+    ),
+    pattern = map(ww_data, scenarios)
+  ),
+  tar_target(
+    name = hosp_data_preprocessed,
+    command = wwinference::preprocess_count_data(
+    hosp_data,
+    count_col_name = "daily_hosp_admits",
+    pop_size_col_name = "state_pop"
+  ),
+  pattern = map(hosp_data, scenarios)
+  ),
+  tar_target(
+    name = ww_data_to_fit,
+    command = indicate_ww_exclusions(
+    ww_data_preprocessed,
+    outlier_col_name = "flag_as_ww_outlier",
+    remove_outliers = TRUE
+  ),
+  pattern = map(ww_data_preprocessed, scenarios)
+  ),
+
+  # Model targets (the same for all model runs)
+  tar_target(name = generation_interval,
+             command = wwinference::default_covid_gi),
+  tar_target(name = inf_to_hosp,
+             command = wwinference::default_covid_inf_to_hosp),
+  tar_target(name = infection_feedback_pmf,
+             command = generation_interval),
+   # Check to make sure a compiled model can be a target. Look at old
+    # code. Otherwise we can do within a wrapper function
+  tar_target(name = compiled_model,
+             command = wwinference::compile_model()),
+
+  # Fit the model to each set of hosp and ww data for each permutation
+  tar_target(
+    name = ww_fit_obj,
+    command =  wwinference(
+      # if no ww, pass in NULL
+    ww_data = ifelse(scenarios$ww, ww_data_to_fit, NULL),
+    count_data = hosp_data_preprocessed,
+    forecast_date = scenarios$forecast_date,
+    calibration_time = 100,
+    forecast_horizon = 28,
+    model_spec = get_model_spec(
+      generation_interval = generation_interval,
+      inf_to_count_delay = inf_to_hosp,
+      infection_feedback_pmf = infection_feedback_pmf,
+      params = params,
+      include_ww = ifelse(scenarios$ww, TRUE, FALSE)
+    ),
+    fit_opts = list(seed = 123),
+    compiled_model = model
+  ),
+  format = "rds",
+  pattern = map(ww_data_to_fit, hosp_data_preprocessed, scenarios)
+  ),
+  tar_target(
+    name = hosp_draws,
+    command = get_draws(ww_fit_obj, what = "predicted_counts")$predicted_counts,
+    pattern = map(ww_fit_obj, scenarios)
+  ),
+  tar_target(
+    name = plot_hosp,
+    command = get_plot_forecasted_counts(
+      draws = hosp_draws,
+      forecast_date = scenario$forecast_date
+  ),
+  pattern = map(hosp_draws, scenarios)
+  ),
+
   # Here I am just checking that the mapping works as expected -- that only
   # the hospital admissions from a specific location and forecast date are being
   # used (verifying just from looking at the plot)
@@ -7,6 +93,7 @@ fit_model_targets <- list(
     command = hosp_data |> ggplot() +
       geom_line(aes(x = date, y = actual_hosp_7d_count)),
     pattern = map(hosp_data, scenarios),
-    format = "rds"
+    format = "rds",
+    iteration = "list"
   )
 )
