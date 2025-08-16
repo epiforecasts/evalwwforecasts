@@ -78,7 +78,7 @@ fit_model_targets <- list(
     name = ww_fit_obj,
     command = wwinference(
       # if no ww, pass in NULL
-      ww_data = ww_data_to_fit, # ifelse(scenarios$include_ww, ww_data_to_fit, NULL),
+      ww_data = ww_data_to_fit,
       count_data = hosp_data_preprocessed,
       forecast_date = scenarios$forecast_date,
       calibration_time = 90,

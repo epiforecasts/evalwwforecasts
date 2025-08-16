@@ -6,7 +6,11 @@ utils::globalVariables(c(
   "Altersgruppe", # <get_hosp_data>
   "fixierte_7T_Hospitalisierung_Faelle", # <get_hosp_data>
   "aktualisierte_7T_Hospitalisierung_Faelle", # <get_hosp_data>
+  "Bevoelkerung", # <get_hosp_data>
   "state", # <get_hosp_data>
+  "adj_hosp_7d_count", # <get_hosp_data>
+  "daily_hosp_admits", # <get_hosp_data>
+  "state_pop", # <get_hosp_data>
   "location", # <get_ww_data>
   "state", # <get_ww_data>
   "conc", # <get_ww_data>
