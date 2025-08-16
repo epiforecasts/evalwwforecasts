@@ -34,8 +34,8 @@ get_ww_data <- function(location_name,
     ) |>
     filter(
       state == location_abbr,
-      date >= ymd(forecast_date - days(calibration_period)),
-      date <= ymd(forecast_date - days(lag)),
+      date >= ymd(forecast_date) - days(calibration_period),
+      date <= ymd(forecast_date) - days(lag),
       pathogen == "SARS-CoV-2"
     ) |>
     mutate(
