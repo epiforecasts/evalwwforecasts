@@ -52,8 +52,25 @@ fit_model_targets <- list(
   # Check to make sure a compiled model can be a target. Look at old
   # code. Otherwise we can do within a wrapper function
   tar_target(
+    name = compiled_model_file,
+    # This is a cmdstanr object so cant pass as a parquet
+    command = {
+      model_dir <- "compiled_models"
+      dir.create(model_dir, showWarnings = FALSE, recursive = TRUE)
+
+      model <- wwinference::compile_model(target_dir = model_dir)
+
+      # Save the model object to an RDS file
+      model_path <- file.path(model_dir, "compiled_model.rds")
+      saveRDS(model, model_path)
+
+      return(model_path)
+    },
+    format = "file"
+  ),
+  tar_target(
     name = compiled_model,
-    command = wwinference::compile_model()
+    command = readRDS(compiled_model_file)
   ),
 
   # Fit the model to each set of hosp and ww data for each permutation
@@ -61,10 +78,10 @@ fit_model_targets <- list(
     name = ww_fit_obj,
     command = wwinference(
       # if no ww, pass in NULL
-      ww_data = ifelse(scenarios$include_ww, ww_data_to_fit, NULL),
+      ww_data = ww_data_to_fit, # ifelse(scenarios$include_ww, ww_data_to_fit, NULL),
       count_data = hosp_data_preprocessed,
       forecast_date = scenarios$forecast_date,
-      calibration_time = 100,
+      calibration_time = 90,
       forecast_horizon = 28,
       model_spec = get_model_spec(
         generation_interval = generation_interval,
@@ -74,7 +91,7 @@ fit_model_targets <- list(
         include_ww = scenarios$include_ww
       ),
       fit_opts = list(seed = 123),
-      compiled_model = model
+      compiled_model = compiled_model
     ),
     format = "rds",
     pattern = map(ww_data_to_fit, hosp_data_preprocessed, scenarios)
