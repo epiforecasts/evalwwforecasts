@@ -103,10 +103,13 @@ fit_model_targets <- list(
   ),
   tar_target(
     name = plot_hosp_draws,
-    command = get_plot_forecasted_counts(
-      draws = hosp_draws,
-      forecast_date = scenario$forecast_date
-    ),
+    command = {
+      get_plot_forecasted_counts(
+        draws = hosp_draws,
+        forecast_date = scenarios$forecast_date
+      ) +
+        ggtitle(glue("{scenarios$location_name}, wastewater: {scenarios$include_ww}"))
+    }, # nolint
     pattern = map(hosp_draws, scenarios)
   ),
 
