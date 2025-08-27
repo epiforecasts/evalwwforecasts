@@ -23,7 +23,7 @@ get_ww_data <- function(location_name,
       conc = "viruslast",
       pop_cov = "einwohner",
       change_in_lab_indicator = "laborwechsel",
-      normalized = "normalisierung",
+      normalized = "viruslast_normalisiert",
       pathogen = "typ",
       below_LOD = "unter_bg"
     ) |>
