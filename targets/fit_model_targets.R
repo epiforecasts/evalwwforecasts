@@ -90,7 +90,11 @@ fit_model_targets <- list(
         params = params,
         include_ww = scenarios$include_ww
       ),
-      fit_opts = list(seed = 123),
+      fit_opts = list(
+        seed = 123,
+        iter_sampling = 250,
+        iter_warmup = 250
+      ),
       compiled_model = compiled_model
     ),
     format = "rds",
@@ -110,7 +114,9 @@ fit_model_targets <- list(
       ) +
         ggtitle(glue("{scenarios$location_name}, wastewater: {scenarios$include_ww}"))
     }, # nolint
-    pattern = map(hosp_draws, scenarios)
+    pattern = map(hosp_draws, scenarios),
+    format = "rds",
+    iteration = "list"
   ),
 
   # Here I am just checking that the mapping works as expected -- that only
@@ -119,7 +125,7 @@ fit_model_targets <- list(
   tar_target(
     name = plot_hosp,
     command = hosp_data |> ggplot() +
-      geom_line(aes(x = date, y = actual_hosp_7d_count)),
+      geom_line(aes(x = date, y = daily_hosp_admits)),
     pattern = map(hosp_data, scenarios),
     format = "rds",
     iteration = "list"
