@@ -40,7 +40,7 @@ get_hosp_data <- function(location_name,
         date <= ymd(forecast_date) - days(lag),
         state == location_name
       ) |>
-      mutate(state_abbr = location_abbr, daily_hosp_admits = round(adj_hosp_7d_count / 7)) |> # hack for now
+      mutate(state_abbr = location_abbr, daily_hosp_admits = round(adj_hosp_7d_count / 7)) |> # nolint hack for now
       select(
         date, daily_hosp_admits, state_pop, actual_hosp_7d_count,
         adj_hosp_7d_count
