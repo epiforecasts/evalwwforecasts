@@ -98,7 +98,8 @@ fit_model_targets <- list(
       compiled_model = compiled_model
     ),
     format = "rds",
-    pattern = map(ww_data_to_fit, hosp_data_preprocessed, scenarios)
+    pattern = map(ww_data_to_fit, hosp_data_preprocessed, scenarios),
+    iteration = "list"
   ),
   tar_target(
     name = hosp_draws,
@@ -124,7 +125,9 @@ fit_model_targets <- list(
   # used (verifying just from looking at the plot)
   tar_target(
     name = plot_hosp,
-    command = hosp_data |> ggplot() +
+    command = hosp_data |> 
+      mutate(date=as.Date(date)) |>
+      ggplot() +
       geom_line(aes(x = date, y = daily_hosp_admits)),
     pattern = map(hosp_data, scenarios),
     format = "rds",
