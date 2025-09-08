@@ -41,7 +41,7 @@ get_hosp_data <- function(location_name,
         state == location_name
       ) |>
       mutate(state_abbr = location_abbr) |>
-      rename(daily_hosp_admits = adj_hosp_7d_count / 7) |> # hack for now
+      mutate(daily_hosp_admits = adj_hosp_7d_count / 7) |> # hack for now
       select(
         date, daily_hosp_admits, state_pop, actual_hosp_7d_count,
         adj_hosp_7d_count
