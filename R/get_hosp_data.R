@@ -14,6 +14,7 @@
 #'    the latest hospital admission. Default is `3`.
 #' @autoglobal
 #' @importFrom dplyr rename mutate filter
+#' @importFrom fs dir_create
 #' @importFrom readr read_csv
 #' @importFrom lubridate ymd days
 get_hosp_data <- function(location_name,
@@ -28,7 +29,7 @@ get_hosp_data <- function(location_name,
       RKI_hosp_adj <- read_csv(file.path(filepath_name, "RKI_hosp_adj.csv"))
     } else {
       RKI_hosp_adj <- read_tsv("https://raw.githubusercontent.com/robert-koch-institut/Abwassersurveillance_AMELAG/refs/heads/main/amelag_einzelstandorte.tsv") # nolint
-      fs::dir_create(filepath_name)
+      dir_create(filepath_name)
       write_csv(RKI_hosp_adj, file.path(filepath_name, "RKI_hosp_adj.csv"))
     }
 

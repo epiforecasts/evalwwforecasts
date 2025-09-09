@@ -5,6 +5,7 @@
 #' @inheritParams get_hosp_data
 #' @param filepath_name Name of directory to save the raw input wastewater data.
 #' @importFrom dplyr mutate filter select rename
+#' @importFrom fs dir_create
 #' @importFrom readr read_tsv read_csv write_csv
 #' @autoglobal
 get_ww_data <- function(location_name,
@@ -19,7 +20,7 @@ get_ww_data <- function(location_name,
     RKI_ww_sites <- read_csv(file.path(filepath_name, "RKI_ww_sites.csv"))
   } else {
     RKI_ww_sites <- read_tsv("https://raw.githubusercontent.com/robert-koch-institut/Abwassersurveillance_AMELAG/refs/heads/main/amelag_einzelstandorte.tsv") # nolint
-    fs::dir_create(filepath_name)
+    dir_create(filepath_name)
     write_csv(RKI_ww_sites, file.path(filepath_name, "RKI_ww_sites.csv"))
   }
 
