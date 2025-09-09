@@ -6,6 +6,24 @@ utils::globalVariables(c(
   "Altersgruppe", # <get_hosp_data>
   "fixierte_7T_Hospitalisierung_Faelle", # <get_hosp_data>
   "aktualisierte_7T_Hospitalisierung_Faelle", # <get_hosp_data>
+  "Bevoelkerung", # <get_hosp_data>
   "state", # <get_hosp_data>
+  "adj_hosp_7d_count", # <get_hosp_data>
+  "daily_hosp_admits", # <get_hosp_data>
+  "state_pop", # <get_hosp_data>
+  "actual_hosp_7d_count", # <get_hosp_data>
+  "location", # <get_ww_data>
+  "state", # <get_ww_data>
+  "conc", # <get_ww_data>
+  "pop_cov", # <get_ww_data>
+  "change_in_lab_indicator", # <get_ww_data>
+  "normalized", # <get_ww_data>
+  "pathogen", # <get_ww_data>
+  "below_LOD", # <get_ww_data>
+  "site", # <get_ww_data>
+  "lab", # <get_ww_data>
+  "log_genome_copies_per_ml", # <get_ww_data>
+  "log_lod", # <get_ww_data>
+  "site_pop", # <get_ww_data>
   NULL
 ))

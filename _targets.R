@@ -13,6 +13,7 @@ library(here)
 library(purrr)
 library(lubridate)
 library(tidyr)
+library(glue)
 # load functions
 functions <- list.files(here("R"), full.names = TRUE)
 walk(functions, source)
@@ -30,7 +31,8 @@ tar_option_set(
     "ggplot2",
     "readr",
     "lubridate",
-    "tidyr"
+    "tidyr",
+    "glue"
   ),
   workspace_on_error = TRUE,
   storage = "worker",

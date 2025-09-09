@@ -29,7 +29,8 @@ Imports:
   readr,
   ggplot2,
   wwinference,
-  lubridate
+  lubridate,
+  fs
 Suggests:
     bookdown,
     targets,
