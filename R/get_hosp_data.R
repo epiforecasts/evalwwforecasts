@@ -22,8 +22,14 @@ get_hosp_data <- function(location_name,
                           calibration_period = 100,
                           lag = 3) {
   if (isFALSE(right_trunc)) {
-    RKI_hosp_adj <- read_csv("https://raw.githubusercontent.com/robert-koch-institut/COVID-19-Hospitalisierungen_in_Deutschland/refs/heads/main/Aktuell_Deutschland_adjustierte-COVID-19-Hospitalisierungen.csv") # nolint
-
+    
+    RKI_hosp_adj <- here::here("inst", "RKI_hosp_adj.rds")
+    
+    if (!file.exists(RKI_hosp_adj)) {
+      RKI_hosp_adj <- read_csv("https://raw.githubusercontent.com/robert-koch-institut/COVID-19-Hospitalisierungen_in_Deutschland/refs/heads/main/Aktuell_Deutschland_adjustierte-COVID-19-Hospitalisierungen.csv") # nolint
+      saveRDS(RKI_hosp_adj, here::here("inst", "RKI_hosp_adj.rds"))
+      }
+    
     hosp_clean <- RKI_hosp_adj |>
       rename(
         date = Datum,

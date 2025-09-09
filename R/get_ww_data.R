@@ -13,7 +13,14 @@ get_ww_data <- function(location_name,
                         lag = 3) {
   # For now, just pull the latest and filter to lag days before the forecast
   # date
-  RKI_ww_sites <- read_tsv("https://raw.githubusercontent.com/robert-koch-institut/Abwassersurveillance_AMELAG/refs/heads/main/amelag_einzelstandorte.tsv") # nolint)
+  
+  RKI_ww_sites <- here::here("inst", "RKI_ww_sites.rds")
+  
+  if (!file.exists(RKI_hosp_adj)) {
+    RKI_ww_sites <- read_tsv("https://raw.githubusercontent.com/robert-koch-institut/Abwassersurveillance_AMELAG/refs/heads/main/amelag_einzelstandorte.tsv") # nolint
+    saveRDS(RKI_ww_sites, here::here("inst", "RKI_ww_sites.rds"))
+  }
+
 
   ww_clean <- RKI_ww_sites |>
     rename(
