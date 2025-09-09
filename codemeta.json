@@ -250,9 +250,21 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=lubridate"
     },
+    "8": {
+      "@type": "SoftwareApplication",
+      "identifier": "fs",
+      "name": "fs",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=fs"
+    },
     "SystemRequirements": null
   },
-  "fileSize": "13.09KB",
+  "fileSize": "22.008KB",
   "releaseNotes": "https://github.com/epiforecasts/evalwwforecasts/blob/main/NEWS.md",
   "readme": "https://github.com/epiforecasts/evalwwforecasts/blob/main/README.md"
 }
