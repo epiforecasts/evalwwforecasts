@@ -1,5 +1,6 @@
 *.xlsx
 output
+input
 *.rds
 inst/doc
 *.tex

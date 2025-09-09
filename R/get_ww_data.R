@@ -3,22 +3,24 @@
 #' most recent dates
 #'
 #' @inheritParams get_hosp_data
+#' @param filepath_name Name of directory to save the raw input wastewater data.
 #' @importFrom dplyr mutate filter select rename
-#' @importFrom readr read_tsv
+#' @importFrom readr read_tsv read_csv write_csv
 #' @autoglobal
 get_ww_data <- function(location_name,
                         location_abbr,
                         forecast_date,
+                        filepath_name = file.path("input", "data", "ww"),
                         calibration_period = 100,
                         lag = 3) {
   # For now, just pull the latest and filter to lag days before the forecast
   # date
-  
-  RKI_ww_sites <- here::here("inst", "RKI_ww_sites.rds")
-  
-  if (!file.exists(RKI_ww_sites)) {
-    RKI_ww_sites <- read_csv("https://raw.githubusercontent.com/robert-koch-institut/Abwassersurveillance_AMELAG/refs/heads/main/amelag_einzelstandorte.tsv") # nolint
-    saveRDS(RKI_ww_sites, here::here("inst", "RKI_ww_sites.rds"))
+  if (file.exists(file.path(filepath_name, "RKI_ww_sites.csv"))) {
+    RKI_ww_sites <- read_csv(file.path(filepath_name, "RKI_ww_sites.csv"))
+  } else {
+    RKI_ww_sites <- read_tsv("https://raw.githubusercontent.com/robert-koch-institut/Abwassersurveillance_AMELAG/refs/heads/main/amelag_einzelstandorte.tsv") # nolint
+    fs::dir_create(filepath_name)
+    write_csv(RKI_ww_sites, file.path(filepath_name, "RKI_ww_sites.csv"))
   }
 
 

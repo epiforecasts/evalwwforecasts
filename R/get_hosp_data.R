@@ -4,6 +4,7 @@
 #' @param location_abbr Character string indicating abbreviation of state
 #' @param forecast_date Character string or date indicating the date of
 #'    forecast in YYYY-MM-DD
+#' @param filepath_name Name of directory to save the raw input wastewater data.
 #' @param right_trunc Boolean indicating whether to use the real-time, right
 #'    truncated data or the final corrected data. Default is `FALSE` indicating
 #'    we will just use the corrected data.
@@ -18,18 +19,19 @@
 get_hosp_data <- function(location_name,
                           location_abbr,
                           forecast_date,
+                          filepath_name = file.path("input", "data", "hosp"),
                           right_trunc = FALSE,
                           calibration_period = 100,
                           lag = 3) {
   if (isFALSE(right_trunc)) {
-    
-    RKI_hosp_adj <- here::here("inst", "RKI_hosp_adj.rds")
-    
-    if (!file.exists(RKI_hosp_adj)) {
-      RKI_hosp_adj <- read_csv("https://raw.githubusercontent.com/robert-koch-institut/COVID-19-Hospitalisierungen_in_Deutschland/refs/heads/main/Aktuell_Deutschland_adjustierte-COVID-19-Hospitalisierungen.csv") # nolint
-      saveRDS(RKI_hosp_adj, here::here("inst", "RKI_hosp_adj.rds"))
-      }
-    
+    if (file.exists(file.path(filepath_name, "RKI_hosp_adj.csv"))) {
+      RKI_hosp_adj <- read_csv(file.path(filepath_name, "RKI_hosp_adj.csv"))
+    } else {
+      RKI_hosp_adj <- read_tsv("https://raw.githubusercontent.com/robert-koch-institut/Abwassersurveillance_AMELAG/refs/heads/main/amelag_einzelstandorte.tsv") # nolint
+      fs::dir_create(filepath_name)
+      write_csv(RKI_hosp_adj, file.path(filepath_name, "RKI_hosp_adj.csv"))
+    }
+
     hosp_clean <- RKI_hosp_adj |>
       rename(
         date = Datum,

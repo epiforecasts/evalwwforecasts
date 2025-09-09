@@ -8,6 +8,7 @@ get_hosp_data(
   location_name,
   location_abbr,
   forecast_date,
+  filepath_name = file.path("input", "data", "hosp"),
   right_trunc = FALSE,
   calibration_period = 100,
   lag = 3
@@ -20,6 +21,8 @@ get_hosp_data(
 
 \item{forecast_date}{Character string or date indicating the date of
 forecast in YYYY-MM-DD}
+
+\item{filepath_name}{Name of directory to save the raw input wastewater data.}
 
 \item{right_trunc}{Boolean indicating whether to use the real-time, right
 truncated data or the final corrected data. Default is \code{FALSE} indicating
