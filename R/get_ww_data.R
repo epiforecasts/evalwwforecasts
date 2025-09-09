@@ -16,8 +16,8 @@ get_ww_data <- function(location_name,
   
   RKI_ww_sites <- here::here("inst", "RKI_ww_sites.rds")
   
-  if (!file.exists(RKI_hosp_adj)) {
-    RKI_ww_sites <- read_tsv("https://raw.githubusercontent.com/robert-koch-institut/Abwassersurveillance_AMELAG/refs/heads/main/amelag_einzelstandorte.tsv") # nolint
+  if (!file.exists(RKI_ww_sites)) {
+    RKI_ww_sites <- read_csv("https://raw.githubusercontent.com/robert-koch-institut/Abwassersurveillance_AMELAG/refs/heads/main/amelag_einzelstandorte.tsv") # nolint
     saveRDS(RKI_ww_sites, here::here("inst", "RKI_ww_sites.rds"))
   }
 
