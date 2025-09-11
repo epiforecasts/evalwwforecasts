@@ -120,6 +120,27 @@ fit_model_targets <- list(
     iteration = "list"
   ),
 
+  # Plotting ww fit
+  tar_target(
+    name = ww_draws,
+    command = get_draws(ww_fit_obj, what = "predicted_ww")$predicted_ww,
+    pattern = map(ww_fit_obj, scenarios),
+    iteration = "list"
+  ),
+  tar_target(
+    name = plot_ww_draws,
+    command = {
+      get_plot_ww_conc(
+        draws = ww_draws,
+        forecast_date = scenarios$forecast_date
+      ) +
+        ggtitle(glue("{scenarios$location_name}, wastewater: {scenarios$include_ww}"))
+    }, # nolint
+    pattern = map(ww_draws, scenarios),
+    format = "rds",
+    iteration = "list"
+  ),
+
   # Here I am just checking that the mapping works as expected -- that only
   # the hospital admissions from a specific location and forecast date are being
   # used (verifying just from looking at the plot)
