@@ -21,7 +21,7 @@ load_data_targets <- list(
       location_name = scenarios$location_name,
       location_abbr = scenarios$location_abbr,
       forecast_date = scenarios$forecast_date
-  ),
-  pattern = map(scenarios),
+    ),
+    pattern = map(scenarios),
   )
 )

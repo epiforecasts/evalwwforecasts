@@ -24,13 +24,14 @@ BugReports: https://github.com/epiforecasts/evalwwforecasts/issues
 Depends:
     R (>= 4.0.0)
 Imports:
-  cli,
-  dplyr,
-  readr,
-  ggplot2,
-  wwinference,
-  lubridate,
-  fs
+    cli,
+    dplyr,
+    readr,
+    ggplot2,
+    wwinference,
+    lubridate,
+    fs,
+    purrr
 Suggests:
     bookdown,
     targets,

@@ -125,11 +125,22 @@ fit_model_targets <- list(
   # used (verifying just from looking at the plot)
   tar_target(
     name = plot_hosp,
-    command = hosp_data |> 
-      mutate(date=as.Date(date)) |>
+    command = hosp_data |>
+      mutate(date = as.Date(date)) |>
       ggplot() +
       geom_line(aes(x = date, y = daily_hosp_admits)),
     pattern = map(hosp_data, scenarios),
+    format = "rds",
+    iteration = "list"
+  ),
+
+  # Doing the same for wastewater data
+  tar_target(
+    name = plot_ww,
+    command = ww_data |>
+      ggplot() +
+      geom_line(aes(x = date, y = log_genome_copies_per_ml)),
+    pattern = map(ww_data, scenarios),
     format = "rds",
     iteration = "list"
   )
