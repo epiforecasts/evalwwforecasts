@@ -28,7 +28,7 @@ get_hosp_data <- function(location_name,
     if (file.exists(file.path(filepath_name, "RKI_hosp_adj.csv"))) {
       RKI_hosp_adj <- read_csv(file.path(filepath_name, "RKI_hosp_adj.csv"))
     } else {
-      RKI_hosp_adj <- read_tsv("https://raw.githubusercontent.com/robert-koch-institut/COVID-19-Hospitalisierungen_in_Deutschland/refs/heads/main/Aktuell_Deutschland_adjustierte-COVID-19-Hospitalisierungen.csv") # nolint
+      RKI_hosp_adj <- read_csv("https://raw.githubusercontent.com/robert-koch-institut/COVID-19-Hospitalisierungen_in_Deutschland/refs/heads/main/Aktuell_Deutschland_adjustierte-COVID-19-Hospitalisierungen.csv") # nolint
       dir_create(filepath_name)
       write_csv(RKI_hosp_adj, file.path(filepath_name, "RKI_hosp_adj.csv"))
     }
