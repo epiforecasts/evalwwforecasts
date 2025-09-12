@@ -38,10 +38,10 @@ get_hosp_data <- function(location_name,
         date = Datum,
         state = Bundesland,
         age_group = Altersgruppe,
-        # I think this is the nowcasted hospital admissions
-        adj_hosp_7d_count = `fixierte_7T_Hospitalisierung_Faelle`,
-        # But am not sure
-        actual_hosp_7d_count = `aktualisierte_7T_Hospitalisierung_Faelle`,
+        # I think this is the initial report of admissions
+        init_hosp_7d_count = `fixierte_7T_Hospitalisierung_Faelle`,
+        # And this is the eventual report
+        updated_hosp_7d_count = `aktualisierte_7T_Hospitalisierung_Faelle`,
         state_pop = `Bevoelkerung`
       ) |>
       filter(
@@ -49,7 +49,7 @@ get_hosp_data <- function(location_name,
         date <= ymd(forecast_date) - days(lag),
         state == location_name
       ) |>
-      mutate(state_abbr = location_abbr, daily_hosp_admits = round(adj_hosp_7d_count / 7)) |> # nolint hack for now
+      mutate(state_abbr = location_abbr, daily_hosp_admits = round(updated_hosp_7d_count / 7)) |> # nolint hack for now
       select(
         date, daily_hosp_admits, state_pop, actual_hosp_7d_count,
         adj_hosp_7d_count
