@@ -16,6 +16,7 @@ get_ww_data <- function(location_name,
                         lag = 3) {
   # For now, just pull the latest and filter to lag days before the forecast
   # date
+
   if (file.exists(file.path(filepath_name, "RKI_ww_sites.csv"))) {
     RKI_ww_sites <- read_csv(file.path(filepath_name, "RKI_ww_sites.csv"))
   } else {
