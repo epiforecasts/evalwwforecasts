@@ -31,7 +31,9 @@ Imports:
   wwinference,
   lubridate,
   fs,
-  zoo
+  zoo,
+  stringr,
+  glue
 Suggests:
     bookdown,
     targets,
