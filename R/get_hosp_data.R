@@ -30,32 +30,27 @@ get_hosp_data <- function(location_name,
       RKI_hosp_adj <- read_csv(file.path(filepath_name, "RKI_hosp_adj.csv"))
     } else {
       RKI_hosp_adj <- read_csv("https://raw.githubusercontent.com/robert-koch-institut/COVID-19-Hospitalisierungen_in_Deutschland/refs/heads/main/Aktuell_Deutschland_adjustierte-COVID-19-Hospitalisierungen.csv") # nolint
-      df_init <- read.csv("https://raw.githubusercontent.com/KITmetricslab/hospitalization-nowcast-hub/refs/heads/main/code/resources/initial_values.csv")
       dir_create(filepath_name)
       write_csv(RKI_hosp_adj, file.path(filepath_name, "RKI_hosp_adj.csv"))
-
-
-      write_csv(df_daily, file.path(filepath_name, "RKI_initial_values.csv"))
+      # load in initial values
     }
-
-    initial_vals <- df_init |>
-      filter(
-        location == glue::glue("DE-{location_abbr}"), # dif
-        age_group == "00+"
-      ) |>
-      pull(value)
 
     hosp_clean <- RKI_hosp_adj |>
       rename(
         date = Datum,
         state = Bundesland,
         age_group = Altersgruppe,
-        # I think this is the initial hospital admissions
+        # I think this is the nowcasted hospital admissions
         adj_hosp_7d_count = `fixierte_7T_Hospitalisierung_Faelle`,
-        # This is the updated (closer to or basically final)
+        # But am not sure
         actual_hosp_7d_count = `aktualisierte_7T_Hospitalisierung_Faelle`,
         state_pop = `Bevoelkerung`
       ) |>
+      # Replace with once we have initial values
+      mutate(daily_hosp_admits = convert_rolling_sum_to_incidence(adj_hosp_7d_count,
+        k = 7,
+        initial_values = init_vals
+      )) |>
       filter(
         date >= ymd(forecast_date) - days(calibration_period),
         date <= ymd(forecast_date) - days(lag),
@@ -63,11 +58,8 @@ get_hosp_data <- function(location_name,
       ) |>
       mutate(
         state_abbr = location_abbr,
-        daily_hosp_admits = convert_rolling_sum_to_incidence(
-          rolling_sums = actual_hosp_7d_count,
-          k = 7,
-          initial_values = initial_vals
-        )
+        # hack for now (see above)
+        daily_hosp_admits = round(adj_hosp_7d_count / 7)
       ) |>
       select(
         date, daily_hosp_admits, state_pop, actual_hosp_7d_count,
@@ -79,10 +71,4 @@ get_hosp_data <- function(location_name,
   }
 
   return(hosp_clean)
-}
-
-generate_and_save_daily_data <- function(url_7d_data,
-                                         url_initial_values) {
-  RKI_hosp_adj <- read_csv("https://raw.githubusercontent.com/robert-koch-institut/COVID-19-Hospitalisierungen_in_Deutschland/refs/heads/main/Aktuell_Deutschland_adjustierte-COVID-19-Hospitalisierungen.csv") # nolint
-  df_init <- read.csv("https://raw.githubusercontent.com/KITmetricslab/hospitalization-nowcast-hub/refs/heads/main/code/resources/initial_values.csv")
 }
