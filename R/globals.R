@@ -18,6 +18,7 @@ utils::globalVariables(c(
   "location", # <get_initial_values>
   "age_group", # <get_initial_values>
   "value", # <get_initial_values>
+  "daily_data", # <get_initial_values>
   "location", # <get_ww_data>
   "state", # <get_ww_data>
   "conc", # <get_ww_data>

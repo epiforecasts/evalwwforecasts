@@ -13,7 +13,7 @@
 #' @param lag Integer indicating the number of days from the forecast date of
 #'    the latest hospital admission. Default is `3`.
 #' @autoglobal
-#' @importFrom dplyr rename mutate filter arrange
+#' @importFrom dplyr rename mutate filter arrange desc pull
 #' @importFrom fs dir_create
 #' @importFrom glue glue
 #' @importFrom readr read_csv
@@ -64,7 +64,7 @@ get_hosp_data <- function(location_name,
         date >= date_to_get_init_vals
       ) |>
       # Replace with once we have initial values
-      mutate(daily_hosp_admits = convert_rolling_sum_to_incidence(
+      mutate(daily_hosp_admits = convert_rolling_sum_to_inc(
         rolling_sums = updated_hosp_7d_count,
         k = 7,
         initial_values = init_vals
@@ -104,12 +104,12 @@ get_hosp_data <- function(location_name,
 #' @autoglobal
 #' @inheritParams get_hosp_data
 #' @importFrom glue glue
-#' @importFrom dplyr select filter mutate arrange
+#' @importFrom dplyr select filter mutate arrange desc
 #' @importFrom fs dir_create
 #' @importFrom readr read_csv write_csv
 get_initial_values <- function(
     start_date_RKI_data = "2023-01-02",
-    deconvolved_data_url = "https://raw.githubusercontent.com/KITmetricslab/hospitalization-nowcast-hub/refs/heads/main/data-truth/COVID-19/COVID-19_hospitalizations_preprocessed.csv",
+    deconvolved_data_url = "https://raw.githubusercontent.com/KITmetricslab/hospitalization-nowcast-hub/refs/heads/main/data-truth/COVID-19/COVID-19_hospitalizations_preprocessed.csv", # nolint
     filepath_name = file.path("input", "data", "hosp")) { # nolint
   if (file.exists(file.path(
     filepath_name,
@@ -124,7 +124,7 @@ get_initial_values <- function(
     ))
   } else {
     rep_tri <- read_csv(deconvolved_data_url)
-    daily_data <- rep_tri |>
+    init_vals <- rep_tri |>
       mutate(value = rowSums(rep_tri[4:ncol(rep_tri)], na.rm = TRUE)) |>
       select(date, location, age_group, value) |>
       filter(
@@ -139,5 +139,5 @@ get_initial_values <- function(
     ))
   }
 
-  return(daily_data)
+  return(init_vals)
 }

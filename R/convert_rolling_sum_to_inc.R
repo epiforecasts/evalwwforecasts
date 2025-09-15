@@ -12,7 +12,7 @@
 #'   that contribute to the first rolling sum. If NULL, assumes zeros for the
 #'   initial 6 days.
 #' @param return_same_length Boolean indicating whether or not to return the
-#'    data of the same length as the rollingsum data or whether to append the
+#'    data of the same length as the rolling sum data or whether to append the
 #'    initial values on.
 #'
 #' @return A numeric vector of incident values.
@@ -23,32 +23,32 @@
 #' y <- sample(5, 20, replace = TRUE)
 #' rolling_sums <- zoo::rollsum(y, k = 7, na.pad = FALSE)
 #' initial_vals <- y[1:6]
-#' daily_incidence <- convert_rolling_sum_to_incidence(rolling_sums,
+#' daily_incidence <- convert_rolling_sum_to_inc(rolling_sums,
 #'   k = 7,
 #'   initial_vals
 #' )
 #' daily_incidence
 #' @export
-convert_rolling_sum_to_incidence <- function(rolling_sums,
-                                             k = 7,
-                                             initial_values = NULL,
-                                             return_same_length = TRUE) {
+convert_rolling_sum_to_inc <- function(rolling_sums,
+                                       k = 7,
+                                       initial_values = NULL,
+                                       return_same_length = TRUE) {
   # Input validation
   if (length(rolling_sums) == 0) {
-    stop("rolling_sums cannot be empty")
+    stop("rolling_sums cannot be empty", call. = FALSE)
   }
 
   if (any(is.na(rolling_sums))) {
-    warning("rolling_sums contains NA values. Function expects right-aligned rolling sums") # nolint
+    warning("rolling_sums contains NA values. Function expects right-aligned rolling sums", call. = FALSE) # nolint
   }
 
   # Handle initial values
   if (is.null(initial_values)) {
     # If no initial values provided, assume the first 6 days were zeros
     initial_values <- rep(0, k - 1)
-    warning("No initial values provided, assuming zeros for the first {k-1} days")
+    warning("No initial values provided, assuming zeros for the first {k-1} days", call. = FALSE) # nolint
   } else if (length(initial_values) != k - 1) {
-    stop("initial_values must have exactly {k-1} elements (for days 1-{k-1})")
+    stop("initial_values must have exactly {k-1} elements (for days 1-{k-1})", call. = FALSE) # nolint
   }
 
   n_rolling <- length(rolling_sums)
@@ -67,7 +67,7 @@ convert_rolling_sum_to_incidence <- function(rolling_sums,
   if (n_rolling > 1) {
     for (i in 2:n_rolling) {
       index <- k - 1 + i # Current day index in the daily_incidence vector
-      incidence[index] <- rolling_sums[i] - rolling_sums[i - 1] + incidence[index - k]
+      incidence[index] <- rolling_sums[i] - rolling_sums[i - 1] + incidence[index - k] # nolint
     }
   }
 
