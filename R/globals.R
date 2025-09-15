@@ -12,10 +12,9 @@ utils::globalVariables(c(
   "Bevoelkerung", # <get_hosp_data>
   "state", # <get_hosp_data>
   "updated_hosp_7d_count", # <get_hosp_data>
-  "adj_hosp_7d_count", # <get_hosp_data>
   "daily_hosp_admits", # <get_hosp_data>
   "state_pop", # <get_hosp_data>
-  "actual_hosp_7d_count", # <get_hosp_data>
+  "init_hosp_7d_count", # <get_hosp_data>
   "location", # <get_initial_values>
   "age_group", # <get_initial_values>
   "value", # <get_initial_values>
