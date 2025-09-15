@@ -23,12 +23,12 @@
 #'
 #' This is based on the relationship:
 #' rolling_sum[t] = sum(daily_incidence[(t-k+1):t])
-#'
+#' @autoglobal
 #' @examples
 #' # Example with simple data
 #' y <- sample(5, 20, replace = TRUE)
 #' rolling_sums <- zoo::rollsum(y_daily, k = 7, na.pad = FALSE)
-#' initial_vals <- c(1, 2, 3, 4, 5, 6)
+#' initial_vals <- y[1:6]
 #' daily_incidence <- convert_rolling_sum_to_incidence(rolling_sums,
 #'   k = 7,
 #'   initial_vals

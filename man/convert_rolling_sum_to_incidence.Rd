@@ -45,7 +45,7 @@ rolling_sum\link{t} = sum(daily_incidence\link{(t-k+1):t})
 # Example with simple data
 y <- sample(5, 20, replace = TRUE)
 rolling_sums <- zoo::rollsum(y_daily, k = 7, na.pad = FALSE)
-initial_vals <- c(1, 2, 3, 4, 5, 6)
+initial_vals <- y[1:6]
 daily_incidence <- convert_rolling_sum_to_incidence(rolling_sums,
   k = 7,
   initial_vals

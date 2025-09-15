@@ -30,7 +30,8 @@ Imports:
   ggplot2,
   wwinference,
   lubridate,
-  fs
+  fs,
+  zoo
 Suggests:
     bookdown,
     targets,
