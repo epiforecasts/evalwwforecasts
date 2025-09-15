@@ -11,18 +11,12 @@
 #' @param initial_values A numeric vector of the first k-1 incident values
 #'   that contribute to the first rolling sum. If NULL, assumes zeros for the
 #'   initial 6 days.
+#' @param return_same_length Boolean indicating whether or not to return the
+#'    data of the same length as the rollingsum data or whether to append the
+#'    initial values on.
 #'
 #' @return A numeric vector of incident values.
 #'
-#' @details
-#' The conversion works as follows:
-#' - For the first k days, we use the provided initial values plus
-#'   derived values.
-#' - For subsequent days,
-#' incidence[t] = rolling_sum[t] - rolling_sum[t-1] + incidence[t-k]
-#'
-#' This is based on the relationship:
-#' rolling_sum[t] = sum(daily_incidence[(t-k+1):t])
 #' @autoglobal
 #' @examples
 #' # Example with simple data

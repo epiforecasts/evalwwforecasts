@@ -20,6 +20,10 @@ computed over. Default is 7.}
 \item{initial_values}{A numeric vector of the first k-1 incident values
 that contribute to the first rolling sum. If NULL, assumes zeros for the
 initial 6 days.}
+
+\item{return_same_length}{Boolean indicating whether or not to return the
+data of the same length as the rollingsum data or whether to append the
+initial values on.}
 }
 \value{
 A numeric vector of incident values.
@@ -28,18 +32,6 @@ A numeric vector of incident values.
 This function converts k-day rolling sums of count data back to daily
 incidence values. It uses the difference between successive rolling sums
 to recover the incident values, handling the initial period appropriately.
-}
-\details{
-The conversion works as follows:
-\itemize{
-\item For the first k days, we use the provided initial values plus
-derived values.
-\item For subsequent days,
-incidence\link{t} = rolling_sum\link{t} - rolling_sum\link{t-1} + incidence\link{t-k}
-}
-
-This is based on the relationship:
-rolling_sum\link{t} = sum(daily_incidence\link{(t-k+1):t})
 }
 \examples{
 # Example with simple data
