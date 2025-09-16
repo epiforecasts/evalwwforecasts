@@ -108,13 +108,11 @@ fit_model_targets <- list(
   ),
   tar_target(
     name = plot_hosp_draws,
-    command = {
-      get_plot_forecasted_counts(
-        draws = hosp_draws,
-        forecast_date = scenarios$forecast_date
-      ) +
-        ggtitle(glue("{scenarios$location_name}, wastewater: {scenarios$include_ww}"))
-    }, # nolint
+    command = get_plot_forecasted_counts(
+      draws = hosp_draws,
+      forecast_date = scenarios$forecast_date
+    ) +
+      ggtitle(glue("{scenarios$location_name}, wastewater: {scenarios$include_ww}")), # nolint
     pattern = map(hosp_draws, scenarios),
     format = "rds",
     iteration = "list"
@@ -123,28 +121,24 @@ fit_model_targets <- list(
   # Plotting ww fit
   tar_target(
     name = ww_draws,
-    command = {
-      if (!is.null(ww_fit_obj$predicted_ww)) {
-        get_draws(ww_fit_obj, what = "predicted_ww")$predicted_ww
-      } else {
-        NULL
-      }
+    command = if (!is.null(ww_fit_obj$predicted_ww)) {
+      get_draws(ww_fit_obj, what = "predicted_ww")$predicted_ww
+    } else {
+      NULL
     },
     pattern = map(ww_fit_obj, scenarios),
     iteration = "list"
   ),
   tar_target(
     name = plot_ww_draws,
-    command = {
-      if (!is.null(ww_fit_obj$predicted_ww)) {
-        get_plot_ww_conc(
-          draws = ww_draws,
-          forecast_date = scenarios$forecast_date
-        ) +
-          ggtitle(glue("{scenarios$location_name}, wastewater: {scenarios$include_ww}"))
-      } else {
-        NULL
-      }
+    command = if (!is.null(ww_fit_obj$predicted_ww)) {
+      get_plot_ww_conc(
+        draws = ww_draws,
+        forecast_date = scenarios$forecast_date
+      ) +
+        ggtitle(glue("{scenarios$location_name}, wastewater: {scenarios$include_ww}"))
+    } else {
+      NULL
     }, # nolint
     pattern = map(ww_draws, scenarios),
     format = "rds",
@@ -168,8 +162,7 @@ fit_model_targets <- list(
   # Doing the same for wastewater data
   tar_target(
     name = plot_ww,
-    command = ww_data |>
-      ggplot() +
+    command = ggplot(ww_data) +
       geom_line(aes(x = date, y = log_genome_copies_per_ml)),
     pattern = map(ww_data, scenarios),
     format = "rds",
