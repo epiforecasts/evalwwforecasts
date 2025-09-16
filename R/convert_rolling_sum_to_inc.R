@@ -38,7 +38,7 @@ convert_rolling_sum_to_inc <- function(rolling_sums,
     stop("rolling_sums cannot be empty", call. = FALSE)
   }
 
-  if (any(is.na(rolling_sums))) {
+  if (anyNA(rolling_sums)) {
     warning("rolling_sums contains NA values. Function expects right-aligned rolling sums", call. = FALSE) # nolint
   }
 
