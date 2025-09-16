@@ -123,18 +123,28 @@ fit_model_targets <- list(
   # Plotting ww fit
   tar_target(
     name = ww_draws,
-    command = get_draws(ww_fit_obj, what = "predicted_ww")$predicted_ww,
+    command = {
+      if (!is.null(ww_fit_obj$predicted_ww)) {
+        get_draws(ww_fit_obj, what = "predicted_ww")$predicted_ww
+      } else {
+        NULL
+      }
+    },
     pattern = map(ww_fit_obj, scenarios),
     iteration = "list"
   ),
   tar_target(
     name = plot_ww_draws,
     command = {
-      get_plot_ww_conc(
-        draws = ww_draws,
-        forecast_date = scenarios$forecast_date
-      ) +
-        ggtitle(glue("{scenarios$location_name}, wastewater: {scenarios$include_ww}"))
+      if (!is.null(ww_fit_obj$predicted_ww)) {
+        get_plot_ww_conc(
+          draws = ww_draws,
+          forecast_date = scenarios$forecast_date
+        ) +
+          ggtitle(glue("{scenarios$location_name}, wastewater: {scenarios$include_ww}"))
+      } else {
+        NULL
+      }
     }, # nolint
     pattern = map(ww_draws, scenarios),
     format = "rds",
