@@ -121,7 +121,7 @@ fit_model_targets <- list(
   # Plotting ww fit
   tar_target(
     name = ww_draws,
-    command = if (!is.null(ww_fit_obj$predicted_ww)) {
+    command = if (!is.null(ww_fit_obj$raw_input_data$input_ww_data)) {
       get_draws(ww_fit_obj, what = "predicted_ww")$predicted_ww
     } else {
       NULL
@@ -131,7 +131,7 @@ fit_model_targets <- list(
   ),
   tar_target(
     name = plot_ww_draws,
-    command = if (!is.null(ww_fit_obj$predicted_ww)) {
+    command = if (!is.null(ww_draws)) {
       get_plot_ww_conc(
         draws = ww_draws,
         forecast_date = scenarios$forecast_date
