@@ -14,6 +14,7 @@ library(purrr)
 library(lubridate)
 library(tidyr)
 library(glue)
+library(fs)
 # load functions
 functions <- list.files(here("R"), full.names = TRUE)
 walk(functions, source)

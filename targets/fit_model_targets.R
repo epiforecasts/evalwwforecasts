@@ -108,14 +108,39 @@ fit_model_targets <- list(
   ),
   tar_target(
     name = plot_hosp_draws,
-    command = {
-      get_plot_forecasted_counts(
-        draws = hosp_draws,
+    command = get_plot_forecasted_counts(
+      draws = hosp_draws,
+      forecast_date = scenarios$forecast_date
+    ) +
+      ggtitle(glue("{scenarios$location_name}, wastewater: {scenarios$include_ww}")), # nolint
+    pattern = map(hosp_draws, scenarios),
+    format = "rds",
+    iteration = "list"
+  ),
+
+  # Plotting ww fit
+  tar_target(
+    name = ww_draws,
+    command = if (!is.null(ww_fit_obj$raw_input_data$input_ww_data)) {
+      get_draws(ww_fit_obj, what = "predicted_ww")$predicted_ww
+    } else {
+      NULL
+    },
+    pattern = map(ww_fit_obj, scenarios),
+    iteration = "list"
+  ),
+  tar_target(
+    name = plot_ww_draws,
+    command = if (!is.null(ww_draws)) {
+      get_plot_ww_conc(
+        draws = ww_draws,
         forecast_date = scenarios$forecast_date
       ) +
         ggtitle(glue("{scenarios$location_name}, wastewater: {scenarios$include_ww}"))
+    } else {
+      NULL
     }, # nolint
-    pattern = map(hosp_draws, scenarios),
+    pattern = map(ww_draws, scenarios),
     format = "rds",
     iteration = "list"
   ),
@@ -125,11 +150,21 @@ fit_model_targets <- list(
   # used (verifying just from looking at the plot)
   tar_target(
     name = plot_hosp,
-    command = hosp_data |> 
-      mutate(date=as.Date(date)) |>
+    command = hosp_data |>
+      mutate(date = as.Date(date)) |>
       ggplot() +
       geom_line(aes(x = date, y = daily_hosp_admits)),
     pattern = map(hosp_data, scenarios),
+    format = "rds",
+    iteration = "list"
+  ),
+
+  # Doing the same for wastewater data
+  tar_target(
+    name = plot_ww,
+    command = ggplot(ww_data) +
+      geom_line(aes(x = date, y = log_genome_copies_per_ml)),
+    pattern = map(ww_data, scenarios),
     format = "rds",
     iteration = "list"
   )
