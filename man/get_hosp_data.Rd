@@ -8,10 +8,9 @@ get_hosp_data(
   location_name,
   location_abbr,
   forecast_date,
-  filepath_name = file.path("input", "data", "hosp"),
+  forecast_horizon = 28,
   right_trunc = FALSE,
-  calibration_period = 100,
-  lag = 3
+  filepath_name = file.path("input", "data", "hosp")
 )
 }
 \arguments{
@@ -22,17 +21,13 @@ get_hosp_data(
 \item{forecast_date}{Character string or date indicating the date of
 forecast in YYYY-MM-DD}
 
-\item{filepath_name}{Name of directory to save the raw input wastewater data.}
+\item{forecast_horizon}{Integer indicating the number of days to forecast. Default is \code{28}.}
 
 \item{right_trunc}{Boolean indicating whether to use the real-time, right
 truncated data or the final corrected data. Default is \code{FALSE} indicating
 we will just use the corrected data.}
 
-\item{calibration_period}{Integer indicating the number of days of
-hospital admissions calibration data to extract. Default is \code{100}.}
-
-\item{lag}{Integer indicating the number of days from the forecast date of
-the latest hospital admission. Default is \code{3}.}
+\item{filepath_name}{Name of directory to save the raw input wastewater data.}
 }
 \description{
 Get the hospital admissions data
