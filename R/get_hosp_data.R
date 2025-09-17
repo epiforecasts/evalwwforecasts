@@ -9,10 +9,6 @@
 #' @param right_trunc Boolean indicating whether to use the real-time, right
 #'    truncated data or the final corrected data. Default is `FALSE` indicating
 #'    we will just use the corrected data.
-#' @param calibration_period Integer indicating the number of days of
-#'    hospital admissions calibration data to extract. Default is `100`.
-#' @param lag Integer indicating the number of days from the forecast date of
-#'    the latest hospital admission. Default is `3`.
 #' @autoglobal
 #' @importFrom dplyr rename mutate filter
 #' @importFrom fs dir_create
