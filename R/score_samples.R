@@ -34,7 +34,8 @@ score_samples <- function(
         "date",
         "value",
         "eval_data",
-        "draw")
+        "draw"
+      )
     to_score <- forecasted_draws |>
       as_forecast_sample(
         predicted = "value",
