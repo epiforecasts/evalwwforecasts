@@ -32,7 +32,8 @@ Imports:
     lubridate,
     fs,
     purrr,
-    glue
+    glue,
+    scoringutils
 Suggests:
     bookdown,
     targets,
