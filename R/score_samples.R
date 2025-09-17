@@ -4,6 +4,16 @@ sample_metrics <- scoringutils::get_metrics(
   scoringutils::example_sample_discrete
 )
 
+#' Scores samples against observed data
+#'
+#' @param draws Dataframe of model draws with observed data to score
+#' @param metrics Metrics to use for scoring, Default: sample_metrics
+#' @param forecast_date Forecast date
+#' @param offset Offset to use when transforming forecasts
+#'
+#' @return a dataframe containing scores for each day of forecasting horizon
+#' @importFrom dplyr filter select mutate
+#' @importFrom scoringutils as_forecast_sample transform_forecasts log_shift get_metrics score
 score_samples <- function(
     draws,
     metrics = sample_metrics,
