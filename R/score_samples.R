@@ -12,8 +12,9 @@ sample_metrics <- scoringutils::get_metrics(
 #' @param offset Offset to use when transforming forecasts
 #'
 #' @return a dataframe containing scores for each day of forecasting horizon
-#' @importFrom dplyr filter select mutate
+#' @importFrom dplyr filter select mutate .data
 #' @importFrom scoringutils as_forecast_sample transform_forecasts log_shift get_metrics score
+#' @importFrom rlang arg_match
 score_samples <- function(
     draws,
     metrics = sample_metrics,
@@ -33,30 +34,29 @@ score_samples <- function(
         "date",
         "value",
         "eval_data",
-        "draw",
-      )
+        "draw")
     to_score <- forecasted_draws |>
-      scoringutils::as_forecast_sample(
+      as_forecast_sample(
         predicted = "value",
         observed = "eval_data",
         sample_id = "draw"
       ) |>
-      scoringutils::transform_forecasts(
-        fun = scoringutils::log_shift,
+      transform_forecasts(
+        fun = log_shift,
         offset = offset
       )
 
     if (is.null(metrics)) {
-      metrics <- scoringutils::get_metrics(to_score)
+      metrics <- get_metrics(to_score)
     }
 
-    scores <- scoringutils::score(to_score, metrics = metrics) |>
+    scores <- score(to_score, metrics = metrics) |>
       dplyr::mutate(
         period = ifelse(
           .data$date <= .data$forecast_date,
           "estimate",
           "forecast"
-        ),
+        )
       )
   }
 

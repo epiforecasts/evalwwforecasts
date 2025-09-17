@@ -106,8 +106,7 @@ get_model_draws_w_data <- function(
         lod_sewage = exp(.data$log_lod),
         lod_sewage_eval = exp(.data$log_lod_eval),
         forecast_date = lubridate::ymd(!!forecast_date),
-        model_type = !!model_type,
-        scenario = !!scenario,
+        model = !!model,
         location = !!location
       ) |>
       dplyr::ungroup() |>
