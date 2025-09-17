@@ -12,6 +12,8 @@ get_hosp_for_fit(
 )
 }
 \arguments{
+\item{hosp_data_eval}{hospital admissions data for evaluation step}
+
 \item{forecast_date}{Character string or date indicating the date of
 forecast in YYYY-MM-DD}
 

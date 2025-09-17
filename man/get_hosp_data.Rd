@@ -21,6 +21,8 @@ get_hosp_data(
 \item{forecast_date}{Character string or date indicating the date of
 forecast in YYYY-MM-DD}
 
+\item{forecast_horizon}{Integer indicating the number of days to forecast. Default is \code{28}.}
+
 \item{right_trunc}{Boolean indicating whether to use the real-time, right
 truncated data or the final corrected data. Default is \code{FALSE} indicating
 we will just use the corrected data.}

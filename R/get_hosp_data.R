@@ -4,6 +4,7 @@
 #' @param location_abbr Character string indicating abbreviation of state
 #' @param forecast_date Character string or date indicating the date of
 #'    forecast in YYYY-MM-DD
+#' @param forecast_horizon Integer indicating the number of days to forecast. Default is `28`.
 #' @param filepath_name Name of directory to save the raw input wastewater data.
 #' @param right_trunc Boolean indicating whether to use the real-time, right
 #'    truncated data or the final corrected data. Default is `FALSE` indicating
@@ -55,10 +56,12 @@ get_hosp_data <- function(location_name,
     # Insert function to use git history to get the data as of the forecast date
     hosp_clean <- NULL
   }
+  return(hosp_clean)
 }
 
 #' Filter hospital admissions data for fitting
 #'
+#' @param hosp_data_eval hospital admissions data for evaluation step
 #' @param forecast_date Character string or date indicating the date of
 #'    forecast in YYYY-MM-DD
 #' @param calibration_period Integer indicating the number of days of
