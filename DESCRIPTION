@@ -33,7 +33,8 @@ Imports:
     fs,
     purrr,
     glue,
-    scoringutils
+    scoringutils,
+    rlang
 Suggests:
     bookdown,
     targets,
@@ -42,7 +43,6 @@ Suggests:
     testthat (>= 3.1.9),
     usethis,
     withr,
-    knitr,
     tidyr,
     roxyglobals
 Encoding: UTF-8
@@ -50,7 +50,6 @@ Language: en-GB
 Roxygen: list(markdown = TRUE, roclets = c("collate", "namespace", "rd",
     "roxyglobals::global_roclet"))
 RoxygenNote: 7.3.3
-VignetteBuilder: knitr
 Remotes:
   wwinference=CDCgov/ww-inference-model
 Config/testthat/edition: 3
