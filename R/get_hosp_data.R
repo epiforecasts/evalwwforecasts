@@ -20,10 +20,9 @@
 get_hosp_data <- function(location_name,
                           location_abbr,
                           forecast_date,
-                          filepath_name = file.path("input", "data", "hosp"),
+                          forecast_horizon = 28,
                           right_trunc = FALSE,
-                          calibration_period = 100,
-                          lag = 3) {
+                          filepath_name = file.path("input", "data", "hosp")) {
   if (isFALSE(right_trunc)) {
     if (file.exists(file.path(filepath_name, "RKI_hosp_adj.csv"))) {
       RKI_hosp_adj <- read_csv(file.path(filepath_name, "RKI_hosp_adj.csv"))
@@ -32,7 +31,6 @@ get_hosp_data <- function(location_name,
       dir_create(filepath_name)
       write_csv(RKI_hosp_adj, file.path(filepath_name, "RKI_hosp_adj.csv"))
     }
-
     hosp_clean <- RKI_hosp_adj |>
       rename(
         date = Datum,
@@ -45,8 +43,7 @@ get_hosp_data <- function(location_name,
         state_pop = `Bevoelkerung`
       ) |>
       filter(
-        date >= ymd(forecast_date) - days(calibration_period),
-        date <= ymd(forecast_date) - days(lag),
+        date <= ymd(forecast_date) + days(forecast_horizon),
         state == location_name
       ) |>
       mutate(state_abbr = location_abbr, daily_hosp_admits = round(adj_hosp_7d_count / 7)) |> # nolint hack for now
@@ -58,6 +55,28 @@ get_hosp_data <- function(location_name,
     # Insert function to use git history to get the data as of the forecast date
     hosp_clean <- NULL
   }
+}
 
-  return(hosp_clean)
+#' Filter hospital admissions data for fitting
+#'
+#' @param forecast_date Character string or date indicating the date of
+#'    forecast in YYYY-MM-DD
+#' @param calibration_period Integer indicating the number of days of
+#'    hospital admissions calibration data to extract. Default is `100`.
+#' @param lag Integer indicating the number of days from the forecast date of
+#'    the latest hospital admission. Default is `3`.
+#' @autoglobal
+#' @importFrom dplyr filter
+#' @importFrom lubridate ymd days
+
+get_hosp_for_fit <- function(hosp_data_eval,
+                             forecast_date,
+                             calibration_period = 100,
+                             lag = 3) {
+  hosp_for_fit <- hosp_data_eval |>
+    filter(
+      date >= ymd(forecast_date) - days(calibration_period),
+      date <= ymd(forecast_date) - days(lag)
+    )
+  return(hosp_for_fit)
 }

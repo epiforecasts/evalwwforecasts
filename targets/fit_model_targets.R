@@ -24,7 +24,9 @@ fit_model_targets <- list(
       count_col_name = "daily_hosp_admits",
       pop_size_col_name = "state_pop"
     ),
-    pattern = map(hosp_data, scenarios)
+    pattern = map(hosp_data, scenarios),
+    format = "rds",
+    iteration = "list"
   ),
   tar_target(
     name = ww_data_to_fit,
@@ -33,7 +35,9 @@ fit_model_targets <- list(
       outlier_col_name = "flag_as_ww_outlier",
       remove_outliers = TRUE
     ),
-    pattern = map(ww_data_preprocessed, scenarios)
+    pattern = map(ww_data_preprocessed, scenarios),
+    format = "rds",
+    iteration = "list"
   ),
 
   # Model targets (the same for all model runs)

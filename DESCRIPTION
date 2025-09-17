@@ -31,7 +31,8 @@ Imports:
     wwinference,
     lubridate,
     fs,
-    purrr
+    purrr,
+    glue
 Suggests:
     bookdown,
     targets,
