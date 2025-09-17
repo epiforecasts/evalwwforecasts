@@ -31,7 +31,7 @@ Imports:
     wwinference,
     lubridate,
     fs,
-    purrr
+    purrr,
     zoo,
     stringr,
     glue
