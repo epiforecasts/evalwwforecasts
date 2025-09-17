@@ -10,9 +10,7 @@ get_ww_data(
   location_name,
   location_abbr,
   forecast_date,
-  filepath_name = file.path("input", "data", "ww"),
-  calibration_period = 100,
-  lag = 3
+  filepath_name = file.path("input", "data", "ww")
 )
 }
 \arguments{
@@ -24,12 +22,6 @@ get_ww_data(
 forecast in YYYY-MM-DD}
 
 \item{filepath_name}{Name of directory to save the raw input wastewater data.}
-
-\item{calibration_period}{Integer indicating the number of days of
-hospital admissions calibration data to extract. Default is \code{100}.}
-
-\item{lag}{Integer indicating the number of days from the forecast date of
-the latest hospital admission. Default is \code{3}.}
 }
 \description{
 Get wastewater data

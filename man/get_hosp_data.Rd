@@ -28,12 +28,6 @@ truncated data or the final corrected data. Default is \code{FALSE} indicating
 we will just use the corrected data.}
 
 \item{filepath_name}{Name of directory to save the raw input wastewater data.}
-
-\item{calibration_period}{Integer indicating the number of days of
-hospital admissions calibration data to extract. Default is \code{100}.}
-
-\item{lag}{Integer indicating the number of days from the forecast date of
-the latest hospital admission. Default is \code{3}.}
 }
 \description{
 Get the hospital admissions data

@@ -11,9 +11,7 @@
 get_ww_data <- function(location_name,
                         location_abbr,
                         forecast_date,
-                        filepath_name = file.path("input", "data", "ww"),
-                        calibration_period = 100,
-                        lag = 3) {
+                        filepath_name = file.path("input", "data", "ww")) {
   # For now, just pull the latest and filter to lag days before the forecast
   # date
 
@@ -45,8 +43,8 @@ get_ww_data <- function(location_name,
     ) |>
     filter(
       state == location_abbr,
-      date >= ymd(forecast_date) - days(calibration_period),
-      date <= ymd(forecast_date) - days(lag),
+     # date >= ymd(forecast_date) - days(calibration_period),
+    #  date <= ymd(forecast_date) - days(lag),
       pathogen == "SARS-CoV-2"
     ) |>
     mutate(
