@@ -133,7 +133,7 @@ get_initial_values <- function(
       ) |>
       arrange(-desc(date))
     fs::dir_create(filepath_name)
-    write_csv(daily_data, file.path(
+    write_csv(init_vals, file.path(
       filepath_name,
       glue::glue("initial_values_{start_date_RKI_data}.csv")
     ))
