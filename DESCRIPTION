@@ -35,6 +35,8 @@ Imports:
     purrr,
     glue,
     scoringutils
+    zoo,
+    stringr
 Suggests:
     bookdown,
     targets,
