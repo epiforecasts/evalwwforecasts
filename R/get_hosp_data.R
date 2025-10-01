@@ -89,7 +89,8 @@ get_hosp_for_eval <- function(location_name,
 get_hosp_for_fit <- function(hosp_data_eval,
                              forecast_date,
                              right_trunc = FALSE,
-                             calibration_period = 100) {
+                             calibration_period = 100,
+                             lag = 3) {
   if (isFALSE(right_trunc)) {
     hosp_for_fit <- hosp_data_eval |>
       filter(

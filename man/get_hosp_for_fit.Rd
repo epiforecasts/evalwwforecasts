@@ -8,7 +8,8 @@ get_hosp_for_fit(
   hosp_data_eval,
   forecast_date,
   right_trunc = FALSE,
-  calibration_period = 100
+  calibration_period = 100,
+  lag = 3
 )
 }
 \arguments{
