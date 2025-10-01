@@ -7,6 +7,7 @@
 get_hosp_for_fit(
   hosp_data_eval,
   forecast_date,
+  right_trunc = FALSE,
   calibration_period = 100,
   lag = 3
 )
@@ -19,9 +20,6 @@ forecast in YYYY-MM-DD}
 
 \item{calibration_period}{Integer indicating the number of days of
 hospital admissions calibration data to extract. Default is \code{100}.}
-
-\item{lag}{Integer indicating the number of days from the forecast date of
-the latest hospital admission. Default is \code{3}.}
 }
 \description{
 Filter hospital admissions data for fitting

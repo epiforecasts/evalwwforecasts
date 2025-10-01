@@ -34,7 +34,7 @@ Imports:
     fs,
     purrr,
     glue,
-    scoringutils
+    scoringutils,
     zoo,
     stringr
 Suggests:

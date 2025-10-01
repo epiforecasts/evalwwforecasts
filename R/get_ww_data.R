@@ -2,17 +2,17 @@
 #' For now, just pull the latest wastewater data and filter to exclude the
 #' most recent dates
 #'
-#' @inheritParams get_hosp_data
+#' @inheritParams get_hosp_for_eval
 #' @param filepath_name Name of directory to save the raw input wastewater data.
 #' @importFrom dplyr mutate filter select rename
 #' @importFrom fs dir_create
 #' @importFrom readr read_tsv read_csv write_csv
 #' @autoglobal
 get_ww_for_eval <- function(location_name,
-                        location_abbr,
-                        forecast_date,
-                        forecast_horizon = 28,
-                        filepath_name = file.path("input", "data", "ww")) {
+                            location_abbr,
+                            forecast_date,
+                            forecast_horizon = 28,
+                            filepath_name = file.path("input", "data", "ww")) {
   # For now, just pull the latest and filter to lag days before the forecast
   # date
 

@@ -4,7 +4,7 @@
 #' @param location_abbr Character string indicating abbreviation of state
 #' @param forecast_date Character string or date indicating the date of
 #'    forecast in YYYY-MM-DD
-#' @param forecast_horizon Integer indicating the number of days to forecast. Default is `28`.
+#' @param forecast_horizon Forecast horizon. Default is `28`.
 #' @param filepath_name Name of directory to save the raw input wastewater data.
 #' @param right_trunc Boolean indicating whether to use the real-time, right
 #'    truncated data or the final corrected data. Default is `FALSE` indicating
@@ -16,59 +16,60 @@
 #' @importFrom readr read_csv
 #' @importFrom lubridate ymd days
 get_hosp_for_eval <- function(location_name,
-                          location_abbr,
-                          forecast_date,
-                          forecast_horizon = 28,
-                          filepath_name = file.path("input", "data", "hosp")) {
-    if (file.exists(file.path(filepath_name, "RKI_hosp_adj.csv"))) {
-      RKI_hosp_adj <- read_csv(file.path(filepath_name, "RKI_hosp_adj.csv"))
-    } else {
-      RKI_hosp_adj <- read_csv("https://raw.githubusercontent.com/robert-koch-institut/COVID-19-Hospitalisierungen_in_Deutschland/refs/heads/main/Aktuell_Deutschland_adjustierte-COVID-19-Hospitalisierungen.csv") # nolint
-      dir_create(filepath_name)
-      write_csv(RKI_hosp_adj, file.path(filepath_name, "RKI_hosp_adj.csv"))
-      # load in initial values
-    }
-    # Add a month to get out of the holiday period.
-    date_to_get_init_vals <- min(RKI_hosp_adj$Datum) + days(30)
-    init_vals <- get_initial_values(
-      start_date_RKI_data = date_to_get_init_vals
-    ) |>
-      filter(age_group == "00+") |>
-      mutate(location = stringr::str_sub(location, -2)) |>
-      filter(location == location_abbr) |>
-      arrange(-desc(date)) |>
-      pull(value)
+                              location_abbr,
+                              forecast_date,
+                              forecast_horizon = 28,
+                              filepath_name =
+                                file.path("input", "data", "hosp")) {
+  if (file.exists(file.path(filepath_name, "RKI_hosp_adj.csv"))) {
+    RKI_hosp_adj <- read_csv(file.path(filepath_name, "RKI_hosp_adj.csv"))
+  } else {
+    RKI_hosp_adj <- read_csv("https://raw.githubusercontent.com/robert-koch-institut/COVID-19-Hospitalisierungen_in_Deutschland/refs/heads/main/Aktuell_Deutschland_adjustierte-COVID-19-Hospitalisierungen.csv") # nolint
+    dir_create(filepath_name)
+    write_csv(RKI_hosp_adj, file.path(filepath_name, "RKI_hosp_adj.csv"))
+    # load in initial values
+  }
+  # Add a month to get out of the holiday period.
+  date_to_get_init_vals <- min(RKI_hosp_adj$Datum) + days(30)
+  init_vals <- get_initial_values(
+    start_date_RKI_data = date_to_get_init_vals
+  ) |>
+    filter(age_group == "00+") |>
+    mutate(location = stringr::str_sub(location, -2)) |>
+    filter(location == location_abbr) |>
+    arrange(-desc(date)) |>
+    pull(value)
 
-    hosp_clean <- RKI_hosp_adj |>
-      rename(
-        date = Datum,
-        state = Bundesland,
-        age_group = Altersgruppe,
-        # This is the initial reported hospital admissions (right-truncated)
-        init_hosp_7d_count = `fixierte_7T_Hospitalisierung_Faelle`,
-        # This is the updated, eventual reported admissions for that date
-        updated_hosp_7d_count = `aktualisierte_7T_Hospitalisierung_Faelle`,
-        state_pop = `Bevoelkerung`
-      ) |>
-      arrange(-desc(date)) |>
-      filter(
-        state == location_name,
-        date >= date_to_get_init_vals
-      ) |>
-      # Replace with once we have initial values
-      mutate(daily_hosp_admits = convert_rolling_sum_to_inc(
-        rolling_sums = updated_hosp_7d_count,
-        k = 7,
-        initial_values = init_vals
-      )) |>
-      filter(
-        date <= ymd(forecast_date) + days(forecast_horizon),
-        state == location_name
-      ) |>
-      select(
-        date, daily_hosp_admits, state_pop, init_hosp_7d_count,
-        updated_hosp_7d_count
-      )
+  hosp_clean <- RKI_hosp_adj |>
+    rename(
+      date = Datum,
+      state = Bundesland,
+      age_group = Altersgruppe,
+      # This is the initial reported hospital admissions (right-truncated)
+      init_hosp_7d_count = `fixierte_7T_Hospitalisierung_Faelle`,
+      # This is the updated, eventual reported admissions for that date
+      updated_hosp_7d_count = `aktualisierte_7T_Hospitalisierung_Faelle`,
+      state_pop = `Bevoelkerung`
+    ) |>
+    arrange(-desc(date)) |>
+    filter(
+      state == location_name,
+      date >= date_to_get_init_vals
+    ) |>
+    # Replace with once we have initial values
+    mutate(daily_hosp_admits = convert_rolling_sum_to_inc(
+      rolling_sums = updated_hosp_7d_count,
+      k = 7,
+      initial_values = init_vals
+    )) |>
+    filter(
+      date <= ymd(forecast_date) + days(forecast_horizon),
+      state == location_name
+    ) |>
+    select(
+      date, daily_hosp_admits, state_pop, init_hosp_7d_count,
+      updated_hosp_7d_count
+    )
   return(hosp_clean)
 }
 
@@ -89,15 +90,17 @@ get_hosp_for_fit <- function(hosp_data_eval,
                              calibration_period = 100,
                              lag = 3) {
   if (isFALSE(right_trunc)) {
-  hosp_for_fit <- hosp_data_eval |>
-    filter(
-      date >= ymd(forecast_date) - days(calibration_period),
-      date <= ymd(forecast_date) - days(lag)
-    ) } else {
-      # Insert function to use git history to get the data as of the forecast date
-      hosp_for_fit <- NULL
-    }
+    hosp_for_fit <- hosp_data_eval |>
+      filter(
+        date >= ymd(forecast_date) - days(calibration_period),
+        date <= ymd(forecast_date) - days(lag)
+      )
+  } else {
+    # Insert function to use git history to get the data as of the forecast date
+    hosp_for_fit <- NULL
+  }
   return(hosp_for_fit)
+}
 
 #' Get initial values of daily admissions
 #'
@@ -113,7 +116,7 @@ get_hosp_for_fit <- function(hosp_data_eval,
 #'    triangle from the German Nowcast Hub. Default is from the data at
 #'    https://raw.githubusercontent.com/KITmetricslab/hospitalization-nowcast-hub/refs/heads/main/data-truth/COVID-19/COVID-19_hospitalizations_preprocessed.csv #nolint
 #' @autoglobal
-#' @inheritParams get_hosp_data
+#' @inheritParams get_hosp_for_eval
 #' @importFrom glue glue
 #' @importFrom dplyr select filter mutate arrange desc
 #' @importFrom fs dir_create

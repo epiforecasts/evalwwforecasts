@@ -1,18 +1,18 @@
 #' Combining model draws with data for scoring
 #'
-#' @param fit_obj_wwinference wwinference_fit object returned when wwinference::wwinference() is run
+#' @param fit_obj_wwinference wwinference_fit object
 #' @param model_output Type of model output to extract, either "ww" or "hosp"
-#' @param include_ww Whether wastewater data was included in the model, either "TRUE" or "FALSE"
+#' @param include_ww Whether model included wastewater data, "TRUE" or "FALSE"
 #' @param model Model type, either "wwinference" or "baseline"
 #' @param forecast_date Forecast date
 #' @param location Location name
 #' @param eval_data Dataframe of observed data to compare against model output
-#'
 #' @return a dataframe containing model draws and observed data for scoring
 #' @importFrom wwinference get_draws
 #' @importFrom dplyr mutate rename left_join select ungroup
 #' @importFrom lubridate ymd
 #' @importFrom glue glue
+#' @importFrom rlang arg_match
 get_model_draws_w_data <- function(
     fit_obj_wwinference,
     model_output = c("ww", "hosp"),
@@ -39,7 +39,7 @@ get_model_draws_w_data <- function(
         "include_ww" = !!include_ww,
         "model" = !!model,
         "forecast_date" = lubridate::ymd(!!forecast_date),
-        "location" = !!location,
+        "location" = !!location
       ) |>
       dplyr::rename(
         "value" = "pred_value",
