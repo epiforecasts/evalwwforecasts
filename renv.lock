@@ -1,6 +1,6 @@
 {
   "R": {
-    "Version": "4.4.1",
+    "Version": "4.5.1",
     "Repositories": [
       {
         "Name": "CRAN",
@@ -640,7 +640,7 @@
         "Rcpp"
       ],
       "VignetteBuilder": "knitr",
-      "Author": "Jonah Gabry [aut], Rok Češnovar [aut], Andrew Johnson [aut, cre] (<https://orcid.org/0000-0001-7000-8065>), Steve Bronder [aut], Ben Bales [ctb], Mitzi Morris [ctb], Mikhail Popov [ctb], Mike Lawrence [ctb], William Michael Landau [ctb] (<https://orcid.org/0000-0003-1878-3253>), Jacob Socolar [ctb], Martin Modrák [ctb], Ven Popov [ctb]",
+      "Author": "Jonah Gabry [aut], Rok Češnovar [aut], Andrew Johnson [aut, cre] (ORCID: <https://orcid.org/0000-0001-7000-8065>), Steve Bronder [aut], Ben Bales [ctb], Mitzi Morris [ctb], Mikhail Popov [ctb], Mike Lawrence [ctb], William Michael Landau [ctb] (ORCID: <https://orcid.org/0000-0003-1878-3253>), Jacob Socolar [ctb], Martin Modrák [ctb], Ven Popov [ctb]",
       "Maintainer": "Andrew Johnson <andrew.johnson@arjohnsonau.com>",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
@@ -3710,7 +3710,7 @@
         "checkmate"
       ],
       "VignetteBuilder": "knitr",
-      "Author": "Kaitlyn Johnson [aut, cre] (<https://orcid.org/0000-0001-8011-0012>), Dylan Morris [aut] (<https://orcid.org/0000-0002-3655-406X>), Sam Abbott [aut] (<https://orcid.org/0000-0001-8057-8037>), Christian Bernal Zelaya [aut], George Vega Yon [aut] (<https://orcid.org/0000-0002-3171-0844>), Damon Bayer [aut], Andrew Magee [aut], Scott Olesen [aut], Adam Howes [ctb] (<https://orcid.org/0000-0003-2386-4031>), Chirag Kumar [ctb], Alexander Keyel [ctb] (000-0001-5256-6274), Hannah Cohen [ctb]",
+      "Author": "Kaitlyn Johnson [aut, cre] (ORCID: <https://orcid.org/0000-0001-8011-0012>), Dylan Morris [aut] (ORCID: <https://orcid.org/0000-0002-3655-406X>), Sam Abbott [aut] (ORCID: <https://orcid.org/0000-0001-8057-8037>), Christian Bernal Zelaya [aut], George Vega Yon [aut] (ORCID: <https://orcid.org/0000-0002-3171-0844>), Damon Bayer [aut], Andrew Magee [aut], Scott Olesen [aut], Adam Howes [ctb] (ORCID: <https://orcid.org/0000-0003-2386-4031>), Chirag Kumar [ctb], Alexander Keyel [ctb] (ORCID: 000-0001-5256-6274), Hannah Cohen [ctb]",
       "Maintainer": "Kaitlyn Johnson <johnsonkaitlyne9@gmail.com>",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",

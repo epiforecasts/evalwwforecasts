@@ -11,6 +11,7 @@
 get_ww_data <- function(location_name,
                         location_abbr,
                         forecast_date,
+                        forecast_horizon = 28,
                         filepath_name = file.path("input", "data", "ww")) {
   # For now, just pull the latest and filter to lag days before the forecast
   # date
@@ -43,8 +44,6 @@ get_ww_data <- function(location_name,
     ) |>
     filter(
       state == location_abbr,
-      # date >= ymd(forecast_date) - days(calibration_period),
-      #  date <= ymd(forecast_date) - days(lag),
       pathogen == "SARS-CoV-2"
     ) |>
     mutate(
@@ -63,4 +62,26 @@ get_ww_data <- function(location_name,
     filter(!is.na(log_genome_copies_per_ml))
 
   return(ww_clean)
+}
+
+#' Filter wastewater data for fitting
+#'
+#' @param ww_data_eval wastewater data for evaluation step
+#' @param forecast_date Character string or date indicating the date of
+#'    forecast in YYYY-MM-DD
+#' @param calibration_period Integer indicating the number of days of
+#'    wastewater calibration data to extract. Default is `100`.
+#' @autoglobal
+#' @importFrom dplyr filter
+#' @importFrom lubridate ymd days
+get_ww_for_fit <- function(ww_data_eval,
+                           forecast_date,
+                           calibration_period = 100,
+                           lag = 3) {
+  ww_for_fit <- ww_data_eval |>
+    filter(
+      date >= ymd(forecast_date) - days(calibration_period),
+      date <= ymd(forecast_date) - days(lag)
+    )
+  return(ww_for_fit)
 }

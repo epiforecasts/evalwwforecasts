@@ -9,7 +9,6 @@
 #' @param eval_data Dataframe of observed data to compare against model output
 #'
 #' @return a dataframe containing model draws and observed data for scoring
-#' @export
 #' @importFrom wwinference get_draws
 #' @importFrom dplyr mutate rename left_join select ungroup
 #' @importFrom lubridate ymd
@@ -26,17 +25,6 @@ get_model_draws_w_data <- function(
   if (is.null(eval_data) || is.null(fit_obj_wwinference)) {
     return(NULL)
   }
-
-  # Not needed because currently have eval_data specific to location
-  #  eval_data <- eval_data |>
-  #    dplyr::filter(location == !!location)
-  #  stopifnot(
-  #    "More than one location in eval data that is getting joined" = eval_data |>
-  #      dplyr::pull(location) |>
-  #      unique() |>
-  #      length() ==
-  #      1
-  #  )
 
   # Dataframe with columns
   if (model_output == "hosp") {
