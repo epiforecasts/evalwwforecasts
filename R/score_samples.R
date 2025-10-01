@@ -13,7 +13,8 @@ sample_metrics <- scoringutils::get_metrics(
 #'
 #' @return a dataframe containing scores for each day of forecasting horizon
 #' @importFrom dplyr filter select mutate .data
-#' @importFrom scoringutils as_forecast_sample transform_forecasts log_shift get_metrics score
+#' @importFrom scoringutils as_forecast_sample transform_forecasts
+#' log_shift get_metrics score
 #' @importFrom rlang arg_match
 score_samples <- function(
     draws,

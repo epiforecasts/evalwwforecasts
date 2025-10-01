@@ -12,7 +12,7 @@
 #' @importFrom dplyr mutate rename left_join select ungroup
 #' @importFrom lubridate ymd
 #' @importFrom glue glue
-#' @importFrom rlang arg_match
+#' @importFrom rlang arg_match .data abort
 get_model_draws_w_data <- function(
     fit_obj_wwinference,
     model_output = c("ww", "hosp"),
@@ -33,25 +33,25 @@ get_model_draws_w_data <- function(
       what = "predicted_counts"
     )$predicted_counts
 
+    eval_data_min <- dplyr::select(eval_data, c("date", "daily_hosp_admits"))
+
     draws_w_data <- new_hosp_draws |>
       dplyr::mutate(
-        "name" = "pred_hosp",
-        "include_ww" = !!include_ww,
-        "model" = !!model,
-        "forecast_date" = lubridate::ymd(!!forecast_date),
-        "location" = !!location
+        name = "pred_hosp",
+        include_ww = !!include_ww,
+        model = !!model,
+        forecast_date = lubridate::ymd(!!forecast_date),
+        location = !!location
       ) |>
       dplyr::rename(
-        "value" = "pred_value",
-        "calib_data" = "observed_value",
-        "pop" = "total_pop"
+        value = "pred_value",
+        calib_data = "observed_value",
+        pop = "total_pop"
       ) |>
-      dplyr::left_join(
-        eval_data |>
-          dplyr::select("date", "daily_hosp_admits"),
-        by = c("date")
+      dplyr::left_join(eval_data_min,
+        by = "date"
       ) |>
-      dplyr::rename("eval_data" = "daily_hosp_admits") |>
+      dplyr::rename(eval_data = "daily_hosp_admits") |>
       dplyr::ungroup()
   } else if (model_output == "ww") {
     new_ww_draws <- wwinference::get_draws(
@@ -61,23 +61,24 @@ get_model_draws_w_data <- function(
 
     ## Tested up to here ## - need to work out ww part
 
+    eval_data_min <- eval_data |>
+      dplyr::rename(
+        below_lod_eval = "below_lod",
+        log_lod_eval = "log_lod"
+      ) |>
+      dplyr::select(
+        "date",
+        "log_genome_copies_per_ml",
+        "lab",
+        "site",
+        "exclude",
+        "below_lod_eval",
+        "log_lod_eval"
+      ) |>
+      unique()
+
     draws_w_data <- new_ww_draws |>
-      dplyr::left_join(
-        eval_data |>
-          dplyr::rename(
-            "below_lod_eval" = "below_lod",
-            "log_lod_eval" = "log_lod"
-          ) |>
-          dplyr::select(
-            "date",
-            "log_genome_copies_per_ml",
-            "lab",
-            "site",
-            "exclude",
-            "below_lod_eval",
-            "log_lod_eval"
-          ) |>
-          unique(),
+      dplyr::left_join(eval_data_min,
         by = c("date", "lab", "site")
       ) |>
       dplyr::rename(
@@ -100,12 +101,12 @@ get_model_draws_w_data <- function(
       dplyr::ungroup() |>
       # Replace values below LOD with LOD in observations
       dplyr::mutate(
-        "eval_data" = ifelse(
+        eval_data = ifelse(
           .data$below_lod_eval == 1,
           .data$lod_sewage_eval,
           .data$eval_data
         ),
-        "calib_data" = ifelse(
+        calib_data = ifelse(
           .data$below_LOD == 1,
           .data$lod_sewage,
           .data$eval_data
@@ -133,7 +134,7 @@ get_model_draws_w_data <- function(
         "site_lab_name"
       )
   } else {
-    stop(glue::glue("Unknown model_output {model_output}"))
+    abort(glue::glue("Unknown model_output {model_output}"), call = NULL)
   }
 
   return(draws_w_data)
