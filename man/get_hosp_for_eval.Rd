@@ -23,10 +23,6 @@ forecast in YYYY-MM-DD}
 \item{forecast_horizon}{Forecast horizon. Default is \code{28}.}
 
 \item{filepath_name}{Name of directory to save the raw input wastewater data.}
-
-\item{right_trunc}{Boolean indicating whether to use the real-time, right
-truncated data or the final corrected data. Default is \code{FALSE} indicating
-we will just use the corrected data.}
 }
 \description{
 Get the hospital admissions data

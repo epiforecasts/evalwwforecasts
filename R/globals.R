@@ -15,6 +15,7 @@ utils::globalVariables(c(
   "daily_hosp_admits", # <get_hosp_for_eval>
   "state_pop", # <get_hosp_for_eval>
   "init_hosp_7d_count", # <get_hosp_for_eval>
+  "lag", # <get_hosp_for_fit>
   "location", # <get_initial_values>
   "age_group", # <get_initial_values>
   "value", # <get_initial_values>

@@ -71,6 +71,8 @@ get_ww_for_eval <- function(location_name,
 #'    forecast in YYYY-MM-DD
 #' @param calibration_period Integer indicating the number of days of
 #'    wastewater calibration data to extract. Default is `100`.
+#' @param lag Integer indicating the number of days from the forecast date of
+#'    the latest wastewater data. Default is `3`
 #' @autoglobal
 #' @importFrom dplyr filter
 #' @importFrom lubridate ymd days

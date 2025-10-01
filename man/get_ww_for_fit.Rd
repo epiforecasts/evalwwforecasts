@@ -14,6 +14,9 @@ forecast in YYYY-MM-DD}
 
 \item{calibration_period}{Integer indicating the number of days of
 wastewater calibration data to extract. Default is \code{100}.}
+
+\item{lag}{Integer indicating the number of days from the forecast date of
+the latest wastewater data. Default is \code{3}}
 }
 \description{
 Filter wastewater data for fitting

@@ -6,9 +6,6 @@
 #'    forecast in YYYY-MM-DD
 #' @param forecast_horizon Forecast horizon. Default is `28`.
 #' @param filepath_name Name of directory to save the raw input wastewater data.
-#' @param right_trunc Boolean indicating whether to use the real-time, right
-#'    truncated data or the final corrected data. Default is `FALSE` indicating
-#'    we will just use the corrected data.
 #' @autoglobal
 #' @importFrom dplyr rename mutate filter arrange desc pull
 #' @importFrom fs dir_create
@@ -78,8 +75,13 @@ get_hosp_for_eval <- function(location_name,
 #' @param hosp_data_eval hospital admissions data for evaluation step
 #' @param forecast_date Character string or date indicating the date of
 #'    forecast in YYYY-MM-DD
+#' @param right_trunc Boolean indicating whether to use the real-time, right
+#'    truncated data or the final corrected data. Default is `FALSE` indicating
+#'    we will just use the corrected data.
 #' @param calibration_period Integer indicating the number of days of
 #'    hospital admissions calibration data to extract. Default is `100`.
+#' @param lag Integer indicating the number of days from the forecast date of
+#'    the latest hospital admission. Default is `3`.
 #' @autoglobal
 #' @importFrom dplyr filter
 #' @importFrom lubridate ymd days
@@ -87,8 +89,7 @@ get_hosp_for_eval <- function(location_name,
 get_hosp_for_fit <- function(hosp_data_eval,
                              forecast_date,
                              right_trunc = FALSE,
-                             calibration_period = 100,
-                             lag = 3) {
+                             calibration_period = 100) {
   if (isFALSE(right_trunc)) {
     hosp_for_fit <- hosp_data_eval |>
       filter(

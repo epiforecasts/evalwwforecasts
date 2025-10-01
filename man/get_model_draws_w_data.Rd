@@ -15,11 +15,11 @@ get_model_draws_w_data(
 )
 }
 \arguments{
-\item{fit_obj_wwinference}{wwinference_fit object returned when wwinference::wwinference() is run}
+\item{fit_obj_wwinference}{wwinference_fit object}
 
 \item{model_output}{Type of model output to extract, either "ww" or "hosp"}
 
-\item{include_ww}{Whether wastewater data was included in the model, either "TRUE" or "FALSE"}
+\item{include_ww}{Whether model included wastewater data, "TRUE" or "FALSE"}
 
 \item{model}{Model type, either "wwinference" or "baseline"}
 
