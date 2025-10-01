@@ -1,7 +1,7 @@
 load_data_targets <- list(
   tar_target(
     hosp_data_eval,
-    get_hosp_data(
+    get_hosp_for_eval(
       location_name = scenarios$location_name,
       location_abbr = scenarios$location_abbr,
       forecast_date = scenarios$forecast_date,
@@ -22,7 +22,7 @@ load_data_targets <- list(
   ),
   tar_target(
     ww_data_eval,
-    get_ww_data(
+    get_ww_for_eval(
       location_name = scenarios$location_name,
       location_abbr = scenarios$location_abbr,
       forecast_date = scenarios$forecast_date

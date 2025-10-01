@@ -8,7 +8,7 @@
 #' @importFrom fs dir_create
 #' @importFrom readr read_tsv read_csv write_csv
 #' @autoglobal
-get_ww_data <- function(location_name,
+get_ww_for_eval <- function(location_name,
                         location_abbr,
                         forecast_date,
                         forecast_horizon = 28,

@@ -14,13 +14,11 @@
 #' @importFrom fs dir_create
 #' @importFrom readr read_csv
 #' @importFrom lubridate ymd days
-get_hosp_data <- function(location_name,
+get_hosp_for_eval <- function(location_name,
                           location_abbr,
                           forecast_date,
                           forecast_horizon = 28,
-                          right_trunc = FALSE,
                           filepath_name = file.path("input", "data", "hosp")) {
-  if (isFALSE(right_trunc)) {
     if (file.exists(file.path(filepath_name, "RKI_hosp_adj.csv"))) {
       RKI_hosp_adj <- read_csv(file.path(filepath_name, "RKI_hosp_adj.csv"))
     } else {
@@ -48,10 +46,6 @@ get_hosp_data <- function(location_name,
         date, daily_hosp_admits, state_pop, actual_hosp_7d_count,
         adj_hosp_7d_count
       )
-  } else {
-    # Insert function to use git history to get the data as of the forecast date
-    hosp_clean <- NULL
-  }
   return(hosp_clean)
 }
 
@@ -68,12 +62,17 @@ get_hosp_data <- function(location_name,
 
 get_hosp_for_fit <- function(hosp_data_eval,
                              forecast_date,
+                             right_trunc = FALSE,
                              calibration_period = 100,
                              lag = 3) {
+  if (isFALSE(right_trunc)) {
   hosp_for_fit <- hosp_data_eval |>
     filter(
       date >= ymd(forecast_date) - days(calibration_period),
       date <= ymd(forecast_date) - days(lag)
-    )
+    ) } else {
+      # Insert function to use git history to get the data as of the forecast date
+      hosp_for_fit <- NULL
+    }
   return(hosp_for_fit)
 }
