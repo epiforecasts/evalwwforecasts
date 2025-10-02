@@ -6,23 +6,31 @@ sample_metrics <- scoringutils::get_metrics(
 
 #' Metrics to use for quantile scores
 #' @export
-sample_metrics_quantiles <- scoringutils::get_metrics(
+quantile_metrics <- scoringutils::get_metrics(
   scoringutils::example_quantile
 )
 
 #' Preparing draws for scoring, including choosing quantiles or samples
 #'
 #' @param draws Dataframe of model draws with observed data to score
-#' @param forecast_date Forecast data
+#' @param forecast_date Forecast date
 #' @param offset Offset to use when transforming forecasts
 #' @param quantiles Converts to quantiles if TRUE, otherwise leaves as samples
 #'
-#' @returns Dataframe of samples/quantiles, on log scale
+#' @returns A forecast_sample or forecast_quantile object (depending on
+#'   the quantiles parameter) on the log scale, ready for scoring with
+#'   generate_scores(). Returns NULL if draws is NULL.
+#'
+#' @importFrom dplyr filter select
+#' @importFrom scoringutils as_forecast_sample transform_forecasts
+#' @importFrom scoringutils log_shift as_forecast_quantile
+#' @importFrom rlang .data
 draws_for_scoring <- function(
     draws,
     forecast_date,
     offset = 1,
-    quantiles = FALSE) {
+    quantiles = FALSE,
+    probs = c(0.05, 0.25, 0.5, 0.75, 0.95)) {
   if (is.null(draws)) {
     to_score <- NULL
   } else {
@@ -52,10 +60,10 @@ draws_for_scoring <- function(
       )
 
     if (isTRUE(quantiles)) {
-      to_score <- to_score |>
-        as_forecast_quantile(
-          probs = c(0.05, 0.25, 0.5, 0.75, 0.95)
-        )
+      to_score <- as_forecast_quantile(
+        to_score,
+        probs = probs
+      )
     }
   }
 
@@ -66,7 +74,7 @@ draws_for_scoring <- function(
 #' Scores samples against observed data
 #'
 #' @param draws_for_scoring Dataframe of samples/quantiles on log scale
-#' @param metrics Metrics to use for scoring, Default: sample_metrics
+#' @param metrics Metrics to use for scoring
 #'
 #' @return a dataframe containing scores for each day of forecasting horizon
 #' @importFrom dplyr filter select mutate
@@ -75,12 +83,12 @@ draws_for_scoring <- function(
 #' @importFrom rlang .data
 generate_scores <- function(
     draws_for_scoring,
-    metrics = sample_metrics_quantiles) {
+    metrics) {
   if (is.null(draws_for_scoring)) {
     scores <- NULL
   } else {
     if (is.null(metrics)) {
-      metrics <- get_metrics(to_score)
+      metrics <- get_metrics(draws_for_scoring)
     }
 
     scores <- score(draws_for_scoring, metrics = metrics) |>

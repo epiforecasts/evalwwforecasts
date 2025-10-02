@@ -44,7 +44,7 @@ scoring_targets <- list(
     name = score_hosp_quantiles,
     command = generate_scores(
       draws = hosp_quantiles_for_scoring,
-      metrics = sample_metrics_quantiles
+      metrics = quantile_metrics
     ),
     pattern = map(hosp_quantiles_for_scoring, scenarios)
   ),
@@ -54,7 +54,7 @@ scoring_targets <- list(
     name = score_hosp_samples,
     command = generate_scores(
       draws = hosp_samples_for_scoring,
-      metrics = sample_metrics_quantiles
+      metrics = sample_metrics
     ),
     pattern = map(hosp_samples_for_scoring, scenarios)
   )
