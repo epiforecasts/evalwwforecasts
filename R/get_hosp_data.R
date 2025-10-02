@@ -34,7 +34,7 @@ get_hosp_for_eval <- function(location_name,
     filter(age_group == "00+") |>
     mutate(location = stringr::str_sub(location, -2)) |>
     filter(location == location_abbr) |>
-    arrange(desc(date)) |>
+    arrange(-desc(date)) |>
     pull(value)
 
   hosp_clean <- RKI_hosp_adj |>
@@ -48,7 +48,7 @@ get_hosp_for_eval <- function(location_name,
       updated_hosp_7d_count = `aktualisierte_7T_Hospitalisierung_Faelle`,
       state_pop = `Bevoelkerung`
     ) |>
-    arrange(desc(date)) |>
+    arrange(-desc(date)) |>
     filter(
       state == location_name,
       date >= date_to_get_init_vals
@@ -147,7 +147,7 @@ get_initial_values <- function(
         date >= ymd(start_date_RKI_data) - days(6),
         date < ymd(start_date_RKI_data)
       ) |>
-      arrange(desc(date))
+      arrange(-desc(date))
     fs::dir_create(filepath_name)
     write_csv(init_vals, file.path(
       filepath_name,

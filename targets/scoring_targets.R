@@ -12,9 +12,7 @@ scoring_targets <- list(
       location = scenarios$location_name,
       eval_data = hosp_data_eval
     ),
-    pattern = map(ww_fit_obj, hosp_data_eval, scenarios),
-    format = "rds",
-    iteration = "list"
+    pattern = map(ww_fit_obj, hosp_data_eval, scenarios)
   ),
   tar_target(
     name = score_hosp,
@@ -23,8 +21,6 @@ scoring_targets <- list(
       forecast_date = scenarios$forecast_date,
       offset = 1
     ),
-    pattern = map(hosp_draws_w_data, scenarios),
-    format = "rds",
-    iteration = "list"
+    pattern = map(hosp_draws_w_data, scenarios)
   )
 )
