@@ -3,6 +3,7 @@
 export(convert_rolling_sum_to_inc)
 export(quiet)
 export(sample_metrics)
+export(sample_metrics_quantiles)
 export(save_csv)
 importFrom(dplyr,arrange)
 importFrom(dplyr,desc)

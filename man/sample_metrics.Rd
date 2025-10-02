@@ -3,7 +3,7 @@
 \docType{data}
 \name{sample_metrics}
 \alias{sample_metrics}
-\title{Metrics to use for quantile scores}
+\title{Metrics to use for sample scores}
 \format{
 An object of class \code{list} of length 10.
 }
@@ -11,6 +11,6 @@ An object of class \code{list} of length 10.
 sample_metrics
 }
 \description{
-Metrics to use for quantile scores
+Metrics to use for sample scores
 }
 \keyword{datasets}

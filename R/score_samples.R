@@ -1,7 +1,13 @@
-#' Metrics to use for quantile scores
+#' Metrics to use for sample scores
 #' @export
 sample_metrics <- scoringutils::get_metrics(
   scoringutils::example_sample_discrete
+)
+
+#' Metrics to use for quantile scores
+#' @export
+sample_metrics_quantiles <- scoringutils::get_metrics(
+  scoringutils::example_quantile
 )
 
 #' Preparing draws for scoring, including choosing quantiles or samples
@@ -34,30 +40,25 @@ draws_for_scoring <- function(
         "draw"
       )
 
+    to_score <- forecasted_draws |>
+      as_forecast_sample(
+        predicted = "value",
+        observed = "eval_data",
+        sample_id = "draw"
+      ) |>
+      transform_forecasts(
+        fun = log_shift,
+        offset = offset
+      )
+
     if (isTRUE(quantiles)) {
-      to_score <- forecasted_draws |>
+      to_score <- to_score |>
         as_forecast_quantile(
-          predicted = "value",
-          observed = "eval_data",
-          sample_id = "draw"
-        ) |>
-        transform_forecasts(
-          fun = log_shift,
-          offset = offset
-        )
-    } else {
-      to_score <- forecasted_draws |>
-        as_forecast_sample(
-          predicted = "value",
-          observed = "eval_data",
-          sample_id = "draw"
-        ) |>
-        transform_forecasts(
-          fun = log_shift,
-          offset = offset
+          probs = c(0.05, 0.25, 0.5, 0.75, 0.95)
         )
     }
   }
+
   return(to_score)
 }
 
@@ -72,9 +73,9 @@ draws_for_scoring <- function(
 #' @importFrom scoringutils as_forecast_sample transform_forecasts
 #' @importFrom scoringutils log_shift get_metrics score
 #' @importFrom rlang .data
-score_samples <- function(
+generate_scores <- function(
     draws_for_scoring,
-    metrics = sample_metrics) {
+    metrics = sample_metrics_quantiles) {
   if (is.null(draws_for_scoring)) {
     scores <- NULL
   } else {

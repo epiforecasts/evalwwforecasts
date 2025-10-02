@@ -14,13 +14,26 @@ scoring_targets <- list(
     ),
     pattern = map(ww_fit_obj, hosp_data_eval, scenarios)
   ),
+
+  # Target to generate quantiles and log-transform
   tar_target(
-    name = score_hosp,
-    command = score_samples(
+    name = hosp_for_scoring,
+    command = draws_for_scoring(
       draws = hosp_draws_w_data,
       forecast_date = scenarios$forecast_date,
-      offset = 1
+      offset = 1,
+      quantiles = TRUE
     ),
     pattern = map(hosp_draws_w_data, scenarios)
+  ),
+
+  # Target for scoring
+  tar_target(
+    name = score_hosp,
+    command = generate_scores(
+      draws = hosp_for_scoring,
+      metrics = sample_metrics_quantiles
+    ),
+    pattern = map(hosp_for_scoring, scenarios)
   )
 )

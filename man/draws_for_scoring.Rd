@@ -16,7 +16,7 @@ draws_for_scoring(draws, forecast_date, offset = 1, quantiles = FALSE)
 \item{quantiles}{Converts to quantiles if TRUE, otherwise leaves as samples}
 }
 \value{
-a dataframe with either samples/quantiles, observed data and forecasts on the log scale
+Dataframe of samples/quantiles, on log scale
 }
 \description{
 Preparing draws for scoring, including choosing quantiles or samples
