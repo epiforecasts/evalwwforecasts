@@ -20,6 +20,8 @@ draws_for_scoring(
 \item{offset}{Offset to use when transforming forecasts}
 
 \item{quantiles}{Converts to quantiles if TRUE, otherwise leaves as samples}
+
+\item{probs}{Numeric vector of quantile probabilities to use when \code{quantiles = TRUE}}
 }
 \value{
 A forecast_sample or forecast_quantile object (depending on
