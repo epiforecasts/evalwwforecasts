@@ -12,10 +12,10 @@ sample_metrics <- scoringutils::get_metrics(
 #' @param offset Offset to use when transforming forecasts
 #'
 #' @return a dataframe containing scores for each day of forecasting horizon
-#' @importFrom dplyr filter select mutate .data
+#' @importFrom dplyr filter select mutate
 #' @importFrom scoringutils as_forecast_sample transform_forecasts
-#' log_shift get_metrics score
-#' @importFrom rlang arg_match
+#' @importFrom scoringutils log_shift get_metrics score
+#' @importFrom rlang arg_match .data
 score_samples <- function(
     draws,
     metrics = sample_metrics,
@@ -26,9 +26,9 @@ score_samples <- function(
   } else {
     # Filter to after the last date
     forecasted_draws <- draws |>
-      dplyr::filter(.data$date >= !!forecast_date) |>
-      dplyr::select(
-        model = "model",
+      filter(.data$date >= !!forecast_date) |>
+      select(
+        "model",
         "include_ww",
         "location",
         "forecast_date",
@@ -53,14 +53,18 @@ score_samples <- function(
     }
 
     scores <- score(to_score, metrics = metrics) |>
-      dplyr::mutate(
+      mutate(
         period = ifelse(
           .data$date <= .data$forecast_date,
           "estimate",
           "forecast"
         )
-      )
+      ) |>
+      filter()
   }
+
+  # Keep scores on log scale only
+  scores <- filter(scores, scale == "log")
 
   return(scores)
 }

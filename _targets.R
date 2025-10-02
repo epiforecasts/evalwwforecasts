@@ -15,6 +15,8 @@ library(lubridate)
 library(tidyr)
 library(glue)
 library(fs)
+library(rlang)
+library(scoringutils)
 # load functions
 functions <- list.files(here("R"), full.names = TRUE)
 walk(functions, source)

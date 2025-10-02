@@ -4,8 +4,7 @@ load_data_targets <- list(
     get_hosp_for_eval(
       location_name = scenarios$location_name,
       location_abbr = scenarios$location_abbr,
-      forecast_date = scenarios$forecast_date,
-      right_trunc = scenarios$data_right_trunc
+      forecast_date = scenarios$forecast_date
     ),
     pattern = map(scenarios),
     format = "rds",
@@ -16,7 +15,8 @@ load_data_targets <- list(
     get_hosp_for_fit(
       hosp_data_eval = hosp_data_eval,
       forecast_date = scenarios$forecast_date,
-      calibration_period = 100
+      calibration_period = 100,
+      right_trunc = scenarios$data_right_trunc
     ),
     pattern = map(hosp_data_eval, scenarios)
   ),
