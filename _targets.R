@@ -73,7 +73,7 @@ fit_models <- list(
   fit_model_targets
 )
 
-score <- list(
+scoring <- list(
   scoring_targets
 )
 
@@ -81,5 +81,5 @@ list(
   set_up,
   load_data,
   fit_models,
-  score
+  scoring
 )

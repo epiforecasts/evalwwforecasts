@@ -15,7 +15,7 @@ sample_metrics <- scoringutils::get_metrics(
 #' @importFrom dplyr filter select mutate
 #' @importFrom scoringutils as_forecast_sample transform_forecasts
 #' @importFrom scoringutils log_shift get_metrics score
-#' @importFrom rlang arg_match .data
+#' @importFrom rlang .data
 score_samples <- function(
     draws,
     metrics = sample_metrics,
@@ -26,7 +26,7 @@ score_samples <- function(
   } else {
     # Filter to after the last date
     forecasted_draws <- draws |>
-      filter(.data$date >= !!forecast_date) |>
+      filter(.data$date >= as.Date(forecast_date)) |>
       select(
         "model",
         "include_ww",
@@ -59,12 +59,13 @@ score_samples <- function(
           "estimate",
           "forecast"
         )
-      ) |>
-      filter()
+      )
+
+    # Keep scores on log scale only
+    scores <- filter(scores, scale == "log")
   }
 
-  # Keep scores on log scale only
-  scores <- filter(scores, scale == "log")
+
 
   return(scores)
 }

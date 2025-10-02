@@ -16,7 +16,7 @@
 get_model_draws_w_data <- function(
     fit_obj_wwinference,
     model_output = c("ww", "hosp"),
-    include_ww = c("TRUE", "FALSE"),
+    include_ww = TRUE,
     model = c("wwinference", "baseline"),
     forecast_date,
     location,
@@ -38,7 +38,7 @@ get_model_draws_w_data <- function(
     draws_w_data <- new_hosp_draws |>
       dplyr::mutate(
         name = "pred_hosp",
-        include_ww = !!include_ww,
+        include_ww = include_ww,
         model = !!model,
         forecast_date = lubridate::ymd(!!forecast_date),
         location = !!location
