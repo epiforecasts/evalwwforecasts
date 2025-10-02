@@ -4,25 +4,21 @@ sample_metrics <- scoringutils::get_metrics(
   scoringutils::example_sample_discrete
 )
 
-#' Scores samples against observed data
+#' Preparing draws for scoring, including choosing quantiles or samples
 #'
 #' @param draws Dataframe of model draws with observed data to score
-#' @param metrics Metrics to use for scoring, Default: sample_metrics
-#' @param forecast_date Forecast date
+#' @param forecast_date Forecast data
 #' @param offset Offset to use when transforming forecasts
+#' @param quantiles Converts to quantiles if TRUE, otherwise leaves as samples
 #'
-#' @return a dataframe containing scores for each day of forecasting horizon
-#' @importFrom dplyr filter select mutate
-#' @importFrom scoringutils as_forecast_sample transform_forecasts
-#' @importFrom scoringutils log_shift get_metrics score
-#' @importFrom rlang .data
-score_samples <- function(
+#' @returns Dataframe of samples/quantiles, on log scale
+draws_for_scoring <- function(
     draws,
-    metrics = sample_metrics,
     forecast_date,
-    offset = 1) {
+    offset = 1,
+    quantiles = FALSE) {
   if (is.null(draws)) {
-    scores <- NULL
+    to_score <- NULL
   } else {
     # Filter to after the last date
     forecasted_draws <- draws |>
@@ -37,22 +33,56 @@ score_samples <- function(
         "eval_data",
         "draw"
       )
-    to_score <- forecasted_draws |>
-      as_forecast_sample(
-        predicted = "value",
-        observed = "eval_data",
-        sample_id = "draw"
-      ) |>
-      transform_forecasts(
-        fun = log_shift,
-        offset = offset
-      )
 
+    if (isTRUE(quantiles)) {
+      to_score <- forecasted_draws |>
+        as_forecast_quantile(
+          predicted = "value",
+          observed = "eval_data",
+          sample_id = "draw"
+        ) |>
+        transform_forecasts(
+          fun = log_shift,
+          offset = offset
+        )
+    } else {
+      to_score <- forecasted_draws |>
+        as_forecast_sample(
+          predicted = "value",
+          observed = "eval_data",
+          sample_id = "draw"
+        ) |>
+        transform_forecasts(
+          fun = log_shift,
+          offset = offset
+        )
+    }
+  }
+  return(to_score)
+}
+
+
+#' Scores samples against observed data
+#'
+#' @param draws_for_scoring Dataframe of samples/quantiles on log scale
+#' @param metrics Metrics to use for scoring, Default: sample_metrics
+#'
+#' @return a dataframe containing scores for each day of forecasting horizon
+#' @importFrom dplyr filter select mutate
+#' @importFrom scoringutils as_forecast_sample transform_forecasts
+#' @importFrom scoringutils log_shift get_metrics score
+#' @importFrom rlang .data
+score_samples <- function(
+    draws_for_scoring,
+    metrics = sample_metrics) {
+  if (is.null(draws_for_scoring)) {
+    scores <- NULL
+  } else {
     if (is.null(metrics)) {
       metrics <- get_metrics(to_score)
     }
 
-    scores <- score(to_score, metrics = metrics) |>
+    scores <- score(draws_for_scoring, metrics = metrics) |>
       mutate(
         period = ifelse(
           .data$date <= .data$forecast_date,
@@ -64,8 +94,6 @@ score_samples <- function(
     # Keep scores on log scale only
     scores <- filter(scores, scale == "log")
   }
-
-
 
   return(scores)
 }

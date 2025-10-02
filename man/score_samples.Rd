@@ -4,16 +4,12 @@
 \alias{score_samples}
 \title{Scores samples against observed data}
 \usage{
-score_samples(draws, metrics = sample_metrics, forecast_date, offset = 1)
+score_samples(draws_for_scoring, metrics = sample_metrics)
 }
 \arguments{
-\item{draws}{Dataframe of model draws with observed data to score}
+\item{draws_for_scoring}{Dataframe of samples or quantiles on log scale ready to score}
 
 \item{metrics}{Metrics to use for scoring, Default: sample_metrics}
-
-\item{forecast_date}{Forecast date}
-
-\item{offset}{Offset to use when transforming forecasts}
 }
 \value{
 a dataframe containing scores for each day of forecasting horizon
