@@ -140,10 +140,10 @@ fit_model_targets <- list(
         draws = ww_draws,
         forecast_date = scenarios$forecast_date
       ) +
-        ggtitle(glue("{scenarios$location_name}, wastewater: {scenarios$include_ww}"))
+        ggtitle(glue("{scenarios$location_name}, wastewater: {scenarios$include_ww}")) # nolint
     } else {
       NULL
-    }, # nolint
+    },
     pattern = map(ww_draws, scenarios),
     format = "rds",
     iteration = "list"
