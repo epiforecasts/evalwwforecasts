@@ -15,6 +15,8 @@ library(lubridate)
 library(tidyr)
 library(glue)
 library(fs)
+library(rlang)
+library(scoringutils)
 # load functions
 functions <- list.files(here("R"), full.names = TRUE)
 walk(functions, source)
@@ -71,8 +73,13 @@ fit_models <- list(
   fit_model_targets
 )
 
+scoring <- list(
+  scoring_targets
+)
+
 list(
   set_up,
   load_data,
-  fit_models
+  fit_models,
+  scoring
 )

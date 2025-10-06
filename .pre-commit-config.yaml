@@ -1,39 +1,55 @@
-# All available hooks: https://pre-commit.com/hooks.html
-# R specific hooks: https://github.com/lorenzwalthert/precommit
+# .pre-commit-config.yaml
 repos:
--   repo: https://github.com/lorenzwalthert/precommit
-    rev: v0.4.3
+  - repo: https://github.com/lorenzwalthert/precommit
+    rev: v0.4.3.9016
     hooks:
-    -   id: style-files
+      - id: style-files
         args: [--style_pkg=styler, --style_fun=tidyverse_style]
-    # codemeta must be above use-tidy-description when both are used
-    # -   id: codemeta-description-updated
-    -   id: use-tidy-description
-    -   id: lintr
-    -   id: parsable-R
-    -   id: no-browser-statement
-    -   id: deps-in-desc
--   repo: https://github.com/pre-commit/pre-commit-hooks
+      # - id: codemeta-description-updated
+      - id: use-tidy-description
+      - id: lintr
+        additional_dependencies:
+          # From DESCRIPTION / Imports
+          - cli
+          - dplyr
+          - rlang
+          - readr
+          - ggplot2
+          - lubridate
+          - fs
+          - purrr
+          - glue
+          - scoringutils
+          - zoo
+          - stringr
+          # GitHub remote for wwinference
+          - github::CDCgov/ww-inference-model
+          # Only if you use these linters
+          - cyclocomp
+          - spelling
+      - id: parsable-R
+      - id: no-browser-statement
+      - id: deps-in-desc
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
     hooks:
-    -   id: check-added-large-files
+      - id: check-added-large-files
         args: ['--maxkb=200']
-    -   id: end-of-file-fixer
+      - id: end-of-file-fixer
         exclude: '\.Rd'
--   repo: local
+      - id: trailing-whitespace
+      - id: check-yaml
+
+  - repo: local
     hooks:
-    -   id: forbid-to-commit
+      - id: forbid-to-commit
         name: Don't commit common R artifacts
         entry: Cannot commit .Rhistory, .RData, .Rds or .rds.
         language: fail
         files: '\.Rhistory|\.RData|\.Rds|\.rds$'
--   repo: meta
+
+  - repo: meta
     hooks:
-    -   id: check-hooks-apply
-    -   id: check-useless-excludes
--   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
-    hooks:
-    -   id: trailing-whitespace
-    -   id: check-yaml
-    -   id: check-added-large-files
+      - id: check-hooks-apply
+      - id: check-useless-excludes
