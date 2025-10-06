@@ -24,10 +24,17 @@ BugReports: https://github.com/epiforecasts/evalwwforecasts/issues
 Depends:
     R (>= 4.0.0)
 Imports:
-  cli,
-  dplyr,
-  ggplot2,
-  wwinference
+    cli,
+    dplyr,
+    readr,
+    ggplot2,
+    wwinference,
+    lubridate,
+    fs,
+    purrr,
+    zoo,
+    stringr,
+    glue
 Suggests:
     bookdown,
     targets,
@@ -36,10 +43,14 @@ Suggests:
     testthat (>= 3.1.9),
     usethis,
     withr,
-    knitr
+    knitr,
+    tidyr,
+    roxyglobals
 Encoding: UTF-8
-Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
+Language: en-GB
+Roxygen: list(markdown = TRUE, roclets = c("collate", "namespace", "rd",
+    "roxyglobals::global_roclet"))
+RoxygenNote: 7.3.3
 VignetteBuilder: knitr
 Remotes:
   wwinference=CDCgov/ww-inference-model

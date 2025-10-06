@@ -1,10 +1,10 @@
 ---
-title: "Evaluating the impact of incorporating wastewater on forecast performance: a case study applied to COVID-19 Hospitalizations in Germany during the 2024-2025 respiratory virus season"
+title: "Evaluating the influence of incorporating wastewater on forecast performance: a case study applied to COVID-19 Hospitalizations in Germany during the 2024-2025 respiratory virus season"
 authors: "Kaitlyn E. Johnson"
 format: docx
 editor: visual
 bibliography: references.bib
-date: 2025-07-03
+date: 2025-07-30
 ---
 
 # Introduction
@@ -33,7 +33,7 @@ The data in Germany is similar to the U.S. in that they collect hospital admissi
 
 The goal of these analyses will be to assess, in the context of the 2024-2025 respiratory virus season in Germany using the `wwinference` model:
 
-1.  How does incorporating wastewater impact the forecast performance of a semi-mechanistic renewal model?
+1.  Quantify the changes in forecast performance of a semi-mechanistic renewal model with and without wastewater data.
 
 2.  How do characteristics of the wastewater surveillance system impact the relative forecast performance of the wastewater-informed model?
 
@@ -44,15 +44,15 @@ In this paper, we retrospectively produced 28-day ahead forecasts of incident CO
 
 ## Data
 
-This analysis will use publicly available data from RKI of [COVID-19 hospital admissions at the state-level](https://github.com/robert-koch-institut/COVID-19-Hospitalisierungen_in_Deutschland/) and [wastewater concentration data](https://github.com/robert-koch-institut/Abwassersurveillance_AMELAG) at the site-level in Germany during the 2024-2025 respiratory virus season. We will use GitHub's commit history of both repositories to generate snapshots of each data source available as of each forecast date. Weekly snapshots of both datasets will be created every Monday from October 2024 to March 2025.
+This analysis will use publicly available data from RKI of [COVID-19 hospital admissions at the state-level](https://github.com/robert-koch-institut/COVID-19-Hospitalisierungen_in_Deutschland/) and [wastewater concentration data](https://github.com/robert-koch-institut/Abwassersurveillance_AMELAG) at the site-level in Germany from XX 2022 to YY 2025. We will use GitHub's commit history of both repositories to generate snapshots of each data source available as of each forecast date. Weekly snapshots of both datasets will be created every Monday from XX 2022 to YY 2025, covering multiple epidemic phases in Germany.
 
 ### Hospital admissions data
 
-Hospital admissions data are reported by age group and state as 7-day rolling sums. We will fit and generate forecasts for the number of admissions summed across all age groups, at the state-level. We will take the difference between successive days to compute daily hospital admissions incidence as an input into the model.
+Hospital admissions data are reported by age group and state as 7-day rolling sums. We will fit and generate forecasts for the number of admissions summed across all age groups, at the state-level. We will take the difference between successive days to compute daily hospital admissions incidence as an input into the model. We will use both the data available as of the forecast date (the "real-time" hospital admissions data) with a nowcasting correction, and a truncated, "corrected" final dataset as part of this analysis.
 
 ### Wastewater concentration data
 
-Data on wastewater concentrations of SARS-CoV-2 are available from individual wastewater treatment plants (will refer to these as sites), indexed by sample collection date. Data are also available aggregated at the state-level. However, we do not plan to use the state-level aggregated data, as these end up getting back-corrected because multiple sites contribute with different reporting delays. The `wwinference` model is designed to be able to fit to the raw observations (concentrations) from multiple wastewater treatment plants. Each wastewater treatment plant is contained within a state, and contains the metadata on the catchment area (population size) served by the wastewater treatment plant. We will assume all individuals served by the wastewater treatment plant reside within the state. We will jointly fit to all wastewater treatment plants within a state.
+Data on wastewater concentrations of SARS-CoV-2 are available from individual wastewater treatment plants (will refer to these as sites), indexed by sample collection date. Data are also available aggregated at the state-level. However, we do not plan to use the state-level aggregated data, as these end up getting back-corrected because multiple sites contribute with different reporting delays. The `wwinference` model is designed to be able to fit to the raw observations (concentrations) from multiple wastewater treatment plants, grouping observations by wastewater treatment plant and lab. The wastewater concentration data contains an indicator for a change in lab method, which we will use as a way of grouping sets of observations. Each wastewater treatment plant is contained within a state, and contains the metadata on the catchment area (population size) served by the wastewater treatment plant. We will assume all individuals served by the wastewater treatment plant reside within the state. We will jointly fit to all wastewater treatment plants-lab method combinations within a state.
 
 To ensure that we are fairly assessing retrospective performance with data that would have been available as of the forecast date, we will use the GitHub commit history to create snapshots of data available as of each forecast date, rather than simply truncating the final dataset.
 
@@ -98,7 +98,7 @@ We will present the results by analysing the mean scores by model and then strat
 
 5.  50th and 90th interval coverage summarised across locations and forecast dates (horizontal bar chart, color = model)
 
-We will make the same set of plots for the models fit to the hospitalization datasets without right-truncation (retrospectively truncated hospital admissions datasets), to assess whether the findings differ, as right-truncation in the data may be a confounding variable impacting forecast performance.
+We will make the same set of plots for the models fit to the hospitalization datasets without right-truncation (retrospectively truncated hospital admissions datasets), to assess whether the findings differ, as right-truncation in the data may introduce bias influencing forecast performance.
 
 We will also compare the overall scores across locations, forecast dates, and horizons, with and without wastewater and with and without right-truncation in the data via a bar chart of CRPS broken down by underprediction, overprediction, and dispersion.
 
@@ -112,23 +112,28 @@ We will include the following variables with which we would like to understand t
 
 2.  population coverage of all the wastewater treatment plants
 
-3.  average sampling frequency across sites
+3.  average sampling frequency across sites (this is likely very similar so may not be useful)
 
 4.  average latency from last collection date to the forecast date
 
+5.  variability in wastewater data as measured by some indicator/metric e.g. coefficient of variation?
+
 Resulting in the following model formulation:
 
-`CRPS^{ww+hosp}_{h,d,l} ~ \beta + CRPS^{hosponly}_{h,d,l}+ s(numberofsites, k ) + s(popcoverageww, k ) + s(avgfreqsampling, k) + s(avglatencyreporting,k)`
+`CRPS^{ww+hosp}_{h,d,l} ~ \beta + CRPS^{hosponly}_{h,d,l}+ s(numberofsites, k ) + s(popcoverageww, k ) + s(avgfreqsampling, k) + s(avglatencyreporting,k) + s(variability_wwdata)`
 
 The idea behind this analysis will be that including the CRPS score for the `hosp only` model as an offset accounts for the baseline "difficulty" in that particular location $l$, at forecast date $d$ and horizon $h$. Each of the additional components has some (assumed to be non-linear) positive or negative impact on the relative forecast performance of the wastewater-informed model that we would like to estimate.
 
 We will plot the partial effects as a function of the number of sites, population coverage of wastewater surveillance, the average sampling frequency in the wastewater data and the average latency in reporting of the wastewater data.
 
-The estimated $\beta$ reflects the adjusted additive impact of incorporating wastewater on forecast performance taking into account the other confounding variables. We will implement this using a linear-link function in the R package `brms`. These exploratory analyses will be used to generate hypotheses into the impact of the characteristics of wastewater surveillance system on the performance of the `wwinference` model.
+The estimated $\beta$ reflects the adjusted additive impact of incorporating wastewater on forecast performance taking into account the other covariates. We will implement this using a linear-link function in the R package `brms`. These exploratory analyses will be used to generate hypotheses into the impact of the characteristics of wastewater surveillance system on the performance of the `wwinference` model.
 
 ## Extensions to consider:
 
-1.  Evaluation of trend categorisation: We could classify each posterior draw of each forecast as increasing, decreasing, or stable based on the trajectory of hospital admissions, and so each forecast we could assign a probability for each of the three categories. We could then evaluate compared to the later observed data using the Brier score, and compare the Brier scores across different strata (locations, forecast dates, overall).
-2.  Expansion to flu and RSV: In both cases, hospital admissions and wastewater data are available. We could consider expanding this analysis to these other pathogens, which would require GI estimates, infection -\> hospital admissions delay estimates, and shedding kinetics trajectories (though we could assume similar to COVID). However, the wastewater data for flu and RSV measure subtypes A and B separately, whereas the hospital admissions does not specify subtype. The current `wwinference` model does not yet support multiple strains in the wastewater data, and so we would need to separately forecast A and B and aggregate, which wouldn't be possible without separate counts of admissions.
+1.  Expanding beyond 2024-2025 season– evaluate all dates weekly from 2022-2025?
+2.  Incorporating other models for comparison with and without wasteawater (e.g. ARIMA, ML models)
+3.  Consider including indicators/metrics of variability in wastewater data as predictors in the model-based evaluation component.
+4.  Evaluation of trend categorisation: We could classify each posterior draw of each forecast as increasing, decreasing, or stable based on the trajectory of hospital admissions, and so each forecast we could assign a probability for each of the three categories. We could then evaluate compared to the later observed data using the Brier score, and compare the Brier scores across different strata (locations, forecast dates, overall).
+5.  Expansion to flu and RSV: In both cases, hospital admissions and wastewater data are available. We could consider expanding this analysis to these other pathogens, which would require GI estimates, infection -\> hospital admissions delay estimates, and shedding kinetics trajectories (though we could assume similar to COVID). However, the wastewater data for flu and RSV measure subtypes A and B separately, whereas the hospital admissions does not specify subtype. The current `wwinference` model does not yet support multiple strains in the wastewater data, and so we would need to separately forecast A and B and aggregate, which wouldn't be possible without separate counts of admissions.
 
 # References

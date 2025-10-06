@@ -1,10 +1,12 @@
 *.xlsx
 output
+input
 *.rds
 inst/doc
 *.tex
 *.log
 _targets
+compiled_models
 docs
 cache
 .DS_Store

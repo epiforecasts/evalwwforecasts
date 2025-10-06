@@ -10,3 +10,21 @@ quiet <- function(code) {
   on.exit(sink())
   return(suppressMessages(code))
 }
+
+#' Save a dataframe to a csv and return the path for targets
+#' @param df dataframe to save
+#' @param filename name of dataframe
+#' @param path directory to save file in
+#' @param allow_empty Boolean indicating whether to save if df is empty,
+#'    Default is `TRUE`.
+#' @importFrom readr write_csv
+#' @export
+save_csv <- function(df, filename, path, allow_empty = TRUE) {
+  dir.create(path, recursive = TRUE, showWarnings = FALSE)
+  path <- file.path(path, filename)
+
+  if (allow_empty || nrow(df) > 0) {
+    write_csv(df, path)
+  }
+  return(path)
+}
