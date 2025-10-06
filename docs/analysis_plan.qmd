@@ -7,17 +7,35 @@ bibliography: references.bib
 date: 2025-07-30
 ---
 
-# Introduction
+# Summary
 
 This document describes the analysis plan to perform a retrospective evaluation of the impact of incorporating wastewater data on the forecast performance of a semi-mechanistic renewal-based model, specifically the model available in the [@wwinference] R package. Forecasts of COVID-19 hospital admissions will be generated weekly and evaluated against the final observed hospital admissions data, summed across all age groups in Germany during the 2024-2025 respiratory virus season.
 
+# Introduction
+
+## Need
+
+Lots of investment in wastewater surveillance, hope is that it can be leveraged to improve situational awareness and potentially forecast performance. A number of studies have indicated that wastewater can be a leading indicator of changes in trends \[cite Kao, many others\]. Wastewater surveillance for SARS-CoV-2 and Influenza A and B is being routinely collected and made publicly available in Germany, as well as in many other countries throughout the world \[cite EU wastewater dashboard, South Africa data, NWSS, New Zealand data, etc.\]. However, it isn't clear how/whether this data is being used for real-time analysis, how existing modeling methods perform in different contexts, what the impact of incorporating wastewater is on model performance, and what other factors in the wastewater surveillance system may impact the model performance.
+
+Wastewater surveillance has shown promise for monitoring for presence/absence, for example in polio detection or new variants, which in both cases can provide actionable situational awareness. However, the ability to use the quantitative data on the magnitude of pathogen circulating in wastewater through the qPCR values, is less clear. To address this gap, we assess the impact of incorporating pathogen concentrations in wastewater into forecasting models on forecast performance.
+
+## Gap
+
+1.  Larger gap: Lack of evaluation of impact of quantitative levels of pathogen concentration in wastewater on forecast performance: While wastewater has shown promise for detecting presence/absence of vaccine preventable diseases or novel variants, and a number of models have been developed to use quantitative levels of pathogen concentration in wastewater to forecast hospital admissions, few have been evaluated to assess the impact of incorporating wastewater data on forecast performance.
+2.  Smaller gap: Unknown how a particular model, developed for one setting, generalises to different settings: The `wwinference` R package was developed to produce state-level forecasts of hospital admissions in the United States using state-level hospital admissions data and wastewater data from individual wastewater treatment plants. It is not known how this model generalises to a different context with a similar data structure. The data in Germany is similar to the U.S. in that they collect hospital admissions data at the state-level and measurements of the concentration of SARS-CoV-2 genomes in individual wastewater treatment plants within the state. Unknown how this model will perform when applied to a different setting
+3.  Even smaller gap: Unknown what factors in the wastewater surveillance system impact forecast performance from this particular model. Heterogeneous characteristics of the wastewater surveillance system across locations in Germany can be used to explore the impact of these factors on relative forecast performance of wastewater.
+
 ## Aims
 
-The goal of these analyses will be to assess:
+The goal of these analyses will be to assess, in the context of the 2024-2025 respiratory virus season in Germany using the `wwinference` model:
 
 1.  Quantify the changes in forecast performance of a semi-mechanistic renewal model with and without wastewater data.
 
 2.  How do characteristics of the wastewater surveillance system impact the relative forecast performance of the wastewater-informed model?
+
+## What we do here
+
+In this paper, we retrospectively produced 28-day ahead forecasts of incident COVID-19 hospital admissions, with and without incorporating wastewater, for each state in Germany from October 2024 to May of 2025 using a semi-mechanistic renewal model, `wwinference`. Retrospective forecasts were produced in two ways: using only the data available as of the forecast date, which is subject to right-truncation and must incorporate a correction for reporting delays, and using the final observed hospital admissions data truncated to reflect the true lag in the data but exclude the right-truncation problem. Retrospective forecasts were evaluated against a rolling evaluation dataset using proper scoring metrics. We assess the value of incorporating wastewater by comparing the scores from both models overall, across horizons, locations, and forecast dates. To assess the impact of different characteristics of the wastewater surveillance system on forecast performance, we used a generative additive model with wastewater-informed forecast scores as an outcome while including covariate indicators which we hypothesized may have an impact on forecast performance. Based on these analyses, we assess the value of incorporating wastewater for this particular model and discuss areas for future development in wastewater-informed forecasting.
 
 # Methods
 
