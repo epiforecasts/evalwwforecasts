@@ -27,7 +27,7 @@ create_permutations_targets <- list(
   tar_target(
     name = models,
     command = tibble(
-      model = "wwinference"
+      model = c("wwinference", "arima_baseline")
     )
   ),
   tar_file(
@@ -66,6 +66,8 @@ create_permutations_targets <- list(
       locations, forecast_dates, ww, models,
       right_trunc
     ) |>
+      # ARIMA baseline is only for without wastewater
+      filter(!(model == "arima_baseline" & include_ww == TRUE)) |>
       mutate(
         scenario_id = row_number(),
         scenario_name = paste(location_abbr, forecast_date, model,
