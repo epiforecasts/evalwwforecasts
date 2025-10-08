@@ -36,7 +36,9 @@ Imports:
     glue,
     scoringutils,
     zoo,
-    stringr
+    stringr,
+    httr,
+    jsonlite
 Suggests:
     bookdown,
     targets,

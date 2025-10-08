@@ -18,18 +18,18 @@ utils::globalVariables(c(
   "location", # <get_initial_values>
   "age_group", # <get_initial_values>
   "value", # <get_initial_values>
-  "location", # <get_ww_for_eval>
-  "state", # <get_ww_for_eval>
-  "conc", # <get_ww_for_eval>
-  "pop_cov", # <get_ww_for_eval>
-  "change_in_lab_indicator", # <get_ww_for_eval>
-  "normalized", # <get_ww_for_eval>
-  "pathogen", # <get_ww_for_eval>
-  "below_LOD", # <get_ww_for_eval>
-  "site", # <get_ww_for_eval>
-  "lab", # <get_ww_for_eval>
-  "log_genome_copies_per_ml", # <get_ww_for_eval>
-  "log_lod", # <get_ww_for_eval>
-  "site_pop", # <get_ww_for_eval>
+  "location", # <reformat_ww_data>
+  "state", # <reformat_ww_data>
+  "conc", # <reformat_ww_data>
+  "pop_cov", # <reformat_ww_data>
+  "change_in_lab_indicator", # <reformat_ww_data>
+  "normalized", # <reformat_ww_data>
+  "pathogen", # <reformat_ww_data>
+  "below_LOD", # <reformat_ww_data>
+  "site", # <reformat_ww_data>
+  "lab", # <reformat_ww_data>
+  "log_genome_copies_per_ml", # <reformat_ww_data>
+  "log_lod", # <reformat_ww_data>
+  "site_pop", # <reformat_ww_data>
   NULL
 ))
