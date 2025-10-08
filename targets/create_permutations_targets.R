@@ -60,6 +60,7 @@ create_permutations_targets <- list(
       path = "metadata/meta"
     )
   ),
+  # Group by all combinations
   tar_group_by(
     name = scenarios,
     command = crossing(
@@ -75,6 +76,31 @@ create_permutations_targets <- list(
           ifelse(data_right_trunc, "trunc", "no_trunc"),
           sep = "_"
         )
+      ),
+    scenario_name
+  ),
+  # Group by just date location with/without wastewater
+  tar_group_by(
+    name = date_loc_ww_scenarios,
+    command = crossing(
+      locations, forecast_dates, ww
+    ) |>
+      mutate(
+        scenario_name = paste(location_abbr, forecast_date,
+          ifelse(include_ww, "ww", "no_ww"),
+          sep = "_"
+        )
+      ),
+    scenario_name
+  ),
+  # Group by just date and location
+  tar_group_by(
+    name = date_loc_scenarios,
+    command = crossing(
+      locations, forecast_dates
+    ) |>
+      mutate(
+        scenario_name = paste(location_abbr, forecast_date, sep = "_")
       ),
     scenario_name
   )
