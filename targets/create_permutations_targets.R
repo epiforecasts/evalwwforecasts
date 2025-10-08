@@ -9,7 +9,7 @@ create_permutations_targets <- list(
   tar_file(
     name = save_locations,
     command = save_csv(locations, "locations.csv",
-      path = "metadata/meta"
+      path = file.path("metadata", "meta")
     )
   ),
   tar_target(
@@ -27,13 +27,13 @@ create_permutations_targets <- list(
   tar_target(
     name = models,
     command = tibble(
-      model = c("wwinference", "arima_baseline")
+      model = c("wwinference"),
     )
   ),
   tar_file(
     name = save_models,
     command = save_csv(models, "models.csv",
-      path = "metadata/meta"
+      path = file.path("metadata", "meta")
     )
   ),
   tar_target(
@@ -45,7 +45,7 @@ create_permutations_targets <- list(
   tar_file(
     name = save_ww,
     command = save_csv(ww, "ww.csv",
-      path = "metadata/meta"
+      path = file.path("metadata", "meta")
     )
   ),
   tar_target(
@@ -57,7 +57,7 @@ create_permutations_targets <- list(
   tar_file(
     name = save_right_trunc,
     command = save_csv(right_trunc, "right_trunc.csv",
-      path = "metadata/meta"
+      path = file.path("metadata", "meta")
     )
   ),
   # Group by all combinations
@@ -79,28 +79,17 @@ create_permutations_targets <- list(
       ),
     scenario_name
   ),
-  # Group by just date location with/without wastewater
+  # Group by just date location
   tar_group_by(
-    name = date_loc_ww_scenarios,
+    name = data_scenarios,
     command = crossing(
-      locations, forecast_dates, ww
+      locations, forecast_dates, right_trunc
     ) |>
       mutate(
         scenario_name = paste(location_abbr, forecast_date,
-          ifelse(include_ww, "ww", "no_ww"),
+          ifelse(data_right_trunc, "trunc", "no_trunc"),
           sep = "_"
         )
-      ),
-    scenario_name
-  ),
-  # Group by just date and location
-  tar_group_by(
-    name = date_loc_scenarios,
-    command = crossing(
-      locations, forecast_dates
-    ) |>
-      mutate(
-        scenario_name = paste(location_abbr, forecast_date, sep = "_")
       ),
     scenario_name
   )

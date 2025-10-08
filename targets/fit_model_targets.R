@@ -15,7 +15,7 @@ fit_model_targets <- list(
       conc_col_name = "log_genome_copies_per_ml",
       lod_col_name = "log_lod"
     ),
-    pattern = map(ww_data, scenarios)
+    pattern = map(ww_data)
   ),
   tar_target(
     name = hosp_data_preprocessed,
@@ -24,7 +24,7 @@ fit_model_targets <- list(
       count_col_name = "daily_hosp_admits",
       pop_size_col_name = "state_pop"
     ),
-    pattern = map(hosp_data, scenarios),
+    pattern = map(hosp_data),
     format = "rds",
     iteration = "list"
   ),
@@ -35,7 +35,7 @@ fit_model_targets <- list(
       outlier_col_name = "flag_as_ww_outlier",
       remove_outliers = TRUE
     ),
-    pattern = map(ww_data_preprocessed, scenarios),
+    pattern = map(ww_data_preprocessed),
     format = "rds",
     iteration = "list"
   ),
@@ -102,13 +102,18 @@ fit_model_targets <- list(
       compiled_model = compiled_model
     ),
     format = "rds",
-    pattern = map(ww_data_to_fit, hosp_data_preprocessed, scenarios),
+    # nolint start
+    pattern = cross(
+      map(hosp_data_preprocessed, ww_data_to_fit),
+      scenarios
+    ),
+    # nolint end
     iteration = "list"
   ),
   tar_target(
     name = hosp_draws,
     command = get_draws(ww_fit_obj, what = "predicted_counts")$predicted_counts,
-    pattern = map(ww_fit_obj, scenarios)
+    pattern = map(ww_fit_obj)
   ),
   tar_target(
     name = plot_hosp_draws,
@@ -117,7 +122,7 @@ fit_model_targets <- list(
       forecast_date = scenarios$forecast_date
     ) +
       ggtitle(glue("{scenarios$location_name}, wastewater: {scenarios$include_ww}")), # nolint
-    pattern = map(hosp_draws, scenarios),
+    pattern = map(hosp_draws),
     format = "rds",
     iteration = "list"
   ),
@@ -130,7 +135,7 @@ fit_model_targets <- list(
     } else {
       NULL
     },
-    pattern = map(ww_fit_obj, scenarios),
+    pattern = map(ww_fit_obj),
     iteration = "list"
   ),
   tar_target(
@@ -144,7 +149,7 @@ fit_model_targets <- list(
     } else {
       NULL
     }, # nolint
-    pattern = map(ww_draws, scenarios),
+    pattern = map(ww_draws),
     format = "rds",
     iteration = "list"
   ),
@@ -158,7 +163,7 @@ fit_model_targets <- list(
       mutate(date = as.Date(date)) |>
       ggplot() +
       geom_line(aes(x = date, y = daily_hosp_admits)),
-    pattern = map(hosp_data, scenarios),
+    pattern = map(hosp_data),
     format = "rds",
     iteration = "list"
   ),
@@ -168,7 +173,7 @@ fit_model_targets <- list(
     name = plot_ww,
     command = ggplot(ww_data) +
       geom_line(aes(x = date, y = log_genome_copies_per_ml)),
-    pattern = map(ww_data, scenarios),
+    pattern = map(ww_data),
     format = "rds",
     iteration = "list"
   )

@@ -78,8 +78,8 @@ scoring <- list(
 )
 
 list(
-  set_up
-  # load_data,
-  # fit_models,
+  set_up,
+  load_data,
+  fit_models
   # scoring
 )
