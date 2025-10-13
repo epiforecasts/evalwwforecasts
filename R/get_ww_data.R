@@ -2,18 +2,17 @@
 #' For now, just pull the latest wastewater data and filter to exclude the
 #' most recent dates
 #'
-#' @inheritParams get_hosp_data
+#' @inheritParams get_hosp_for_eval
 #' @param filepath_name Name of directory to save the raw input wastewater data.
 #' @importFrom dplyr mutate filter select rename
 #' @importFrom fs dir_create
 #' @importFrom readr read_tsv read_csv write_csv
 #' @autoglobal
-get_ww_data <- function(location_name,
-                        location_abbr,
-                        forecast_date,
-                        filepath_name = file.path("input", "data", "ww"),
-                        calibration_period = 100,
-                        lag = 3) {
+get_ww_for_eval <- function(location_name,
+                            location_abbr,
+                            forecast_date,
+                            forecast_horizon = 28,
+                            filepath_name = file.path("input", "data", "ww")) {
   # For now, just pull the latest and filter to lag days before the forecast
   # date
 
@@ -45,8 +44,6 @@ get_ww_data <- function(location_name,
     ) |>
     filter(
       state == location_abbr,
-      date >= ymd(forecast_date) - days(calibration_period),
-      date <= ymd(forecast_date) - days(lag),
       pathogen == "SARS-CoV-2"
     ) |>
     mutate(
@@ -65,4 +62,31 @@ get_ww_data <- function(location_name,
     filter(!is.na(log_genome_copies_per_ml))
 
   return(ww_clean)
+}
+
+#' Filter wastewater data for fitting
+#'
+#' @param ww_data_eval wastewater data for evaluation step
+#' @param forecast_date Character string or date indicating the date of
+#'    forecast in YYYY-MM-DD
+#' @param calibration_period Integer indicating the number of days of
+#'    wastewater calibration data to extract. Default is `100`.
+#' @param lag Integer indicating the number of days from the forecast date of
+#'    the latest wastewater data. Default is `3`
+#' @autoglobal
+#' @importFrom dplyr filter
+#' @importFrom lubridate ymd days
+get_ww_for_fit <- function(ww_data_eval,
+                           forecast_date,
+                           calibration_period = 100,
+                           lag = 3) {
+  ww_for_fit <- ww_data_eval |>
+    filter(
+      date >= ymd(forecast_date) - days(calibration_period),
+      date <= ymd(forecast_date) - days(lag)
+    ) |>
+    mutate(
+      forecast_date = forecast_date
+    )
+  return(ww_for_fit)
 }
