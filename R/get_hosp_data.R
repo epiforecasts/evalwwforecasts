@@ -65,7 +65,7 @@ get_hosp_for_eval <- function(location_name,
       state == location_name
     ) |>
     select(
-      date, daily_hosp_admits, state_pop, init_hosp_7d_count,
+      date, state, forecast_date, daily_hosp_admits, state_pop, init_hosp_7d_count,
       updated_hosp_7d_count
     )
   return(hosp_clean)
