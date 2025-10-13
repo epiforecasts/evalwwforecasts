@@ -58,7 +58,8 @@ get_hosp_for_eval <- function(location_name,
       rolling_sums = updated_hosp_7d_count,
       k = 7,
       initial_values = init_vals
-    )) |>
+    ),
+    forecast_date = forecast_date) |>
     filter(
       date <= ymd(forecast_date) + days(forecast_horizon),
       state == location_name
