@@ -82,7 +82,7 @@ get_ww_for_fit <- function(ww_data_eval,
                            lag = 3) {
   ww_for_fit <- ww_data_eval |>
     filter(
-      date <= ymd(forecast_date) + days(forecast_horizon)
+      date <= ymd(forecast_date) + days(lag)
     )
   return(ww_for_fit)
 }

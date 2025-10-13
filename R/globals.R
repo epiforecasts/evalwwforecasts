@@ -31,6 +31,5 @@ utils::globalVariables(c(
   "log_genome_copies_per_ml", # <get_ww_for_eval>
   "log_lod", # <get_ww_for_eval>
   "site_pop", # <get_ww_for_eval>
-  "forecast_horizon", # <get_ww_for_fit>
   NULL
 ))
