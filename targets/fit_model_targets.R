@@ -28,26 +28,17 @@ fit_model_targets <- list(
     format = "rds",
     iteration = "list"
   ),
- # tar_target(
- #   name = ww_data_exclusions,
- #   command = indicate_ww_exclusions(
- #     ww_data_preprocessed,
- #     outlier_col_name = "flag_as_ww_outlier",
- #     remove_outliers = TRUE
- #   ),
- #   pattern = map(ww_data_preprocessed, scenarios),
- #   format = "rds",
- #   iteration = "list"
- # ),
-  
   tar_target(
     name = ww_data_exclusions,
-    command = ww_data_preprocessed,
+    command = indicate_ww_exclusions(
+      ww_data_preprocessed,
+      outlier_col_name = "flag_as_ww_outlier",
+      remove_outliers = TRUE
+    ),
     pattern = map(ww_data_preprocessed, scenarios),
     format = "rds",
     iteration = "list"
   ),
-  
 
   # Model targets (the same for all model runs)
   tar_target(
