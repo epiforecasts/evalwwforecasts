@@ -28,17 +28,26 @@ fit_model_targets <- list(
     format = "rds",
     iteration = "list"
   ),
+ # tar_target(
+ #   name = ww_data_exclusions,
+ #   command = indicate_ww_exclusions(
+ #     ww_data_preprocessed,
+ #     outlier_col_name = "flag_as_ww_outlier",
+ #     remove_outliers = TRUE
+ #   ),
+ #   pattern = map(ww_data_preprocessed, scenarios),
+ #   format = "rds",
+ #   iteration = "list"
+ # ),
+  
   tar_target(
-    name = ww_data_to_fit,
-    command = indicate_ww_exclusions(
-      ww_data_preprocessed,
-      outlier_col_name = "flag_as_ww_outlier",
-      remove_outliers = TRUE
-    ),
+    name = ww_data_exclusions,
+    command = ww_data_preprocessed,
     pattern = map(ww_data_preprocessed, scenarios),
     format = "rds",
     iteration = "list"
   ),
+  
 
   # Model targets (the same for all model runs)
   tar_target(
@@ -82,7 +91,7 @@ fit_model_targets <- list(
     name = ww_fit_obj,
     command = wwinference(
       # if no ww, pass in NULL
-      ww_data = ww_data_to_fit,
+      ww_data = ww_data_exclusions,
       count_data = hosp_data_preprocessed,
       forecast_date = scenarios$forecast_date,
       calibration_time = 90,
@@ -96,13 +105,13 @@ fit_model_targets <- list(
       ),
       fit_opts = list(
         seed = 123,
-        iter_sampling = 250,
+        iter_sampling = 500,
         iter_warmup = 250
       ),
       compiled_model = compiled_model
     ),
     format = "rds",
-    pattern = map(ww_data_to_fit, hosp_data_preprocessed, scenarios),
+    pattern = map(ww_data_exclusions, hosp_data_preprocessed, scenarios),
     iteration = "list"
   ),
   tar_target(
