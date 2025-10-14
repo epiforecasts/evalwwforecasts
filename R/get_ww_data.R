@@ -87,7 +87,8 @@ get_ww_as_of_forecast_date <- function(forecast_date,
   if (file.exists(vintage_fp)) {
     RKI_ww_sites <- read_csv(vintage_fp)
   } else {
-    # Need to fine the url associated with the commit history as of the forecast date
+    # Need to fine the url associated with the commit history as of the
+    # forecast date
     ww_vintage_data_url <- get_vintage(
       raw_url = ww_data_url,
       target_date = forecast_date
@@ -168,7 +169,7 @@ get_vintage <- function(raw_url,
 
   if (length(commits) == 0 || nrow(commits) == 0) {
     stop(sprintf("No commits found for %s before %s", file_path, target_date),
-      .call = FALSE
+      call. = FALSE
     )
   }
   # Get the commit SHA
