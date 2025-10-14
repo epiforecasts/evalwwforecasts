@@ -84,6 +84,9 @@ get_ww_for_fit <- function(ww_data_eval,
     filter(
       date >= ymd(forecast_date) - days(calibration_period),
       date <= ymd(forecast_date) - days(lag)
+    ) |>
+    mutate(
+      forecast_date = forecast_date
     )
   return(ww_for_fit)
 }

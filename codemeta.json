@@ -143,18 +143,6 @@
     },
     {
       "@type": "SoftwareApplication",
-      "identifier": "knitr",
-      "name": "knitr",
-      "provider": {
-        "@id": "https://cran.r-project.org",
-        "@type": "Organization",
-        "name": "Comprehensive R Archive Network (CRAN)",
-        "url": "https://cran.r-project.org"
-      },
-      "sameAs": "https://CRAN.R-project.org/package=knitr"
-    },
-    {
-      "@type": "SoftwareApplication",
       "identifier": "tidyr",
       "name": "tidyr",
       "provider": {
@@ -211,6 +199,18 @@
     },
     "4": {
       "@type": "SoftwareApplication",
+      "identifier": "rlang",
+      "name": "rlang",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=rlang"
+    },
+    "5": {
+      "@type": "SoftwareApplication",
       "identifier": "readr",
       "name": "readr",
       "provider": {
@@ -221,7 +221,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=readr"
     },
-    "5": {
+    "6": {
       "@type": "SoftwareApplication",
       "identifier": "ggplot2",
       "name": "ggplot2",
@@ -233,12 +233,12 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=ggplot2"
     },
-    "6": {
+    "7": {
       "@type": "SoftwareApplication",
       "identifier": "wwinference",
       "name": "wwinference"
     },
-    "7": {
+    "8": {
       "@type": "SoftwareApplication",
       "identifier": "lubridate",
       "name": "lubridate",
@@ -250,7 +250,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=lubridate"
     },
-    "8": {
+    "9": {
       "@type": "SoftwareApplication",
       "identifier": "fs",
       "name": "fs",
@@ -262,7 +262,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=fs"
     },
-    "9": {
+    "10": {
       "@type": "SoftwareApplication",
       "identifier": "purrr",
       "name": "purrr",
@@ -274,31 +274,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=purrr"
     },
-    "10": {
-      "@type": "SoftwareApplication",
-      "identifier": "zoo",
-      "name": "zoo",
-      "provider": {
-        "@id": "https://cran.r-project.org",
-        "@type": "Organization",
-        "name": "Comprehensive R Archive Network (CRAN)",
-        "url": "https://cran.r-project.org"
-      },
-      "sameAs": "https://CRAN.R-project.org/package=zoo"
-    },
     "11": {
-      "@type": "SoftwareApplication",
-      "identifier": "stringr",
-      "name": "stringr",
-      "provider": {
-        "@id": "https://cran.r-project.org",
-        "@type": "Organization",
-        "name": "Comprehensive R Archive Network (CRAN)",
-        "url": "https://cran.r-project.org"
-      },
-      "sameAs": "https://CRAN.R-project.org/package=stringr"
-    },
-    "12": {
       "@type": "SoftwareApplication",
       "identifier": "glue",
       "name": "glue",
@@ -310,9 +286,45 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=glue"
     },
+    "12": {
+      "@type": "SoftwareApplication",
+      "identifier": "scoringutils",
+      "name": "scoringutils",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=scoringutils"
+    },
+    "13": {
+      "@type": "SoftwareApplication",
+      "identifier": "zoo",
+      "name": "zoo",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=zoo"
+    },
+    "14": {
+      "@type": "SoftwareApplication",
+      "identifier": "stringr",
+      "name": "stringr",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=stringr"
+    },
     "SystemRequirements": null
   },
-  "fileSize": "32.306KB",
+  "fileSize": "48.242KB",
   "releaseNotes": "https://github.com/epiforecasts/evalwwforecasts/blob/main/NEWS.md",
   "readme": "https://github.com/epiforecasts/evalwwforecasts/blob/main/README.md"
 }

@@ -6,9 +6,7 @@ load_data_targets <- list(
       location_abbr = scenarios$location_abbr,
       forecast_date = scenarios$forecast_date
     ),
-    pattern = map(scenarios),
-    format = "rds",
-    iteration = "list"
+    pattern = map(scenarios)
   ),
   tar_target(
     hosp_data,
