@@ -187,7 +187,8 @@ get_vintage <- function(raw_url,
 #'
 #' @param raw_ww Data.frame from the RKI GitHub
 #' @inheritParams get_hosp_for_eval
-#' @param log_lod_val Scalar indicating the value to reset the LOD to, to be
+#' @param log_lod_val Scalar indicating the value to reset the
+#'    limit of detection (LOD) to, to be
 #'   removed in future iterations and replace with an LOD value at each
 #'   measurement or site.
 #'
