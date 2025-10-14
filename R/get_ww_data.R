@@ -62,7 +62,8 @@ get_ww_for_fit <- function(ww_data_eval,
 }
 
 #' Use the Git commit history to get the wastewater data available as of
-#' the forecast date. Subsequent function will filter it to the location we want.
+#' the forecast date. Subsequent function will filter it to the location we
+#' want.
 #'
 #' @inheritParams get_hosp_for_eval
 #' @inheritParams get_ww_for_eval
@@ -79,7 +80,7 @@ get_ww_for_fit <- function(ww_data_eval,
 get_ww_as_of_forecast_date <- function(forecast_date,
                                        location_name,
                                        location_abbr,
-                                       filepath_name = file.path("input", "data", "ww", "vintages"),
+                                       filepath_name = file.path("input", "data", "ww", "vintages"), # nolint
                                        calibration_period = 100,
                                        ww_data_url = "https://raw.githubusercontent.com/robert-koch-institut/Abwassersurveillance_AMELAG/refs/heads/main/amelag_einzelstandorte.tsv") { # nolint
   vintage_fp <- file.path(filepath_name, forecast_date, "ww_sites_as_of.csv")
@@ -103,7 +104,7 @@ get_ww_as_of_forecast_date <- function(forecast_date,
     location_abbr = location_abbr
   ) |>
     filter(
-      date >= ymd(forecast_date) - days(calibration_period),
+      date >= ymd(forecast_date) - days(calibration_period)
     ) |>
     mutate(forecast_date = forecast_date)
 
@@ -127,7 +128,7 @@ get_vintage <- function(raw_url,
                         target_date,
                         github_token = NULL) {
   parsed <- parse_url(raw_url)
-  path_parts <- strsplit(gsub("^/|/$", "", parsed$path), "/")[[1]]
+  path_parts <- strsplit(gsub("^/|/$", "", parsed$path), "/")[[1]] # nolint
 
   owner <- path_parts[1]
   repo <- path_parts[2]
@@ -143,9 +144,9 @@ get_vintage <- function(raw_url,
   target_datetime <- as.POSIXct(paste0(target_date, " 23:59:59"), tz = "UTC")
   target_iso <- format(target_datetime, "%Y-%m-%dT%H:%M:%SZ")
 
-  headers <- c("Accept" = "application/vnd.github.v3+json")
+  headers <- c("Accept" = "application/vnd.github.v3+json") # nolint
   if (!is.null(github_token)) {
-    headers <- c(headers, "Authorization" = paste("token", github_token))
+    headers <- c(headers, "Authorization" = paste("token", github_token)) # nolint
   }
 
   api_url <- sprintf("https://api.github.com/repos/%s/%s/commits", owner, repo)
@@ -166,7 +167,9 @@ get_vintage <- function(raw_url,
   commits <- fromJSON(httr::content(response, "text", encoding = "UTF-8"))
 
   if (length(commits) == 0 || nrow(commits) == 0) {
-    stop(sprintf("No commits found for %s before %s", file_path, target_date))
+    stop(sprintf("No commits found for %s before %s", file_path, target_date),
+      .call = FALSE
+    )
   }
   # Get the commit SHA
   commit_sha <- commits$sha[1]

@@ -3,7 +3,8 @@
 \name{get_ww_as_of_forecast_date}
 \alias{get_ww_as_of_forecast_date}
 \title{Use the Git commit history to get the wastewater data available as of
-the forecast date. Subsequent function will filter it to the location we want.}
+the forecast date. Subsequent function will filter it to the location we
+want.}
 \usage{
 get_ww_as_of_forecast_date(
   forecast_date,
@@ -33,5 +34,6 @@ the raw version).}
 }
 \description{
 Use the Git commit history to get the wastewater data available as of
-the forecast date. Subsequent function will filter it to the location we want.
+the forecast date. Subsequent function will filter it to the location we
+want.
 }
