@@ -54,17 +54,21 @@ get_hosp_for_eval <- function(location_name,
       date >= date_to_get_init_vals
     ) |>
     # Replace with once we have initial values
-    mutate(daily_hosp_admits = convert_rolling_sum_to_inc(
-      rolling_sums = updated_hosp_7d_count,
-      k = 7,
-      initial_values = init_vals
-    )) |>
+    mutate(
+      daily_hosp_admits = convert_rolling_sum_to_inc(
+        rolling_sums = updated_hosp_7d_count,
+        k = 7,
+        initial_values = init_vals
+      ),
+      forecast_date = forecast_date
+    ) |>
     filter(
-      date <= ymd(forecast_date) + days(forecast_horizon),
+      date <= ymd(forecast_date),
       state == location_name
     ) |>
     select(
-      date, daily_hosp_admits, state_pop, init_hosp_7d_count,
+      date, state, forecast_date, daily_hosp_admits,
+      state_pop, init_hosp_7d_count,
       updated_hosp_7d_count
     )
   return(hosp_clean)
