@@ -20,6 +20,7 @@ fit_arima <- function(hosp_data_for_fit,
                       data_right_trunc,
                       include_ww,
                       model,
+                      quantiles = c(0.05, 0.25, 0.5, 0.75, 0.95)
                       forecast_horizon = 28) {
   auto_arima_model <- auto.arima(hosp_data_for_fit$updated_hosp_7d_count,
     seasonal = FALSE,
@@ -27,7 +28,9 @@ fit_arima <- function(hosp_data_for_fit,
     approximation = FALSE
   )
 
-  forecast_result <- forecast(auto_arima_model, h = forecast_horizon)
+  forecast_result <- forecast(auto_arima_model,
+                              h = forecast_horizon,
+                              level = 100*quantiles)
 
   forecast_df <- data.frame(
     date = seq(

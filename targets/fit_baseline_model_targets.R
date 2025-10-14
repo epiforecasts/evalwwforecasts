@@ -9,8 +9,12 @@ fit_baseline_model_targets <- list(
       location_abbr = scenarios_baseline$location_abbr,
       data_right_trunc = scenarios_baseline$data_right_trunc,
       include_ww = scenarios_baseline$include_ww,
-      model = scenarios_baseline$model
+      model = scenarios_baseline$model,
+      quantiles = c(0.05, 0.25, 0.5, 0.75, 0.95)
     ),
     pattern = map(hosp_data_bl, scenarios_baseline),
-  )
+  ),
+  # format for scoring the same as the wwinference ones are formatted
+
+
 )
