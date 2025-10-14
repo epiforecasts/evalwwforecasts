@@ -14,7 +14,8 @@ reformat_ww_data(raw_ww, location_abbr, location_name, log_lod_val = 1)
 
 \item{location_name}{Character string indicating long form name of state.}
 
-\item{log_lod_val}{Scalar indicating the value to reset the LOD to, to be
+\item{log_lod_val}{Scalar indicating the value to reset the
+limit of detection (LOD) to, to be
 removed in future iterations and replace with an LOD value at each
 measurement or site.}
 }

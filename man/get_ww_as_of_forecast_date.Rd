@@ -19,8 +19,17 @@ get_ww_as_of_forecast_date(
 \item{forecast_date}{Character string or date indicating the date of
 forecast in YYYY-MM-DD}
 
+\item{location_name}{Character string indicating long form name of state.}
+
+\item{location_abbr}{Character string indicating abbreviation of state}
+
+\item{filepath_name}{Name of directory to save the raw input wastewater data.}
+
 \item{calibration_period}{Integer indicating the number of days of
 wastewater calibration data to extract. Default is \code{100}.}
+
+\item{ww_data_url}{Character string of the url of the wastewater data (not
+the raw version).}
 }
 \description{
 Use the Git commit history to get the wastewater data available as of

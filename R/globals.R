@@ -18,6 +18,8 @@ utils::globalVariables(c(
   "location", # <get_initial_values>
   "age_group", # <get_initial_values>
   "value", # <get_initial_values>
+  "normalisierung", # <reformat_ww_data>
+  "viruslast_normalisiert", # <reformat_ww_data>
   "location", # <reformat_ww_data>
   "state", # <reformat_ww_data>
   "conc", # <reformat_ww_data>

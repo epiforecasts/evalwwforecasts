@@ -64,10 +64,14 @@ get_ww_for_fit <- function(ww_data_eval,
 #' Use the Git commit history to get the wastewater data available as of
 #' the forecast date. Subsequent function will filter it to the location we want.
 #'
+#' @inheritParams get_hosp_for_eval
+#' @inheritParams get_ww_for_eval
 #' @param forecast_date Character string or date indicating the date of
 #'    forecast in YYYY-MM-DD
 #' @param calibration_period Integer indicating the number of days of
 #'    wastewater calibration data to extract. Default is `100`.
+#' @param ww_data_url Character string of the url of the wastewater data (not
+#'   the raw version).
 
 #' @autoglobal
 #' @importFrom dplyr filter
@@ -199,6 +203,12 @@ reformat_ww_data <- function(raw_ww,
                              location_abbr,
                              location_name,
                              log_lod_val = 1) {
+  if ("normalisierung" %in% names(raw_ww)) {
+    raw_ww <- dplyr::rename(raw_ww, normalized = normalisierung)
+  } else if ("viruslast_normalisiert" %in% names(raw_ww)) {
+    raw_ww <- dplyr::rename(raw_ww, normalized = viruslast_normalisiert)
+  }
+
   ww_clean <- raw_ww |>
     rename(
       location = "standort",
@@ -207,9 +217,6 @@ reformat_ww_data <- function(raw_ww,
       conc = "viruslast",
       pop_cov = "einwohner",
       change_in_lab_indicator = "laborwechsel",
-      normalized = ifelse("normalisierung" %in% colnames(raw_ww),
-        "normalisierung", "viruslast_normalisiert"
-      ),
       pathogen = "typ",
       below_LOD = "unter_bg"
     ) |>
