@@ -12,8 +12,6 @@ evaluation data}
 
 \item{forecast_horizon_to_plot}{Integer indicating the number of days to
 plot.}
-
-\item{location}{Character string indicating the location to be plotted}
 }
 \value{
 ggplot object
