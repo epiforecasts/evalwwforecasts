@@ -4,20 +4,16 @@
 \alias{plot_forecast_comparison}
 \title{Compare forecasts across time}
 \usage{
-plot_forecast_comparison(
-  forecasts_w_eval_data,
-  location,
-  forecast_horizon_to_plot = 28
-)
+plot_forecast_comparison(forecasts_w_eval_data, forecast_horizon_to_plot = 28)
 }
 \arguments{
 \item{forecasts_w_eval_data}{Data.frame of forecasts qith quantiles and
 evaluation data}
 
-\item{location}{Character string indicating the location to be plotted}
-
 \item{forecast_horizon_to_plot}{Integer indicating the number of days to
 plot.}
+
+\item{location}{Character string indicating the location to be plotted}
 }
 \value{
 ggplot object

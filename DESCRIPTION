@@ -25,6 +25,7 @@ Depends:
     R (>= 4.0.0)
 Imports:
     cli,
+    forecast,
     dplyr,
     rlang,
     readr,
