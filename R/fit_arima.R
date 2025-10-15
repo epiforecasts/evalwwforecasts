@@ -44,6 +44,8 @@ fit_arima <- function(hosp_data_for_fit,
     level = 100 * prediction_intervals
   )
 
+  interval_labels <- paste0(100 * prediction_intervals, "%")
+
   forecast_df <- data.frame(
     date = seq(
       from = ymd(forecast_date),
@@ -51,10 +53,10 @@ fit_arima <- function(hosp_data_for_fit,
     ),
     q_0.5 = as.numeric(forecast_result$mean),
     # later make this programmatic to the prediction intervals
-    q_0.25 = as.numeric(forecast_result$lower[, "50%"]),
-    q_0.75 = as.numeric(forecast_result$upper[, "50%"]),
-    q_0.05 = as.numeric(forecast_result$lower[, "90%"]),
-    q_0.95 = as.numeric(forecast_result$upper[, "90%"])
+    q_0.25 = as.numeric(forecast_result$lower[, interval_labels[1]]),
+    q_0.75 = as.numeric(forecast_result$upper[, interval_labels[1]]),
+    q_0.05 = as.numeric(forecast_result$lower[, interval_labels[2]]),
+    q_0.95 = as.numeric(forecast_result$upper[, interval_labels[2]])
   ) |>
     mutate(
       data_right_trunc = data_right_trunc,

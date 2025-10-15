@@ -6,7 +6,7 @@
 #'   plot.
 #'
 #' @returns ggplot object
-#' @importFrom dplyr filter
+#' @importFrom dplyr filter distinct pull
 #' @importFrom glue glue
 #' @importFrom lubridate ymd days
 #' @importFrom ggplot2 ggplot aes geom_line geom_ribbon geom_point xlab
@@ -15,11 +15,13 @@
 plot_forecast_comparison <- function(
     forecasts_w_eval_data,
     forecast_horizon_to_plot = 28) {
-  forecasts_i <- forecasts_w_eval_data |>
-    filter(
-      date <= ymd(forecast_date) + days(forecast_horizon_to_plot - 1)
-    )
-  this_location <- forecasts_w_eval_data |> distinct(state)
+  forecasts_i <- filter(
+    forecasts_w_eval_data,
+    date <= ymd(forecast_date) + days(forecast_horizon_to_plot - 1)
+  )
+  this_location <- forecasts_w_eval_data |>
+    distinct(state) |>
+    pull(state)
   p <- ggplot(forecasts_i) +
     geom_line(aes(
       x = date, y = q_0.5,
@@ -32,8 +34,8 @@ plot_forecast_comparison <- function(
       group = forecast_date
     ), alpha = 0.3, fill = "blue") +
     geom_ribbon(aes(
-      x = date, ymin = q_0.95,
-      ymax = q_0.05,
+      x = date, ymin = q_0.05,
+      ymax = q_0.95,
       group = forecast_date
     ), alpha = 0.3, fill = "blue") +
     theme_bw() +

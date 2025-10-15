@@ -7,8 +7,8 @@ utils::globalVariables(c(
   "updated_hosp_7d_count", # <plot_forecast_comparison>
   "q_0.25", # <plot_forecast_comparison>
   "q_0.75", # <plot_forecast_comparison>
-  "q_0.95", # <plot_forecast_comparison>
   "q_0.05", # <plot_forecast_comparison>
+  "q_0.95", # <plot_forecast_comparison>
   "age_group", # <get_hosp_for_eval>
   "location", # <get_hosp_for_eval>
   "value", # <get_hosp_for_eval>
