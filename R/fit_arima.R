@@ -17,13 +17,14 @@
 #' @importFrom forecast auto.arima forecast
 #' @importFrom lubridate ymd days
 #' @returns `forecast_df` Data.frame of forecasts results in wide format
+#' @autoglobal
 fit_arima <- function(hosp_data_for_fit,
                       hosp_data_for_eval,
                       forecast_date,
                       data_right_trunc,
                       include_ww,
                       model,
-                      prediction_intervals = c(0.5, 0.90), # this will get the lower and upper bounds not these specific quantiles
+                      prediction_intervals = c(0.5, 0.90), # this will get the lower and upper bounds not these specific quantiles #nolint
                       forecast_horizon = 28) {
   hosp_data_eval_forecast <- hosp_data_for_eval |>
     filter(

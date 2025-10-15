@@ -11,6 +11,7 @@
 #' @importFrom lubridate ymd days
 #' @importFrom ggplot2 ggplot aes geom_line geom_ribbon geom_point xlab
 #'   ylab ggtitle theme_bw
+#' @autoglobal
 plot_forecast_comparison <- function(
     forecasts_w_eval_data,
     forecast_horizon_to_plot = 28) {
