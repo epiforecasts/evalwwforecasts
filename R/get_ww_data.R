@@ -68,7 +68,7 @@ get_ww_as_of_forecast_date <- function(forecast_date,
     )
     RKI_ww_sites <- read_tsv(ww_vintage_data_url)
     dir_create(file.path(filepath_name, forecast_date))
-    check <- write_csv(RKI_ww_sites, vintage_fp)
+    write_csv(RKI_ww_sites, vintage_fp)
   }
 
   # Clean the and filter to the calibration period, add the forecast date
