@@ -63,7 +63,7 @@ get_hosp_for_eval <- function(location_name,
       forecast_date = forecast_date
     ) |>
     filter(
-      date <= ymd(forecast_date),
+      date <= ymd(forecast_date) + days(forecast_horizon),
       state == location_name
     ) |>
     select(

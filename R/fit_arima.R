@@ -9,19 +9,28 @@
 #'   reports (right-truncated) or updated.
 #' @param include_ww Boolean indicating whether wastewater is included.
 #' @param model Character string indicating the name of the model.
+#' @param prediction_intervals Numeric between 0 and 1 indicating the symmetric
+#'   prediction intervals, default is the 50th and 90th so `c(0.5, 0.9)`.
 #' @param forecast_horizon Integer indicating the forecast horizon
 #'
+#' @importFrom dplyr filter mutate
+#' @importFrom forecast auto.arima forecast
+#' @importFrom lubridate ymd days
 #' @returns `forecast_df` Data.frame of forecasts results in wide format
 fit_arima <- function(hosp_data_for_fit,
                       hosp_data_for_eval,
                       forecast_date,
-                      location_name,
-                      location_abbr,
                       data_right_trunc,
                       include_ww,
                       model,
-                      quantiles = c(0.05, 0.25, 0.5, 0.75, 0.95)
+                      prediction_intervals = c(0.5, 0.90), # this will get the lower and upper bounds not these specific quantiles
                       forecast_horizon = 28) {
+  hosp_data_eval_forecast <- hosp_data_for_eval |>
+    filter(
+      date >= ymd(forecast_date),
+      date <= ymd(forecast_date) + days(forecast_horizon - 1)
+    )
+
   auto_arima_model <- auto.arima(hosp_data_for_fit$updated_hosp_7d_count,
     seasonal = FALSE,
     stepwise = FALSE,
@@ -29,30 +38,34 @@ fit_arima <- function(hosp_data_for_fit,
   )
 
   forecast_result <- forecast(auto_arima_model,
-                              h = forecast_horizon,
-                              level = 100*quantiles)
+    h = forecast_horizon,
+    level = 100 * prediction_intervals
+  )
 
   forecast_df <- data.frame(
     date = seq(
       from = ymd(forecast_date),
       to = ymd(forecast_date) + days(forecast_horizon - 1), by = "days"
     ),
-    point_forecast = as.numeric(forecast_result$mean),
-    lower_80 = as.numeric(forecast_result$lower[, "80%"]),
-    upper_80 = as.numeric(forecast_result$upper[, "80%"]),
-    lower_95 = as.numeric(forecast_result$lower[, "95%"]),
-    upper_95 = as.numeric(forecast_result$upper[, "95%"])
+    q_0.5 = as.numeric(forecast_result$mean),
+    # later make this programmatic to the prediction intervals
+    q_0.25 = as.numeric(forecast_result$lower[, "50%"]),
+    q_0.75 = as.numeric(forecast_result$upper[, "50%"]),
+    q_0.05 = as.numeric(forecast_result$lower[, "90%"]),
+    q_0.95 = as.numeric(forecast_result$upper[, "90%"])
   ) |>
     mutate(
-      forecast_date = forecast_date,
-      location_name = location_name,
-      location_abbr = location_abbr,
       data_right_trunc = data_right_trunc,
       include_ww = include_ww,
       model = model
-    )
+    ) |>
+    left_join(hosp_data_eval_forecast,
+      by = "date"
+    ) |>
+    mutate(forecast_date = ymd(forecast_date))
   # Add a join of the evaluation data, later pivot from wide to long for
   # scoring but is fine for now as this will be better for intermediate vis
+
 
   return(forecast_df)
 }

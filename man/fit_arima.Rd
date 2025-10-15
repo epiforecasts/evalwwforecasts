@@ -8,11 +8,10 @@ fit_arima(
   hosp_data_for_fit,
   hosp_data_for_eval,
   forecast_date,
-  location_name,
-  location_abbr,
   data_right_trunc,
   include_ww,
   model,
+  prediction_intervals = c(0.5, 0.9),
   forecast_horizon = 28
 )
 }
@@ -26,16 +25,15 @@ forecast date to evaluate against.}
 \item{forecast_date}{Character string or date indicating the date of
 forecast in YYYY-MM-DD}
 
-\item{location_name}{Character string indicating long form name of state.}
-
-\item{location_abbr}{Character string indicating abbreviation of state}
-
 \item{data_right_trunc}{Boolean indicating whether data is form initial
 reports (right-truncated) or updated.}
 
 \item{include_ww}{Boolean indicating whether wastewater is included.}
 
 \item{model}{Character string indicating the name of the model.}
+
+\item{prediction_intervals}{Numeric between 0 and 1 indicating the symmetric
+prediction intervals, default is the 50th and 90th so \code{c(0.5, 0.9)}.}
 
 \item{forecast_horizon}{Integer indicating the forecast horizon}
 }
