@@ -7,7 +7,7 @@
 plot_forecast_comparison(forecasts_w_eval_data, forecast_horizon_to_plot = 28)
 }
 \arguments{
-\item{forecasts_w_eval_data}{Data.frame of forecasts qith quantiles and
+\item{forecasts_w_eval_data}{Data.frame of forecasts with quantiles and
 evaluation data}
 
 \item{forecast_horizon_to_plot}{Integer indicating the number of days to

@@ -1,6 +1,6 @@
 #' Compare forecasts across time
 #'
-#' @param forecasts_w_eval_data Data.frame of forecasts qith quantiles and
+#' @param forecasts_w_eval_data Data.frame of forecasts with quantiles and
 #'   evaluation data
 #' @param location Character string indicating the location to be plotted
 #' @param forecast_horizon_to_plot Integer indicating the number of days to
