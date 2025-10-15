@@ -14,14 +14,12 @@
 #'   ylab ggtitle theme_bw
 plot_forecast_comparison <- function(
     forecasts_w_eval_data,
-    location,
     forecast_horizon_to_plot = 28) {
   forecasts_i <- forecasts_w_eval_data |>
     filter(
-      state == location,
       date <= ymd(forecast_date) + days(forecast_horizon_to_plot - 1)
     )
-
+  this_location <- forecasts_w_eval_data |> distinct(state)
   p <- ggplot(forecasts_i) +
     geom_line(aes(
       x = date, y = q_0.5,
@@ -41,7 +39,7 @@ plot_forecast_comparison <- function(
     theme_bw() +
     xlab("") +
     ylab("7-day rolling sum of hospital admissions") +
-    ggtitle(glue("Forecast comparison for {location}"))
+    ggtitle(glue("Forecast comparison for {this_location}"))
 
   return(p)
 }

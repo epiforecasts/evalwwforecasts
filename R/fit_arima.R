@@ -34,7 +34,8 @@ fit_arima <- function(hosp_data_for_fit,
   auto_arima_model <- auto.arima(hosp_data_for_fit$updated_hosp_7d_count,
     seasonal = FALSE,
     stepwise = FALSE,
-    approximation = FALSE
+    approximation = FALSE,
+    lambda = "auto"
   )
 
   forecast_result <- forecast(auto_arima_model,
@@ -63,9 +64,5 @@ fit_arima <- function(hosp_data_for_fit,
       by = "date"
     ) |>
     mutate(forecast_date = ymd(forecast_date))
-  # Add a join of the evaluation data, later pivot from wide to long for
-  # scoring but is fine for now as this will be better for intermediate vis
-
-
   return(forecast_df)
 }

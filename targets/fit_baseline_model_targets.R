@@ -12,12 +12,20 @@ fit_baseline_model_targets <- list(
     ),
     pattern = map(hosp_data_bl, hosp_data_eval_bl, scenarios_baseline)
   ),
+  tar_group_by(
+    name = baseline_forecasts_by_loc,
+    command = baseline_forecasts,
+    by = state
+  ),
   tar_target(
     name = plot_baseline_forecasts,
     command = plot_forecast_comparison(
-      forecasts_w_eval_data = baseline_forecasts,
-      location = locations$location_name[1]
-    )
+      forecasts_w_eval_data = baseline_forecasts_by_loc
+    ),
+    pattern = map(baseline_forecasts_by_loc),
+    iteration = "list",
+    format = "rds"
   )
-  # format for scoring the same as the wwinference ones are formatted
+  # format for scoring the same as the output from the wwinference model
+  # wrapper
 )

@@ -13,7 +13,7 @@ load_baseline_data_targets <- list(
     get_hosp_for_fit(
       hosp_data_eval = hosp_data_eval_bl,
       forecast_date = scenarios_baseline$forecast_date,
-      calibration_period = 100,
+      calibration_period = NULL,
       right_trunc = scenarios_baseline$data_right_trunc
     ),
     pattern = map(hosp_data_eval_bl, scenarios_baseline)
