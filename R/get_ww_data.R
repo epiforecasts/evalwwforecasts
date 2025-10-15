@@ -34,33 +34,6 @@ get_ww_for_eval <- function(location_name,
   return(ww_clean)
 }
 
-#' Filter wastewater data for fitting
-#'
-#' @param ww_data_eval wastewater data for evaluation step
-#' @param forecast_date Character string or date indicating the date of
-#'    forecast in YYYY-MM-DD
-#' @param calibration_period Integer indicating the number of days of
-#'    wastewater calibration data to extract. Default is `100`.
-#' @param lag Integer indicating the number of days from the forecast date of
-#'    the latest wastewater data. Default is `3`
-#' @autoglobal
-#' @importFrom dplyr filter
-#' @importFrom lubridate ymd days
-get_ww_for_fit <- function(ww_data_eval,
-                           forecast_date,
-                           calibration_period = 100,
-                           lag = 3) {
-  ww_for_fit <- ww_data_eval |>
-    filter(
-      date >= ymd(forecast_date) - days(calibration_period),
-      date <= ymd(forecast_date) - days(lag)
-    ) |>
-    mutate(
-      forecast_date = forecast_date
-    )
-  return(ww_for_fit)
-}
-
 #' Use the Git commit history to get the wastewater data available as of
 #' the forecast date. Subsequent function will filter it to the location we
 #' want.
