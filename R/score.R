@@ -16,8 +16,8 @@ quantile_metrics <- scoringutils::get_metrics(
 #' @param forecast_date Forecast date
 #' @param offset Offset to use when transforming forecasts
 #' @param quantiles Converts to quantiles if TRUE, otherwise leaves as samples
-#' @param probs Numeric vector of quantile probabilities to use when \code{quantiles = TRUE}
-#'
+#' @param probs Numeric vector of quantile probabilities to use
+#' when \code{quantiles = TRUE}
 #' @returns A forecast_sample or forecast_quantile object (depending on
 #'   the quantiles parameter) on the log scale, ready for scoring with
 #'   generate_scores(). Returns NULL if draws is NULL.
