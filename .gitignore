@@ -12,6 +12,7 @@ cache
 .DS_Store
 .Rproj.user
 *.Rproj
+*.Rdata
 !inst/extdata/*.rds
 /doc/
 /Meta/
