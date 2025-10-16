@@ -4,6 +4,8 @@
 # The pipeline can be run using `tar_make()`
 
 library(targets)
+library(jsonlite)
+library(httr)
 library(tarchetypes)
 library(wwinference)
 library(dplyr)
@@ -37,7 +39,9 @@ tar_option_set(
     "lubridate",
     "tidyr",
     "glue",
-    "forecast"
+    "forecast",
+    "jsonlite",
+    "httr"
   ),
   workspace_on_error = TRUE,
   storage = "worker",

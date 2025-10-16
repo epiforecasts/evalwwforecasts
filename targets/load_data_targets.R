@@ -29,9 +29,10 @@ load_data_targets <- list(
   ),
   tar_target(
     ww_data,
-    get_ww_for_fit(
-      ww_data_eval = ww_data_eval,
+    get_ww_as_of_forecast_date(
       forecast_date = scenarios$forecast_date,
+      location_name = scenarios$location_name,
+      location_abbr = scenarios$location_abbr,
       calibration_period = 100
     ),
     pattern = map(ww_data_eval, scenarios)

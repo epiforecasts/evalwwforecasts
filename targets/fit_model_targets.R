@@ -24,20 +24,16 @@ fit_model_targets <- list(
       count_col_name = "daily_hosp_admits",
       pop_size_col_name = "state_pop"
     ),
-    pattern = map(hosp_data, scenarios),
-    format = "rds",
-    iteration = "list"
+    pattern = map(hosp_data, scenarios)
   ),
   tar_target(
-    name = ww_data_exclusions,
+    name = ww_data_to_fit,
     command = indicate_ww_exclusions(
       ww_data_preprocessed,
       outlier_col_name = "flag_as_ww_outlier",
       remove_outliers = TRUE
     ),
-    pattern = map(ww_data_preprocessed, scenarios),
-    format = "rds",
-    iteration = "list"
+    pattern = map(ww_data_preprocessed, scenarios)
   ),
 
   # Model targets (the same for all model runs)
@@ -82,7 +78,7 @@ fit_model_targets <- list(
     name = ww_fit_obj,
     command = wwinference(
       # if no ww, pass in NULL
-      ww_data = ww_data_exclusions,
+      ww_data = ww_data_to_fit,
       count_data = hosp_data_preprocessed,
       forecast_date = scenarios$forecast_date,
       calibration_time = 90,
@@ -102,7 +98,7 @@ fit_model_targets <- list(
       compiled_model = compiled_model
     ),
     format = "rds",
-    pattern = map(ww_data_exclusions, hosp_data_preprocessed, scenarios),
+    pattern = map(ww_data_to_fit, hosp_data_preprocessed, scenarios),
     iteration = "list"
   ),
   tar_target(
@@ -140,10 +136,10 @@ fit_model_targets <- list(
         draws = ww_draws,
         forecast_date = scenarios$forecast_date
       ) +
-        ggtitle(glue("{scenarios$location_name}, wastewater: {scenarios$include_ww}"))
+        ggtitle(glue("{scenarios$location_name}, wastewater: {scenarios$include_ww}")) # nolint
     } else {
       NULL
-    }, # nolint
+    },
     pattern = map(ww_draws, scenarios),
     format = "rds",
     iteration = "list"
