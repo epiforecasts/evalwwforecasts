@@ -63,7 +63,7 @@ get_hosp_for_eval <- function(location_name,
       forecast_date = forecast_date
     ) |>
     filter(
-      date <= ymd(forecast_date),
+      date <= ymd(forecast_date) + days(forecast_horizon),
       state == location_name
     ) |>
     select(
@@ -84,6 +84,7 @@ get_hosp_for_eval <- function(location_name,
 #'    we will just use the corrected data.
 #' @param calibration_period Integer indicating the number of days of
 #'    hospital admissions calibration data to extract. Default is `100`.
+#'    If NULL, we use all the data.
 #' @param lag Integer indicating the number of days from the forecast date of
 #'    the latest hospital admission. Default is `3`.
 #' @autoglobal
@@ -96,11 +97,18 @@ get_hosp_for_fit <- function(hosp_data_eval,
                              calibration_period = 100,
                              lag = 3) {
   if (isFALSE(right_trunc)) {
-    hosp_for_fit <- hosp_data_eval |>
-      filter(
-        date >= ymd(forecast_date) - days(calibration_period),
-        date <= ymd(forecast_date) - days(lag)
-      )
+    if (!is.null(calibration_period)) {
+      hosp_for_fit <- hosp_data_eval |>
+        filter(
+          date >= ymd(forecast_date) - days(calibration_period),
+          date <= ymd(forecast_date) - days(lag)
+        )
+    } else {
+      hosp_for_fit <- hosp_data_eval |>
+        filter(
+          date <= ymd(forecast_date) - days(lag)
+        )
+    }
   } else {
     # Insert function to use git history to get the data as of the forecast date
     hosp_for_fit <- NULL

@@ -23,7 +23,8 @@ truncated data or the final corrected data. Default is \code{FALSE} indicating
 we will just use the corrected data.}
 
 \item{calibration_period}{Integer indicating the number of days of
-hospital admissions calibration data to extract. Default is \code{100}.}
+hospital admissions calibration data to extract. Default is \code{100}.
+If NULL, we use all the data.}
 
 \item{lag}{Integer indicating the number of days from the forecast date of
 the latest hospital admission. Default is \code{3}.}
