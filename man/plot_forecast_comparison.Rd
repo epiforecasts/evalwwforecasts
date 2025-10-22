@@ -4,14 +4,25 @@
 \alias{plot_forecast_comparison}
 \title{Compare forecasts across time}
 \usage{
-plot_forecast_comparison(forecasts_w_eval_data, forecast_horizon_to_plot = 28)
+plot_forecast_comparison(
+  forecasts_w_eval_data,
+  hosp_data_long,
+  forecast_horizon_to_plot = 28,
+  historical_data_to_plot = 90
+)
 }
 \arguments{
 \item{forecasts_w_eval_data}{Data.frame of forecasts with quantiles and
 evaluation data}
 
+\item{hosp_data_long}{Data.frame of obeserved data before the first forecast
+date through the last}
+
 \item{forecast_horizon_to_plot}{Integer indicating the number of days to
-plot.}
+plot after the last forecast date. Default is \code{28}}
+
+\item{historical_data_to_plot}{Integer indicating number of days to plot
+before the first forecast date. Default is 90.}
 }
 \value{
 ggplot object

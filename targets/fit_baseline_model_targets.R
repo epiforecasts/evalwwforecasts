@@ -18,11 +18,24 @@ fit_baseline_model_targets <- list(
     by = state
   ),
   tar_target(
+    name = full_hosp_time_series,
+    command = hosp_data_eval_bl |>
+      filter(forecast_date == max(forecast_date))
+  ),
+  tar_group_by(
+    name = full_hosp_time_series_by_loc,
+    command = full_hosp_time_series,
+    by = state
+  ),
+  tar_target(
     name = plot_baseline_forecasts,
     command = plot_forecast_comparison(
-      forecasts_w_eval_data = baseline_forecasts_by_loc
+      forecasts_w_eval_data = baseline_forecasts_by_loc,
+      hosp_data_long = full_hosp_time_series_by_loc
+
     ),
-    pattern = map(baseline_forecasts_by_loc),
+    pattern = map(baseline_forecasts_by_loc,
+                  full_hosp_time_series_by_loc),
     iteration = "list",
     format = "rds"
   )

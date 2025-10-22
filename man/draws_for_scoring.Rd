@@ -21,7 +21,8 @@ draws_for_scoring(
 
 \item{quantiles}{Converts to quantiles if TRUE, otherwise leaves as samples}
 
-\item{probs}{Numeric vector of quantile probabilities to use when \code{quantiles = TRUE}}
+\item{probs}{Numeric vector of quantile probabilities to use
+when \code{quantiles = TRUE}}
 }
 \value{
 A forecast_sample or forecast_quantile object (depending on
