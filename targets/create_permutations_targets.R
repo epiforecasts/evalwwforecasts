@@ -60,12 +60,35 @@ create_permutations_targets <- list(
       path = "metadata/meta"
     )
   ),
+  # Create the scenarios table for all wwinference models
   tar_group_by(
     name = scenarios,
     command = crossing(
       locations, forecast_dates, ww, models,
       right_trunc
     ) |>
+      mutate(
+        scenario_id = row_number(),
+        scenario_name = paste(location_abbr, forecast_date, model,
+          ifelse(include_ww, "ww", "no_ww"),
+          ifelse(data_right_trunc, "trunc", "no_trunc"),
+          sep = "_"
+        )
+      ),
+    scenario_name
+  ),
+  tar_target(
+    name = baseline_models,
+    command = tibble(model = "arima_baseline")
+  ),
+  # Create the scenarios table for the baseline models models
+  tar_group_by(
+    name = scenarios_baseline,
+    command = crossing(
+      locations, forecast_dates, ww, baseline_models,
+      right_trunc
+    ) |>
+      filter(!(model == "arima_baseline" & include_ww == TRUE)) |>
       mutate(
         scenario_id = row_number(),
         scenario_name = paste(location_abbr, forecast_date, model,
