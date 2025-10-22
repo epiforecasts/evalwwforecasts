@@ -2,7 +2,7 @@
 #'
 #' @param forecasts_w_eval_data Data.frame of forecasts with quantiles and
 #'   evaluation data
-#' @param hosp_data_long Data.frame of obeserved data before the first forecast
+#' @param hosp_data_long Data.frame of observed data before the first forecast
 #'   date through the last
 #' @param forecast_horizon_to_plot Integer indicating the number of days to
 #'   plot after the last forecast date. Default is `28`
