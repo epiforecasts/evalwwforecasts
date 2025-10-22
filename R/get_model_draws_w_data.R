@@ -44,8 +44,7 @@ get_model_draws_w_data <- function(
         include_ww = include_ww,
         model = !!model,
         forecast_date = lubridate::ymd(!!forecast_date),
-        location = !!location,
-        pred_value = pred_value
+        location = !!location
       )
 
     draws_w_data$value <- zoo::rollsum(draws_w_data$pred_value,

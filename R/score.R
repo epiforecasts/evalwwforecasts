@@ -51,7 +51,10 @@ draws_for_scoring <- function(
 
     to_score <- forecasted_draws |>
       as_forecast_sample(
-        forecast_unit = c("model", "include_ww", "location", "forecast_date", "date"),
+        forecast_unit = c(
+          "model", "include_ww",
+          "location", "forecast_date", "date"
+        ),
         predicted = "value",
         observed = "eval_data",
         sample_id = "draw"
