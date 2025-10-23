@@ -33,7 +33,10 @@ get_model_draws_w_data <- function(
       what = "predicted_counts"
     )$predicted_counts
 
-    eval_data_min <- dplyr::select(eval_data, c("date", "daily_hosp_admits"))
+    eval_data_min <- dplyr::select(eval_data, c(
+      "date", "init_hosp_7d_count",
+      "updated_hosp_7d_count"
+    ))
 
     draws_w_data <- new_hosp_draws |>
       dplyr::mutate(
@@ -42,18 +45,25 @@ get_model_draws_w_data <- function(
         model = !!model,
         forecast_date = lubridate::ymd(!!forecast_date),
         location = !!location
-      ) |>
+      )
+
+    draws_w_data$value <- zoo::rollsum(draws_w_data$pred_value,
+      k = 7,
+      align = "right", na.pad = TRUE
+    )
+
+    draws_w_data <- draws_w_data |>
       dplyr::rename(
-        value = "pred_value",
         calib_data = "observed_value",
         pop = "total_pop"
       ) |>
       dplyr::left_join(eval_data_min,
         by = "date"
       ) |>
-      dplyr::rename(eval_data = "daily_hosp_admits") |>
+      dplyr::rename(eval_data = "updated_hosp_7d_count") |>
       dplyr::ungroup()
-  } else if (model_output == "ww") {
+  } else if
+  (model_output == "ww") {
     new_ww_draws <- wwinference::get_draws(
       fit_obj_wwinference,
       what = "predicted_ww"
