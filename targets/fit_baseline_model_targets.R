@@ -8,7 +8,7 @@ fit_baseline_model_targets <- list(
       data_right_trunc = scenarios_baseline$data_right_trunc,
       include_ww = scenarios_baseline$include_ww,
       model = scenarios_baseline$model,
-      prediction_intervals = c(0.5, 0.9)
+      prediction_intervals = prediction_intervals
     ),
     pattern = map(hosp_data_bl, hosp_data_eval_bl, scenarios_baseline)
   ),
