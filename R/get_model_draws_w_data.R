@@ -47,10 +47,19 @@ get_model_draws_w_data <- function(
         location = !!location
       )
 
-    draws_w_data$value <- zoo::rollsum(draws_w_data$pred_value,
-      k = 7,
-      align = "right", na.pad = TRUE
-    )
+    draws_w_data <- draws_w_data |>
+      group_by(draw) |>
+      arrange(desc(date)) |>
+      mutate(
+        value = zoo::rollsum(pred_value,
+          k = 7,
+          align = "right", na.pad = TRUE
+        ),
+        observed_value = zoo::rollsum(observed_value,
+          k = 7,
+          align = "right", na.pad = TRUE
+        )
+      )
 
     draws_w_data <- draws_w_data |>
       dplyr::rename(

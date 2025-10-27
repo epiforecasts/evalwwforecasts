@@ -18,6 +18,8 @@ quantile_metrics <- scoringutils::get_metrics(
 #' @param quantiles Converts to quantiles if TRUE, otherwise leaves as samples
 #' @param probs Numeric vector of quantile probabilities to use
 #' when \code{quantiles = TRUE}
+#' @param remove_before_forecast_date Boolean indicating whether or not
+#' to remove the values before the forecast date, default is FALSE.
 #' @returns A forecast_sample or forecast_quantile object (depending on
 #'   the quantiles parameter) on the log scale, ready for scoring with
 #'   generate_scores(). Returns NULL if draws is NULL.
@@ -31,13 +33,15 @@ draws_for_scoring <- function(
     forecast_date,
     offset = 1,
     quantiles = FALSE,
+    remove_before_forecast_date = FALSE,
     probs = c(0.05, 0.25, 0.5, 0.75, 0.95)) {
   if (is.null(draws)) {
     to_score <- NULL
   } else {
-    # Filter to after the last date
+    if (remove_before_forecast_date) {
+      draws <- draws |> filter(date >= as.Date(forecast_date))
+    }
     forecasted_draws <- draws |>
-      filter(.data$date >= as.Date(forecast_date)) |>
       select(
         "model",
         "include_ww",
@@ -47,7 +51,8 @@ draws_for_scoring <- function(
         "value",
         "eval_data",
         "draw"
-      )
+      ) |>
+      filter(!is.na(value))
 
     to_score <- forecasted_draws |>
       as_forecast_sample(
