@@ -88,5 +88,5 @@ fit_wwinference_wrapper <- function(
   #   quantiles = TRUE
   # )
 
-  return(draws_w_data)
+  return(hosp_draws)
 }

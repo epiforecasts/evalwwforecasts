@@ -55,7 +55,7 @@ get_model_draws_w_data <- function(
           k = 7,
           align = "right", na.pad = TRUE
         ),
-        observed_value = zoo::rollsum(observed_value,
+        calib_data = zoo::rollsum(observed_value,
           k = 7,
           align = "right", na.pad = TRUE
         )
@@ -63,7 +63,6 @@ get_model_draws_w_data <- function(
 
     draws_w_data <- draws_w_data |>
       dplyr::rename(
-        calib_data = "observed_value",
         pop = "total_pop"
       ) |>
       dplyr::left_join(eval_data_min,

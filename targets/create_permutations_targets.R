@@ -2,8 +2,8 @@ create_permutations_targets <- list(
   tar_target(
     name = locations,
     command = tibble(
-      location_name = "Berlin", #c("Berlin", "Hamburg"),
-      location_abbr = "BE", #c("BE", "HH")
+      location_name = "Berlin", # c("Berlin", "Hamburg"),
+      location_abbr = "BE", # c("BE", "HH")
     )
   ),
   tar_file(
@@ -15,7 +15,7 @@ create_permutations_targets <- list(
   tar_target(
     name = forecast_dates,
     command = tibble(
-      forecast_date = "2025-03-22", #c("2025-03-22", "2025-06-27")
+      forecast_date = "2025-03-22", # c("2025-03-22", "2025-06-27")
     )
   ),
   tar_file(
@@ -33,8 +33,8 @@ create_permutations_targets <- list(
     command = c(0.5, 0.9, 0.95)
   ),
   tar_target(
-  name = quantiles_to_plot,
-  command = c(0.025, 0.25, 0.5, 0.75, 0.975)
+    name = quantiles_to_plot,
+    command = c(0.025, 0.25, 0.5, 0.75, 0.975)
   ),
   tar_target(
     name = calibration_period_wwinference,
@@ -49,7 +49,7 @@ create_permutations_targets <- list(
     command = 500
   ),
   tar_target(
-    name = iter_warmup, 
+    name = iter_warmup,
     command = 250
   ),
   tar_target(
@@ -67,7 +67,7 @@ create_permutations_targets <- list(
   tar_target(
     name = ww,
     command = tibble(
-      include_ww = c(TRUE, FALSE),
+      include_ww = FALSE # c(TRUE, FALSE),
     )
   ),
   tar_file(
