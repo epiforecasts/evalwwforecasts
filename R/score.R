@@ -86,10 +86,11 @@ draws_for_scoring <- function(
 #' @param baseline_forecasts Data.frame of quantiled baseline forecasts
 #' @param quantiles_to_save Vector of quantiles to save
 #' @inheritParams draws_for_scoring
-#' @param fp_data Character string indicating the high level filepath to
+#' @param fp_data Character string indicating the high level file path to
 #'   save the data.
 #'
 #' @returns Data.frame with the baseline forecasts formatted for scoringutils
+#' @autoglobal
 format_baseline_forecasts <- function(baseline_forecasts,
                                       quantiles_to_save,
                                       offset = 1,

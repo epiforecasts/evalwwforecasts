@@ -13,6 +13,8 @@ utils::globalVariables(c(
   "pred_value7dsum", # <get_plot_draws_w_calib_data>
   "calib_data_7dsum", # <get_plot_draws_w_calib_data>
   "updated_hosp_7d_count", # <get_plot_draws_w_calib_data>
+  "model_ww", # <get_bar_chart_overall_scores>
+  "wis", # <get_bar_chart_overall_scores>
   "age_group", # <get_hosp_for_eval>
   "location", # <get_hosp_for_eval>
   "value", # <get_hosp_for_eval>
@@ -45,5 +47,7 @@ utils::globalVariables(c(
   "log_genome_copies_per_ml", # <reformat_ww_data>
   "log_lod", # <reformat_ww_data>
   "site_pop", # <reformat_ww_data>
+  "state", # <format_baseline_forecasts>
+  "quantile_level", # <format_baseline_forecasts>
   NULL
 ))

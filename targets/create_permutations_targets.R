@@ -74,7 +74,7 @@ create_permutations_targets <- list(
   tar_target(
     name = ww,
     command = tibble(
-      include_ww = FALSE # c(TRUE, FALSE),
+      include_ww = c(TRUE, FALSE),
     )
   ),
   tar_file(

@@ -62,6 +62,24 @@ plot_forecast_comparison <- function(
   return(p)
 }
 
+#' Get a plot comparing models for a single location across multiple forecast
+#'   dates
+#'
+#' @param quantiles_to_score Dataframe for a single location across multiple
+#'    forecast dates
+#' @param hosp_data_long Dataframe of hospital admissions data for single
+#'    location
+#' @param forecast_horizon_to_plot Integer indicating number of days of horizon
+#'   to plot
+#' @param historical_data_to_plot Integer indicating number of days into the
+#'   past to plot
+#' @param scale_selected Character string indicating which scale to plot,
+#'   default is `"natural"`
+#' @param facet_models Boolean indicating whether to facet the outputs, default
+#'   is FALSE.
+#' @param fig_fp Character string indicating file path to save figure.
+#'
+#' @returns ggplot object
 get_plot_model_comparison <- function(
     quantiles_to_score,
     hosp_data_long,
@@ -190,6 +208,7 @@ get_plot_draws_w_calib_data <- function(draws_w_data,
 #' @param scores Data.frame of scores from across locations and forecast dates
 #'
 #' @returns ggplot object
+#' @autoglobal
 get_bar_chart_overall_scores <- function(scores) {
   scores_summarised <- scores |>
     summarise_scores(by = c("model", "include_ww")) |>

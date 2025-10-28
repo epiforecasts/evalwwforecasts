@@ -4,7 +4,13 @@
 \alias{generate_scores}
 \title{Scores samples against observed data}
 \usage{
-generate_scores(draws_for_scoring, metrics, scale_selected = "log")
+generate_scores(
+  draws_for_scoring,
+  metrics,
+  scale_selected = "log",
+  save_scores = FALSE,
+  fp_data
+)
 }
 \arguments{
 \item{draws_for_scoring}{Dataframe of samples/quantiles on log scale}

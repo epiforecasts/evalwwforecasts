@@ -19,7 +19,7 @@ format_baseline_forecasts(
 
 \item{offset}{Offset to use when transforming forecasts}
 
-\item{fp_data}{Character string indicating the high level filepath to
+\item{fp_data}{Character string indicating the high level file path to
 save the data.}
 }
 \value{

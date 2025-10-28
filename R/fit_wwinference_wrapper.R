@@ -1,3 +1,25 @@
+#' Wrapper function to fit the wwinference model and generate the
+#'   calibration and forecast quantiles
+#'
+#' @param ww_data Dataframe of wastewater data for fitting
+#' @param count_data Dataframe of case data for fitting
+#' @param hosp_data_eval Dataframe of hospital admissions data for evaluation
+#' @param this_forecast_date Character string indicating forecast date
+#' @param model_spec List of model specifications
+#' @param fit_opts List of fitting specifications
+#' @param compiled_model Compiled model
+#' @param calibration_time Integer indicating number of days to calibrate the
+#'   model
+#' @param forecast_horizon Integer indicating number of days to forecast out to
+#' @param quantiles_to_save Vector of numerics indicating the quantiles
+#' @param ind_filepath Character string of the file path to save the outputs
+#'   from each model run
+#'
+#' @returns Data.frame of the quantiles alongside the evaluation data.
+#' @autoglobal
+#' @importFrom wwinference wwinference get_draws get_plot_forecasted_counts
+#' @importFrom ggplot2 ggsave
+#' @importFrom readr write_csv
 fit_wwinference_wrapper <- function(
     ww_data,
     count_data,
