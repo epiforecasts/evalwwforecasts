@@ -18,6 +18,7 @@
 #' @returns Data.frame of the quantiles alongside the evaluation data.
 #' @autoglobal
 #' @importFrom wwinference wwinference get_draws get_plot_forecasted_counts
+#'   get_plot_ww_conc
 #' @importFrom ggplot2 ggsave
 #' @importFrom readr write_csv
 fit_wwinference_wrapper <- function(

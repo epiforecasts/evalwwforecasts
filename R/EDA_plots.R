@@ -78,8 +78,10 @@ plot_forecast_comparison <- function(
 #' @param facet_models Boolean indicating whether to facet the outputs, default
 #'   is FALSE.
 #' @param fig_fp Character string indicating file path to save figure.
-#'
+#' @importFrom tidyr pivot_wider
+#' @importFrom ggplot2 facet_wrap
 #' @returns ggplot object
+#' @autoglobal
 get_plot_model_comparison <- function(
     quantiles_to_score,
     hosp_data_long,
@@ -165,7 +167,7 @@ get_plot_model_comparison <- function(
 #'
 #' @param draws_w_data Data.frame of draws with data
 #' @param full_fp Directory to save
-#'
+#' @importFrom ggplot2 geom_vline
 #' @returns ggplot object
 #' @autoglobal
 get_plot_draws_w_calib_data <- function(draws_w_data,
@@ -175,7 +177,7 @@ get_plot_draws_w_calib_data <- function(draws_w_data,
   forecast_date <- unique(draws_w_data$forecast_date)
 
   draws <- draws_w_data |> dplyr::filter(
-    draw %in% sample(1:max(draws_w_data$draw), 100)
+    draw %in% sample.int(max(draws_w_data$draw), 100)
   )
 
   p <- ggplot(draws) +
@@ -207,6 +209,8 @@ get_plot_draws_w_calib_data <- function(draws_w_data,
 #'
 #' @param scores Data.frame of scores from across locations and forecast dates
 #'
+#' @importFrom ggplot2 geom_bar
+#' @importFrom scoringutils summarise_scores
 #' @returns ggplot object
 #' @autoglobal
 get_bar_chart_overall_scores <- function(scores) {

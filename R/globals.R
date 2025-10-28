@@ -9,6 +9,18 @@ utils::globalVariables(c(
   "q_0.75", # <plot_forecast_comparison>
   "q_0.05", # <plot_forecast_comparison>
   "q_0.95", # <plot_forecast_comparison>
+  "forecast_date", # <get_plot_model_comparison>
+  "quantile_level", # <get_plot_model_comparison>
+  "predicted", # <get_plot_model_comparison>
+  "location", # <get_plot_model_comparison>
+  "q_0.5", # <get_plot_model_comparison>
+  "forecast_date_model_ww", # <get_plot_model_comparison>
+  "model_ww", # <get_plot_model_comparison>
+  "updated_hosp_7d_count", # <get_plot_model_comparison>
+  "q_0.25", # <get_plot_model_comparison>
+  "q_0.75", # <get_plot_model_comparison>
+  "q_0.05", # <get_plot_model_comparison>
+  "q_0.95", # <get_plot_model_comparison>
   "draw", # <get_plot_draws_w_calib_data>
   "pred_value7dsum", # <get_plot_draws_w_calib_data>
   "calib_data_7dsum", # <get_plot_draws_w_calib_data>
@@ -32,6 +44,10 @@ utils::globalVariables(c(
   "location", # <get_initial_values>
   "age_group", # <get_initial_values>
   "value", # <get_initial_values>
+  "draw", # <get_model_draws_w_data>
+  "pred_value", # <get_model_draws_w_data>
+  "observed_value", # <get_model_draws_w_data>
+  "pred_value7dsum", # <get_model_draws_w_data>
   "normalisierung", # <reformat_ww_data>
   "viruslast_normalisiert", # <reformat_ww_data>
   "location", # <reformat_ww_data>

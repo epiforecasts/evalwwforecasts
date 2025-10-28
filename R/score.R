@@ -88,7 +88,8 @@ draws_for_scoring <- function(
 #' @inheritParams draws_for_scoring
 #' @param fp_data Character string indicating the high level file path to
 #'   save the data.
-#'
+#' @importFrom tidyr pivot_longer starts_with
+#' @importFrom cli cli_warn
 #' @returns Data.frame with the baseline forecasts formatted for scoringutils
 #' @autoglobal
 format_baseline_forecasts <- function(baseline_forecasts,
@@ -96,7 +97,6 @@ format_baseline_forecasts <- function(baseline_forecasts,
                                       offset = 1,
                                       fp_data = "output") {
   loc <- unique(baseline_forecasts$state)
-  include_ww <- unique(baseline_forecasts$include_ww)
   forecast_date <- unique(baseline_forecasts$forecast_date)
   # pivot quantiles from wide to long
   bl_to_score <- baseline_forecasts |>
@@ -164,6 +164,8 @@ format_baseline_forecasts <- function(baseline_forecasts,
 #' @param metrics Metrics to use for scoring
 #' @param scale_selected Character string indicating whether to score
 #'   on natural or log scale, default is "log".
+#' @param save_scores Boolean indicating whether or not to save the scores.
+#' @param fp_data Character string indicating filepath to save the scores
 #' @return a dataframe containing scores for each day of forecasting horizon
 #' @importFrom dplyr filter select mutate
 #' @importFrom lubridate ymd

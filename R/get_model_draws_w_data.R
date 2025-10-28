@@ -9,10 +9,11 @@
 #' @param eval_data Dataframe of observed data to compare against model output
 #' @return a dataframe containing model draws and observed data for scoring
 #' @importFrom wwinference get_draws
-#' @importFrom dplyr mutate rename left_join select ungroup
+#' @importFrom dplyr mutate rename left_join select ungroup group_by
 #' @importFrom lubridate ymd
 #' @importFrom glue glue
 #' @importFrom rlang arg_match .data abort
+#' @autoglobal
 get_model_draws_w_data <- function(
     fit_obj_wwinference,
     model_output = c("ww", "hosp"),
