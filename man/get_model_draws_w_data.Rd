@@ -8,7 +8,7 @@ get_model_draws_w_data(
   fit_obj_wwinference,
   model_output = c("ww", "hosp"),
   include_ww = TRUE,
-  model = c("wwinference", "baseline"),
+  model = "wwinference",
   forecast_date,
   location,
   eval_data

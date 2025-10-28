@@ -48,11 +48,11 @@ draws_for_scoring <- function(
         "location",
         "forecast_date",
         "date",
-        "value",
-        "eval_data",
+        "pred_value7dsum",
+        "updated_hosp_7d_count",
         "draw"
       ) |>
-      filter(!is.na(value))
+      filter(!is.na(pred_value7dsum))
 
     to_score <- forecasted_draws |>
       as_forecast_sample(
@@ -60,8 +60,8 @@ draws_for_scoring <- function(
           "model", "include_ww",
           "location", "forecast_date", "date"
         ),
-        predicted = "value",
-        observed = "eval_data",
+        predicted = "pred_value7dsum",
+        observed = "updated_hosp_7d_count",
         sample_id = "draw"
       ) |>
       transform_forecasts(
@@ -80,20 +80,99 @@ draws_for_scoring <- function(
   return(to_score)
 }
 
+#' Format the baseline forecasts to match the outputs from
+#' wwinference
+#'
+#' @param baseline_forecasts Data.frame of quantiled baseline forecasts
+#' @param quantiles_to_save Vector of quantiles to save
+#' @inheritParams draws_for_scoring
+#' @param fp_data Character string indicating the high level filepath to
+#'   save the data.
+#'
+#' @returns Data.frame with the baseline forecasts formatted for scoringutils
+format_baseline_forecasts <- function(baseline_forecasts,
+                                      quantiles_to_save,
+                                      offset = 1,
+                                      fp_data = "output") {
+  loc <- unique(baseline_forecasts$state)
+  include_ww <- unique(baseline_forecasts$include_ww)
+  forecast_date <- unique(baseline_forecasts$forecast_date)
+  # pivot quantiles from wide to long
+  bl_to_score <- baseline_forecasts |>
+    tidyr::pivot_longer(
+      cols = starts_with("q_"),
+      names_prefix = "q_",
+      values_to = "pred_value7dsum",
+      names_to = "quantile_level"
+    ) |>
+    dplyr::rename(
+      location = state
+    ) |>
+    select(
+      "model",
+      "include_ww",
+      "location",
+      "forecast_date",
+      "date",
+      "pred_value7dsum",
+      "updated_hosp_7d_count",
+      "quantile_level"
+    ) |>
+    filter(quantile_level %in% quantiles_to_save) |>
+    mutate(quantile_level = as.numeric(quantile_level)) |>
+    as_forecast_quantile(
+      forecast_unit = c(
+        "model", "include_ww",
+        "location", "forecast_date",
+        "date"
+      ),
+      predicted = "pred_value7dsum",
+      observed = "updated_hosp_7d_count"
+    ) |>
+    transform_forecasts(
+      fun = log_shift,
+      offset = offset
+    )
+
+  if (!all(unique(bl_to_score$quantile_level) %in% quantiles_to_save)) {
+    cli_warn(
+      message = "Baseline forecasts don't contain all the quantiles needed."
+    )
+  }
+  full_fp <- file.path(fp_data, forecast_date, loc, "data")
+  if (!file.exists(file.path(full_fp))) {
+    dir.create(fp_data)
+    dir.create(file.path(fp_data, forecast_date))
+    dir.create(file.path(fp_data, forecast_date, loc))
+    dir.create(full_fp)
+  }
+  write_csv(
+    bl_to_score,
+    file.path(
+      full_fp,
+      "baseline_quantiles.csv"
+    )
+  )
+  return(bl_to_score)
+}
+
 
 #' Scores samples against observed data
 #'
 #' @param draws_for_scoring Dataframe of samples/quantiles on log scale
 #' @param metrics Metrics to use for scoring
-#'
+#' @param scale_selected Character string indicating whether to score
+#'   on natural or log scale, default is "log".
 #' @return a dataframe containing scores for each day of forecasting horizon
 #' @importFrom dplyr filter select mutate
+#' @importFrom lubridate ymd
 #' @importFrom scoringutils as_forecast_sample transform_forecasts
 #' @importFrom scoringutils log_shift get_metrics score
 #' @importFrom rlang .data
 generate_scores <- function(
     draws_for_scoring,
-    metrics) {
+    metrics,
+    scale_selected = "log") {
   if (is.null(draws_for_scoring)) {
     scores <- NULL
   } else {
@@ -103,15 +182,9 @@ generate_scores <- function(
 
     scores <- score(draws_for_scoring, metrics = metrics) |>
       mutate(
-        period = ifelse(
-          .data$date <= .data$forecast_date,
-          "estimate",
-          "forecast"
-        )
-      )
-
-    # Keep scores on log scale only
-    scores <- filter(scores, scale == "log")
+        horizon = as.numeric(ymd(date) - ymd(forecast_date))
+      ) |>
+      filter(scale == scale_selected)
   }
 
   return(scores)

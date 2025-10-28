@@ -4,12 +4,15 @@
 \alias{generate_scores}
 \title{Scores samples against observed data}
 \usage{
-generate_scores(draws_for_scoring, metrics)
+generate_scores(draws_for_scoring, metrics, scale_selected = "log")
 }
 \arguments{
 \item{draws_for_scoring}{Dataframe of samples/quantiles on log scale}
 
 \item{metrics}{Metrics to use for scoring}
+
+\item{scale_selected}{Character string indicating whether to score
+on natural or log scale, default is "log".}
 }
 \value{
 a dataframe containing scores for each day of forecasting horizon

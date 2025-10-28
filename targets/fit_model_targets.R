@@ -111,27 +111,5 @@ fit_model_targets <- list(
       ww_data_to_fit, hosp_data_preprocessed, scenarios,
       model_spec, hosp_data_eval
     )
-  ),
-  tar_target(
-    name = hosp_quantiles,
-    command = draws_for_scoring(
-      draws = hosp_quantiles_wwinference,
-      forecast_date = scenarios$forecast_date,
-      offset = 1,
-      quantiles = TRUE,
-      probs = quantiles_to_save
-    ) |> as.data.frame(),
-    pattern = map(
-      hosp_quantiles_wwinference,
-      scenarios
-    )
   )
-  # tar_target(
-  #   name = plot_hosp_quantiles,
-  #   command = get_plot_hosp_quantiles(
-  #     hosp_quantiles_wwinference,
-  #     quantles_to_plot
-  #   ),
-  #   pattern = map(hosp_quantiles_wwinference)
-  # )
 )

@@ -9,7 +9,7 @@ fit_wwinference_wrapper <- function(
     calibration_time = 90,
     forecast_horizon = 28,
     quantiles_to_save = c(0.025, 0.1, 0.25, 0.5, 0.75, 0.9, 0.975),
-    fig_file_path = file.path("output", "figs")) {
+    fig_file_path = file.path("output")) {
   loc <- unique(count_data$state)
   include_ww <- model_spec$include_ww
   ww_fit_obj <- wwinference(
@@ -27,10 +27,17 @@ fit_wwinference_wrapper <- function(
     what = "predicted_counts"
   )$predicted_counts
   # Save plots
-  dir.create(fig_file_path)
   full_fp <- file.path(fig_file_path, this_forecast_date, loc)
-  dir.create(file.path(fig_file_path, this_forecast_date))
-  dir.create(full_fp)
+  if (!file.exists(file.path(full_fp))) {
+    dir.create(fig_file_path)
+    dir.create(file.path(fig_file_path, this_forecast_date))
+    dir.create(full_fp)
+  }
+  fig_fp <- file.path(full_fp, "figs")
+  if (!file.exists(file.path(fig_fp))) {
+    dir.create(fig_fp)
+  }
+
   plot_hosp_draws <- get_plot_forecasted_counts(
     draws = hosp_draws,
     forecast_date = this_forecast_date
@@ -39,7 +46,7 @@ fit_wwinference_wrapper <- function(
   ggsave(
     plot = plot_hosp_draws,
     filename = file.path(
-      full_fp,
+      fig_fp,
       glue::glue("hosp_draws_ww_{include_ww}.png")
     )
   )
@@ -57,7 +64,7 @@ fit_wwinference_wrapper <- function(
     ggsave(
       plot = plot_ww_draws,
       filename = file.path(
-        full_fp,
+        fig_fp,
         "ww_draws.png"
       )
     )
@@ -72,21 +79,39 @@ fit_wwinference_wrapper <- function(
     location = loc,
     eval_data = hosp_data_eval
   )
+  data_fp <- file.path(full_fp, "data")
+  if (!file.exists(file.path(data_fp))) {
+    dir.create(data_fp)
+  }
+  write_csv(
+    draws_w_data,
+    file.path(data_fp, glue::glue(
+      "hosp_draws_ww_{include_ww}.csv"
+    ))
+  )
+  # Make a plot here with calibration and evaluation data and save it.
+  p <- get_plot_draws_w_calib_data(
+    draws_w_data,
+    fig_fp
+  )
 
-  # hosp_quantiles <- draws_for_scoring(
-  #   draws = draws_w_data,
-  #   forecast_date = this_forecast_date,
-  #   offset = 1,
-  #   quantiles = TRUE,
-  #   probs = quantiles_to_save
-  # ) |> as.data.frame()
+  hosp_quantiles <- draws_for_scoring(
+    draws = draws_w_data,
+    forecast_date = this_forecast_date,
+    offset = 1,
+    quantiles = TRUE,
+    probs = quantiles_to_save
+  )
 
-  # quantiles <- draws_for_scoring(
-  #   draws = test,
-  #   forecast_date = "2025-03-22",
-  #   offset = 1,
-  #   quantiles = TRUE
-  # )
+  write_csv(
+    hosp_quantiles,
+    file.path(
+      data_fp,
+      glue::glue(
+        "hosp_quantiles_ww_{include_ww}.csv"
+      )
+    )
+  )
 
-  return(hosp_draws)
+  return(hosp_quantiles)
 }

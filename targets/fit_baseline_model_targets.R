@@ -12,6 +12,14 @@ fit_baseline_model_targets <- list(
     ),
     pattern = map(hosp_data_bl, hosp_data_eval_bl, scenarios_baseline)
   ),
+  tar_target(
+    name = baseline_quantiles,
+    command = format_baseline_forecasts(
+      baseline_forecasts,
+      quantiles_to_save
+    ),
+    pattern = map(baseline_forecasts)
+  ),
   tar_group_by(
     name = baseline_forecasts_by_loc,
     command = baseline_forecasts,
@@ -32,10 +40,11 @@ fit_baseline_model_targets <- list(
     command = plot_forecast_comparison(
       forecasts_w_eval_data = baseline_forecasts_by_loc,
       hosp_data_long = full_hosp_time_series_by_loc
-
     ),
-    pattern = map(baseline_forecasts_by_loc,
-                  full_hosp_time_series_by_loc),
+    pattern = map(
+      baseline_forecasts_by_loc,
+      full_hosp_time_series_by_loc
+    ),
     iteration = "list",
     format = "rds"
   )

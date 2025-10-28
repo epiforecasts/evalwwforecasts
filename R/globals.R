@@ -9,6 +9,10 @@ utils::globalVariables(c(
   "q_0.75", # <plot_forecast_comparison>
   "q_0.05", # <plot_forecast_comparison>
   "q_0.95", # <plot_forecast_comparison>
+  "draw", # <get_plot_draws_w_calib_data>
+  "pred_value7dsum", # <get_plot_draws_w_calib_data>
+  "calib_data_7dsum", # <get_plot_draws_w_calib_data>
+  "updated_hosp_7d_count", # <get_plot_draws_w_calib_data>
   "age_group", # <get_hosp_for_eval>
   "location", # <get_hosp_for_eval>
   "value", # <get_hosp_for_eval>
