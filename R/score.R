@@ -165,7 +165,7 @@ format_baseline_forecasts <- function(baseline_forecasts,
 #' @param scale_selected Character string indicating whether to score
 #'   on natural or log scale, default is "log".
 #' @param save_scores Boolean indicating whether or not to save the scores.
-#' @param fp_data Character string indicating filepath to save the scores
+#' @param fp_data Character string indicating file path to save the scores
 #' @return a dataframe containing scores for each day of forecasting horizon
 #' @importFrom dplyr filter select mutate
 #' @importFrom lubridate ymd

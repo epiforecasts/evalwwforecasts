@@ -30,7 +30,8 @@ scoring_targets <- list(
     command = get_plot_model_comparison(
       quantiles_to_score = quantiles_by_loc,
       hosp_data_long = full_hosp_time_series_by_loc,
-      fig_fp = file.path("output", "overall_figs")
+      fig_fp = file.path("output", "overall_figs"),
+      facet_models = TRUE
     ),
     pattern = map(quantiles_by_loc, full_hosp_time_series_by_loc),
     format = "rds",

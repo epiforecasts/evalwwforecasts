@@ -22,7 +22,7 @@ on natural or log scale, default is "log".}
 
 \item{save_scores}{Boolean indicating whether or not to save the scores.}
 
-\item{fp_data}{Character string indicating filepath to save the scores}
+\item{fp_data}{Character string indicating file path to save the scores}
 }
 \value{
 a dataframe containing scores for each day of forecasting horizon
