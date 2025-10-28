@@ -16,7 +16,8 @@ fit_baseline_model_targets <- list(
     name = baseline_quantiles,
     command = format_baseline_forecasts(
       baseline_forecasts,
-      quantiles_to_save
+      quantiles_to_save,
+      fp_data = ind_filepath
     ),
     pattern = map(baseline_forecasts)
   ),

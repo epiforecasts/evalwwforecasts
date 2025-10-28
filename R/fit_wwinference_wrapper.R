@@ -9,7 +9,7 @@ fit_wwinference_wrapper <- function(
     calibration_time = 90,
     forecast_horizon = 28,
     quantiles_to_save = c(0.025, 0.1, 0.25, 0.5, 0.75, 0.9, 0.975),
-    fig_file_path = file.path("output")) {
+    ind_filepath = file.path("output")) {
   loc <- unique(count_data$state)
   include_ww <- model_spec$include_ww
   ww_fit_obj <- wwinference(
@@ -27,10 +27,10 @@ fit_wwinference_wrapper <- function(
     what = "predicted_counts"
   )$predicted_counts
   # Save plots
-  full_fp <- file.path(fig_file_path, this_forecast_date, loc)
+  full_fp <- file.path(ind_filepath, this_forecast_date, loc)
   if (!file.exists(file.path(full_fp))) {
-    dir.create(fig_file_path)
-    dir.create(file.path(fig_file_path, this_forecast_date))
+    dir.create(ind_filepath)
+    dir.create(file.path(ind_filepath, this_forecast_date))
     dir.create(full_fp)
   }
   fig_fp <- file.path(full_fp, "figs")

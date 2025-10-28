@@ -172,7 +172,9 @@ format_baseline_forecasts <- function(baseline_forecasts,
 generate_scores <- function(
     draws_for_scoring,
     metrics,
-    scale_selected = "log") {
+    scale_selected = "log",
+    save_scores = FALSE,
+    fp_data) {
   if (is.null(draws_for_scoring)) {
     scores <- NULL
   } else {
@@ -185,6 +187,12 @@ generate_scores <- function(
         horizon = as.numeric(ymd(date) - ymd(forecast_date))
       ) |>
       filter(scale == scale_selected)
+  }
+  if (isTRUE(save_scores)) {
+    if (!file.exists(fp_data)) {
+      dir_create(fp_data)
+    }
+    write_csv(scores, file.path(fp_data, "scores.csv"))
   }
 
   return(scores)

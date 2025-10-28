@@ -2,8 +2,8 @@ create_permutations_targets <- list(
   tar_target(
     name = locations,
     command = tibble(
-      location_name = "Berlin", # c("Berlin", "Hamburg"),
-      location_abbr = "BE", # c("BE", "HH")
+      location_name = c("Berlin", "Hamburg"),
+      location_abbr = c("BE", "HH")
     )
   ),
   tar_file(
@@ -15,8 +15,15 @@ create_permutations_targets <- list(
   tar_target(
     name = forecast_dates,
     command = tibble(
-      forecast_date = "2025-03-22", # c("2025-03-22", "2025-06-27")
+      forecast_date = c(
+        "2025-01-18",
+        "2025-02-15", "2025-03-22", "2025-04-19"
+      )
     )
+  ),
+  tar_target(
+    name = ind_filepath,
+    command = file.path("output", "individual_forecasts")
   ),
   tar_file(
     name = save_forecast_dates,

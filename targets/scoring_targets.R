@@ -32,7 +32,7 @@ scoring_targets <- list(
       hosp_data_long = full_hosp_time_series_by_loc,
       fig_fp = file.path("output", "overall_figs")
     ),
-    pattern = map(quantiles_by_loc),
+    pattern = map(quantiles_by_loc, full_hosp_time_series_by_loc),
     format = "rds",
     iteration = "list"
   ),
@@ -41,7 +41,9 @@ scoring_targets <- list(
     name = score_hosp_quantiles,
     command = generate_scores(
       draws = all_quantiles_for_scoring,
-      metrics = quantile_metrics
+      metrics = quantile_metrics,
+      fp_data = file.path("output", "overall_data"),
+      save_scores = TRUE
     )
   ),
   tar_target(

@@ -105,7 +105,8 @@ fit_model_targets <- list(
       fit_opts = fit_opts,
       quantiles_to_save = quantiles_to_save,
       compiled_model = compiled_model,
-      hosp_data_eval = hosp_data_eval
+      hosp_data_eval = hosp_data_eval,
+      ind_filepath = ind_filepath
     ),
     pattern = map(
       ww_data_to_fit, hosp_data_preprocessed, scenarios,
