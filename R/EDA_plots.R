@@ -229,6 +229,6 @@ get_bar_chart_overall_scores <- function(scores) {
       position = "dodge"
     ) +
     theme_bw() +
-    ggtitle("Scores across all locations/forecast dates")
+    ggtitle("Scores across all locations and forecast dates")
   return(p)
 }

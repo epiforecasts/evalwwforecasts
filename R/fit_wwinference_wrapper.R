@@ -113,7 +113,7 @@ fit_wwinference_wrapper <- function(
     ))
   )
   # Make a plot here with calibration and evaluation data and save it.
-  p <- get_plot_draws_w_calib_data(
+  get_plot_draws_w_calib_data(
     draws_w_data,
     fig_fp
   )
