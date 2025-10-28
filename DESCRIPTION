@@ -27,6 +27,7 @@ Imports:
     cli,
     forecast,
     dplyr,
+    tidyr,
     rlang,
     readr,
     ggplot2,
