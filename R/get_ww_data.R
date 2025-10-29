@@ -278,7 +278,7 @@ add_correct_lod <- function(ww_data,
   }
 
   lod_vals <- read_csv(path_to_lod_vals)
-  overall_mean_loq <- lod_vals |>
+  overall_mean_loq_value <- lod_vals |>
     group_by(Standort, Bundesland, date) |>
     summarise(mean_loq = exp(mean(log(loq), na.rm = TRUE))) |>
     ungroup() |>
@@ -301,7 +301,7 @@ add_correct_lod <- function(ww_data,
     )) |>
     mutate(log_lod = case_when(
       !is.na(mean_loq) & below_LOD == "ja" ~ log(mean_loq),
-      is.na(mean_loq) & below_LOD == "ja" ~ log(overall_mean_loq),
+      is.na(mean_loq) & below_LOD == "ja" ~ log(overall_mean_loq_value),
       TRUE ~ log_lod
     )) |>
     select(-mean_loq)
