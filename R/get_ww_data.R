@@ -180,10 +180,31 @@ reformat_ww_data <- function(raw_ww,
                              location_abbr,
                              location_name,
                              log_lod_val = 1) {
-  if ("normalisierung" %in% names(raw_ww)) {
-    raw_ww <- dplyr::rename(raw_ww, normalized = normalisierung)
-  } else if ("viruslast_normalisiert" %in% names(raw_ww)) {
-    raw_ww <- dplyr::rename(raw_ww, normalized = viruslast_normalisiert)
+  if ("unter_bg" %in% names(raw_ww)) {
+    raw_ww <- dplyr::rename(raw_ww, below_LOD = unter_bg)
+  } else if ("unter_BG" %in% names(raw_ww)) {
+    raw_ww <- dplyr::rename(raw_ww, below_LOD = unter_BG)
+  } else { # Assume its no if not present in the data?
+    raw_ww <- dplyr::mutate(raw_ww, below_LOD = "nein")
+  }
+  if ("typ" %in% names(raw_ww)) {
+    raw_ww <- raw_ww |>
+      dplyr::rename(pathogen = "typ") |>
+      dplyr::filter(pathogen == "SARS-CoV-2")
+  } else {
+    raw_ww <- dplyr::mutate(
+      raw_ww,
+      pathogen = "SARS-CoV-2"
+    )
+  }
+  if ("laborwechsel" %in% names(raw_ww)) {
+    raw_ww <- dplyr::rename(raw_ww,
+      change_in_lab_indicator = "laborwechsel"
+    )
+  } else {
+    raw_ww <- dplyr::mutate(raw_ww,
+      change_in_lab_indicator = 1
+    )
   }
 
   ww_clean <- raw_ww |>
@@ -192,22 +213,17 @@ reformat_ww_data <- function(raw_ww,
       date = "datum",
       state = "bundesland",
       conc = "viruslast",
-      pop_cov = "einwohner",
-      change_in_lab_indicator = "laborwechsel",
-      pathogen = "typ",
-      below_LOD = "unter_bg"
+      pop_cov = "einwohner"
     ) |>
     select(
-      location, date, state, conc, pop_cov, change_in_lab_indicator,
-      normalized, pathogen,
+      location, date, state, conc, pop_cov, change_in_lab_indicator, pathogen,
       below_LOD
     ) |>
     filter(
-      state == location_abbr,
-      pathogen == "SARS-CoV-2"
+      state == location_abbr
     ) |>
     mutate(
-      lab = change_in_lab_indicator,
+      lab = glue::glue("{location}-{change_in_lab_indicator}"),
       log_genome_copies_per_ml = log((conc / 1e3) + 1e-8),
       log_lod = log_lod_val, # make this up for now (maybe )
       location_name = location_name,

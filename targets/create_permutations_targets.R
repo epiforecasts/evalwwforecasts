@@ -12,6 +12,8 @@ create_permutations_targets <- list(
       path = "metadata/meta"
     )
   ),
+  # Will set this from 2024-07-01 (start of git history availability) to
+  # 2025-07-07
   tar_target(
     name = forecast_dates,
     command = tibble(

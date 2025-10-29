@@ -48,15 +48,14 @@ utils::globalVariables(c(
   "pred_value", # <get_model_draws_w_data>
   "observed_value", # <get_model_draws_w_data>
   "pred_value7dsum", # <get_model_draws_w_data>
-  "normalisierung", # <reformat_ww_data>
-  "viruslast_normalisiert", # <reformat_ww_data>
+  "unter_bg", # <reformat_ww_data>
+  "unter_BG", # <reformat_ww_data>
+  "pathogen", # <reformat_ww_data>
   "location", # <reformat_ww_data>
   "state", # <reformat_ww_data>
   "conc", # <reformat_ww_data>
   "pop_cov", # <reformat_ww_data>
   "change_in_lab_indicator", # <reformat_ww_data>
-  "normalized", # <reformat_ww_data>
-  "pathogen", # <reformat_ww_data>
   "below_LOD", # <reformat_ww_data>
   "site", # <reformat_ww_data>
   "lab", # <reformat_ww_data>
