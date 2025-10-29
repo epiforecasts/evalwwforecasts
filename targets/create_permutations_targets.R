@@ -37,6 +37,13 @@ create_permutations_targets <- list(
     )
   ),
   tar_target(
+    name = path_to_lod_vals,
+    command = file.path(
+      "input", "data",
+      "loq_data.csv"
+    )
+  ),
+  tar_target(
     name = models,
     command = tibble(
       model = "wwinference"

@@ -10,6 +10,7 @@ get_ww_as_of_forecast_date(
   forecast_date,
   location_name,
   location_abbr,
+  path_to_lod_vals,
   filepath_name = file.path("input", "data", "ww", "vintages"),
   calibration_period = 100,
   ww_data_url =
@@ -23,6 +24,9 @@ forecast in YYYY-MM-DD}
 \item{location_name}{Character string indicating long form name of state.}
 
 \item{location_abbr}{Character string indicating abbreviation of state}
+
+\item{path_to_lod_vals}{Character string indicating the file path to the LOQ
+data}
 
 \item{filepath_name}{Name of directory to save the raw input wastewater data.}
 

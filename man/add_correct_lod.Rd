@@ -5,10 +5,7 @@
 \title{Add the correct LOD using external data on LOQ for each gene at each site
 and time point}
 \usage{
-add_correct_lod(
-  ww_data,
-  path_to_lod_vals = file.path("input", "data", "loq_data.csv")
-)
+add_correct_lod(ww_data, path_to_lod_vals = NULL)
 }
 \arguments{
 \item{ww_data}{Data.frame of wastewater data from an individual location}

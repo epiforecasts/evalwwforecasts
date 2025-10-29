@@ -10,6 +10,7 @@ get_ww_for_eval(
   location_name,
   location_abbr,
   forecast_date,
+  path_to_lod_vals,
   forecast_horizon = 28,
   filepath_name = file.path("input", "data", "ww")
 )
@@ -21,6 +22,9 @@ get_ww_for_eval(
 
 \item{forecast_date}{Character string or date indicating the date of
 forecast in YYYY-MM-DD}
+
+\item{path_to_lod_vals}{Character string indicating the file path to the LOQ
+data}
 
 \item{forecast_horizon}{Forecast horizon. Default is \code{28}.}
 
