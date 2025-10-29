@@ -267,9 +267,10 @@ reformat_ww_data <- function(raw_ww,
 #'   below the LOD.
 #' @autoglobal
 #' @importFrom cli cli_warn
+#' @importFrom dplyr group_by summarise case_when filter
 add_correct_lod <- function(ww_data,
                             path_to_lod_vals = NULL) {
-  if (!file.exists(path_to_lod_vals)) {
+  if (!file.exists(path_to_lod_vals) || !file.exists(path_to_lod_vals)) {
     cli_warn(
       message = "LOD values are missing!"
     )
@@ -279,25 +280,11 @@ add_correct_lod <- function(ww_data,
   lod_vals <- read_csv(path_to_lod_vals)
   overall_mean_loq <- lod_vals |>
     group_by(Standort, Bundesland, date) |>
-    summarise(mean_loq = exp(mean(log(loq)))) |>
+    summarise(mean_loq = exp(mean(log(loq), na.rm = TRUE))) |>
     ungroup() |>
     summarise(overall_mean = mean(mean_loq, na.rm = TRUE)) |>
     pull(overall_mean)
-  lod_vals_clean <- lod_vals |>
-    mutate(
-      Standort =
-        case_when(
-          Standort == "Düsseldorf_Nord" ~ "Düsseldorf (Nord)",
-          Standort == "Düsseldorf_Süd" ~ "Düsseldorf (Süd)",
-          Standort == "Frankfurt" ~ "Frankfurt (Oder)",
-          Standort == "Halle/Saale" ~ "Halle (Saale)",
-          Standort == "Hamburg Nord" ~ "Hamburg 01",
-          Standort == "Hamburg Süd" ~ "Hamburg 02",
-          Standort == "Primasens-Felsalbe" ~ "Pirmasens-Felsalbe",
-          TRUE ~ Standort
-        )
-    ) |>
-    filter(Standort %in% c(unique(ww_data$site)))
+  lod_vals_clean <- filter(lod_vals, Standort %in% c(unique(ww_data$site)))
 
   mean_lod <- lod_vals_clean |>
     filter(!is.na(loq)) |>
