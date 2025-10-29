@@ -265,54 +265,59 @@ reformat_ww_data <- function(raw_ww,
 #'   now been filled in with the geometric mean of the LOQ across all genes
 #'   measured on that date and in that site, if the data is flagged as being
 #'   below the LOD.
+#' @autoglobal
+#' @importFrom cli cli_warn
 add_correct_lod <- function(ww_data,
                             path_to_lod_vals = NULL) {
-  if (file.exists(path_to_lod_vals)) {
-    lod_vals <- read_csv(path_to_lod_vals)
-    overall_mean_loq <- lod_vals |>
-      group_by(Standort, Bundesland, date) |>
-      summarise(mean_loq = exp(mean(log(loq)))) |>
-      ungroup() |>
-      summarise(overall_mean = mean(mean_loq, na.rm = TRUE)) |>
-      pull(overall_mean)
-    lod_vals_clean <- lod_vals |>
-      mutate(
-        Standort =
-          case_when(
-            Standort == "Düsseldorf_Nord" ~ "Düsseldorf (Nord)",
-            Standort == "Düsseldorf_Süd" ~ "Düsseldorf (Süd)",
-            Standort == "Frankfurt" ~ "Frankfurt (Oder)",
-            Standort == "Halle/Saale" ~ "Halle (Saale)",
-            Standort == "Hamburg Nord" ~ "Hamburg 01",
-            Standort == "Hamburg Süd" ~ "Hamburg 02",
-            Standort == "Primasens-Felsalbe" ~ "Pirmasens-Felsalbe",
-            TRUE ~ Standort
-          )
-      ) |>
-      filter(Standort %in% c(unique(ww_data$site)))
-
-    mean_lod <- lod_vals_clean |>
-      filter(!is.na(loq)) |>
-      group_by(Standort, Bundesland, date) |>
-      summarise(mean_loq = exp(mean(log(loq), na.rm = TRUE)))
-
-    ww_data_lod_joined <- ww_data |>
-      left_join(mean_lod, by = c(
-        "site" = "Standort",
-        "location_name" = "Bundesland",
-        "date"
-      )) |>
-      mutate(log_lod = case_when(
-        !is.na(mean_loq) & below_LOD == "ja" ~ log(mean_loq),
-        is.na(mean_loq) & below_LOD == "ja" ~ log(overall_mean_loq),
-        TRUE ~ log_lod
-      )) |>
-      select(-mean_loq)
-  } else {
+  if (!file.exists(path_to_lod_vals)) {
     cli_warn(
       message = "LOD values are missing!"
     )
     return(ww_data)
   }
+
+  lod_vals <- read_csv(path_to_lod_vals)
+  overall_mean_loq <- lod_vals |>
+    group_by(Standort, Bundesland, date) |>
+    summarise(mean_loq = exp(mean(log(loq)))) |>
+    ungroup() |>
+    summarise(overall_mean = mean(mean_loq, na.rm = TRUE)) |>
+    pull(overall_mean)
+  lod_vals_clean <- lod_vals |>
+    mutate(
+      Standort =
+        case_when(
+          Standort == "Düsseldorf_Nord" ~ "Düsseldorf (Nord)",
+          Standort == "Düsseldorf_Süd" ~ "Düsseldorf (Süd)",
+          Standort == "Frankfurt" ~ "Frankfurt (Oder)",
+          Standort == "Halle/Saale" ~ "Halle (Saale)",
+          Standort == "Hamburg Nord" ~ "Hamburg 01",
+          Standort == "Hamburg Süd" ~ "Hamburg 02",
+          Standort == "Primasens-Felsalbe" ~ "Pirmasens-Felsalbe",
+          TRUE ~ Standort
+        )
+    ) |>
+    filter(Standort %in% c(unique(ww_data$site)))
+
+  mean_lod <- lod_vals_clean |>
+    filter(!is.na(loq)) |>
+    group_by(Standort, Bundesland, date) |>
+    summarise(mean_loq = exp(mean(log(loq), na.rm = TRUE)))
+
+  ww_data_lod_joined <- ww_data |>
+    left_join(mean_lod, by = c(
+      # nolint start
+      "site" = "Standort",
+      "location_name" = "Bundesland",
+      "date"
+      # nolint end
+    )) |>
+    mutate(log_lod = case_when(
+      !is.na(mean_loq) & below_LOD == "ja" ~ log(mean_loq),
+      is.na(mean_loq) & below_LOD == "ja" ~ log(overall_mean_loq),
+      TRUE ~ log_lod
+    )) |>
+    select(-mean_loq)
+
   return(ww_data_lod_joined)
 }

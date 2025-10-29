@@ -40,5 +40,10 @@ utils::globalVariables(c(
   "log_genome_copies_per_ml", # <reformat_ww_data>
   "log_lod", # <reformat_ww_data>
   "site_pop", # <reformat_ww_data>
+  "Standort", # <add_correct_lod>
+  "Bundesland", # <add_correct_lod>
+  "loq", # <add_correct_lod>
+  "mean_loq", # <add_correct_lod>
+  "overall_mean", # <add_correct_lod>
   NULL
 ))
