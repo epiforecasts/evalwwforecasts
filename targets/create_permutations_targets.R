@@ -3,7 +3,17 @@ create_permutations_targets <- list(
     name = locations,
     command = tibble(
       location_name = c("Berlin", "Hamburg"),
-      location_abbr = c("BE", "HH")
+      # nolint start
+      # location_name = c("Nordrhein-Westfalen","Baden-Württemberg","Bayern",
+      #                   "Rheinland-Pfalz","Thüringen" ,"Sachsen", "Berlin",
+      #                   "Sachsen-Anhalt", "Niedersachsen", "Brandenburg",
+      #                   "Bremen", "Hessen",
+      #                   "Schleswig-Holstein", "Mecklenburg-Vorpommern",
+      #                   "Hamburg","Saarland"),
+      location_abbr = c("BE", "HH"),
+      # location_abbr = c("NW","BW","BY","RP","TH","SN", "BE", "ST","NI",
+      #                   "BB","HB","HE","SH","MV","HH","SL")
+      # nolint end
     )
   ),
   tar_file(

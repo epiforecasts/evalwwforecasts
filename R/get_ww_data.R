@@ -238,5 +238,66 @@ reformat_ww_data <- function(raw_ww,
       below_LOD, location_abbr, location_name
     ) |>
     filter(!is.na(log_genome_copies_per_ml))
-  return(ww_clean)
+
+  ww_w_lod <- add_correct_lod(ww_clean)
+  return(ww_w_lod)
+}
+
+#' Add the correct LOD using external data on LOQ for each gene at each site
+#'   and time point
+#'
+#' @param ww_data Data.frame of wastewater data from an individual location
+#' @param path_to_lod_vals Character string indicating the file path to the LOQ
+#'   data
+#'
+#' @returns Data.frame containing updated `ww_data` where the LOD column has
+#'   now been filled in with the geometric mean of the LOQ across all genes
+#'   measured on that date and in that site, if the data is flagged as being
+#'   below the LOD.
+add_correct_lod <- function(ww_data,
+                            path_to_lod_vals = file.path(
+                              "input", "data",
+                              "loq_data.csv"
+                            )) {
+  lod_vals <- read_csv(path_to_lod_vals)
+  overall_mean_loq <- lod_vals |>
+    group_by(Standort, Bundesland, date) |>
+    summarise(mean_loq = exp(mean(log(loq)))) |>
+    ungroup() |>
+    summarise(overall_mean = mean(mean_loq, na.rm = TRUE)) |>
+    pull(overall_mean)
+  lod_vals_clean <- lod_vals |>
+    mutate(
+      Standort =
+        case_when(
+          Standort == "Düsseldorf_Nord" ~ "Düsseldorf (Nord)",
+          Standort == "Düsseldorf_Süd" ~ "Düsseldorf (Süd)",
+          Standort == "Frankfurt" ~ "Frankfurt (Oder)",
+          Standort == "Halle/Saale" ~ "Halle (Saale)",
+          Standort == "Hamburg Nord" ~ "Hamburg 01",
+          Standort == "Hamburg Süd" ~ "Hamburg 02",
+          Standort == "Primasens-Felsalbe" ~ "Pirmasens-Felsalbe",
+          TRUE ~ Standort
+        )
+    ) |>
+    filter(Standort %in% c(unique(ww_data$site)))
+
+  mean_lod <- lod_vals_clean |>
+    filter(!is.na(loq)) |>
+    group_by(Standort, Bundesland, date) |>
+    summarise(mean_loq = exp(mean(log(loq), na.rm = TRUE)))
+
+  ww_data_lod_joined <- ww_data |>
+    left_join(mean_lod, by = c(
+      "site" = "Standort",
+      "location_name" = "Bundesland",
+      "date"
+    )) |>
+    mutate(log_lod = case_when(
+      !is.na(mean_loq) & below_LOD == "ja" ~ log(mean_loq),
+      is.na(mean_loq) & below_LOD == "ja" ~ log(overall_mean_loq),
+      TRUE ~ log_lod
+    )) |>
+    select(-mean_loq)
+  return(ww_data_lod_joined)
 }
