@@ -80,6 +80,7 @@ plot_forecast_comparison <- function(
 #' @param fig_fp Character string indicating file path to save figure.
 #' @importFrom tidyr pivot_wider
 #' @importFrom ggplot2 facet_wrap
+#' @importFrom fs dir_create
 #' @returns ggplot object
 #' @autoglobal
 get_plot_model_comparison <- function(
@@ -107,9 +108,10 @@ get_plot_model_comparison <- function(
       names_prefix = "q_"
     )
   min_forecast_date <- min(forecasts_i$forecast_date)
+  max_forecast_date <- max(forecasts_i$forecast_date)
   hosp_data <- filter(
     hosp_data_long,
-    date <= ymd(max(forecast_date)) + days(forecast_horizon_to_plot - 1),
+    date <= ymd(max_forecast_date) + days(forecast_horizon_to_plot - 1),
     date >= ymd(min_forecast_date) - days(historical_data_to_plot)
   )
   this_location <- quantiles_to_score |>
@@ -150,7 +152,7 @@ get_plot_model_comparison <- function(
   }
   full_fp <- file.path(fig_fp, this_location)
   if (!file.exists(full_fp)) {
-    dir_create(full_fp)
+    dir_create(full_fp, recursive = TRUE, showWarnings = FALSE)
   }
   ggsave(
     plot = p,
@@ -175,9 +177,9 @@ get_plot_draws_w_calib_data <- function(draws_w_data,
   loc <- unique(draws_w_data$location)
   include_ww <- unique(draws_w_data$include_ww)
   forecast_date <- unique(draws_w_data$forecast_date)
-
+  n_draws <- max(draws_w_data$draw, na.rm = TRUE)
   draws <- draws_w_data |> dplyr::filter(
-    draw %in% sample.int(max(draws_w_data$draw), 100)
+    draw %in% sample.int(n_draws, size = min(100, n_draws))
   )
 
   p <- ggplot(draws) +

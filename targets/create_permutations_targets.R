@@ -15,10 +15,7 @@ create_permutations_targets <- list(
   tar_target(
     name = forecast_dates,
     command = tibble(
-      forecast_date = c(
-        "2025-01-18",
-        "2025-02-15", "2025-03-22", "2025-04-19"
-      )
+      forecast_date = c("2025-03-22", "2025-06-27")
     )
   ),
   tar_target(

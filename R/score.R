@@ -161,23 +161,25 @@ format_baseline_forecasts <- function(baseline_forecasts,
 #' Scores samples against observed data
 #'
 #' @param draws_for_scoring Dataframe of samples/quantiles on log scale
-#' @param metrics Metrics to use for scoring
+#' @param metrics Metrics to use for scoring. Default is NULL which will
+#'   get metrics from scoringutils function.
 #' @param scale_selected Character string indicating whether to score
 #'   on natural or log scale, default is "log".
 #' @param save_scores Boolean indicating whether or not to save the scores.
-#' @param fp_data Character string indicating file path to save the scores
+#' @param fp_data Character string indicating file path to save the scores.
+#'   Default is NULL.
 #' @return a dataframe containing scores for each day of forecasting horizon
 #' @importFrom dplyr filter select mutate
 #' @importFrom lubridate ymd
-#' @importFrom scoringutils as_forecast_sample transform_forecasts
-#' @importFrom scoringutils log_shift get_metrics score
+#' @importFrom scoringutils as_forecast_sample transform_forecasts log_shift
+#'   get_metrics score
 #' @importFrom rlang .data
 generate_scores <- function(
     draws_for_scoring,
-    metrics,
+    metrics = NULL,
     scale_selected = "log",
     save_scores = FALSE,
-    fp_data) {
+    fp_data = NULL) {
   if (is.null(draws_for_scoring)) {
     scores <- NULL
   } else {
@@ -193,7 +195,7 @@ generate_scores <- function(
   }
   if (isTRUE(save_scores)) {
     if (!file.exists(fp_data)) {
-      dir_create(fp_data)
+      dir_create(fp_data, recursive = TRUE, showWarnings = FALSE)
     }
     write_csv(scores, file.path(fp_data, "scores.csv"))
   }

@@ -2,7 +2,7 @@ scoring_targets <- list(
   tar_target(
     name = hosp_quantiles_for_scoring,
     command = hosp_quantiles_wwinference |>
-      filter(date >= scenarios$forecast_date),
+      filter(date >= lubridate::ymd(scenarios$forecast_date)),
     pattern = map(hosp_quantiles_wwinference, scenarios)
   ),
   # Need to ensure both forecasts have the same columns and format and such
