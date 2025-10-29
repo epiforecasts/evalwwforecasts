@@ -278,13 +278,13 @@ add_correct_lod <- function(ww_data,
   }
 
   lod_vals <- read_csv(path_to_lod_vals)
-  overall_mean_loq_value <- lod_vals |>
+  overall_mean_loq <- lod_vals |>
     group_by(Standort, Bundesland, date) |>
     summarise(mean_loq = exp(mean(log(loq), na.rm = TRUE))) |>
     ungroup() |>
     summarise(overall_mean = mean(mean_loq, na.rm = TRUE)) |>
     pull(overall_mean)
-
+  overall_mean_log_value <- overall_mean_loq
   lod_vals_clean <- filter(lod_vals, Standort %in% c(unique(ww_data$site)))
   mean_lod <- lod_vals_clean |>
     filter(!is.na(loq)) |>
