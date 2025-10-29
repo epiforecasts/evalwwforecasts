@@ -146,7 +146,7 @@ get_plot_model_comparison <- function(
     ylab("7-day rolling sum of hospital admissions") +
     ggtitle(glue("Forecast comparison for {this_location}"))
   if (isTRUE(facet_models)) {
-    p <- p + facet_wrap(~model_ww)
+    p <- p + facet_wrap(~model_ww, nrow = 3)
   }
   full_fp <- file.path(fig_fp, this_location)
   if (!file.exists(full_fp)) {
