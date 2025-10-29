@@ -197,6 +197,15 @@ reformat_ww_data <- function(raw_ww,
       pathogen = "SARS-CoV-2"
     )
   }
+  if ("laborwechsel" %in% names(raw_ww)) {
+    raw_ww <- dplyr::rename(raw_ww,
+      change_in_lab_indicator = "laborwechsel"
+    )
+  } else {
+    raw_ww <- dplyr::mutate(raw_ww,
+      change_in_lab_indicator = 1
+    )
+  }
 
   ww_clean <- raw_ww |>
     rename(
@@ -204,8 +213,7 @@ reformat_ww_data <- function(raw_ww,
       date = "datum",
       state = "bundesland",
       conc = "viruslast",
-      pop_cov = "einwohner",
-      change_in_lab_indicator = "laborwechsel"
+      pop_cov = "einwohner"
     ) |>
     select(
       location, date, state, conc, pop_cov, change_in_lab_indicator, pathogen,
@@ -215,7 +223,7 @@ reformat_ww_data <- function(raw_ww,
       state == location_abbr
     ) |>
     mutate(
-      lab = change_in_lab_indicator,
+      lab = glue::glue("{location}-{change_in_lab_indicator}"),
       log_genome_copies_per_ml = log((conc / 1e3) + 1e-8),
       log_lod = log_lod_val, # make this up for now (maybe )
       location_name = location_name,
