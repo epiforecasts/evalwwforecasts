@@ -90,6 +90,7 @@ draws_for_scoring <- function(
 #'   save the data.
 #' @importFrom tidyr pivot_longer starts_with
 #' @importFrom cli cli_warn
+#' @importFrom fs dir_create
 #' @returns Data.frame with the baseline forecasts formatted for scoringutils
 #' @autoglobal
 format_baseline_forecasts <- function(baseline_forecasts,
@@ -142,10 +143,7 @@ format_baseline_forecasts <- function(baseline_forecasts,
   }
   full_fp <- file.path(fp_data, forecast_date, loc, "data")
   if (!file.exists(file.path(full_fp))) {
-    dir.create(fp_data)
-    dir.create(file.path(fp_data, forecast_date))
-    dir.create(file.path(fp_data, forecast_date, loc))
-    dir.create(full_fp)
+    dir_create(full_fp, recursive = TRUE, showWarnings = FALSE)
   }
   write_csv(
     bl_to_score,
