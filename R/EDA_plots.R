@@ -177,6 +177,7 @@ get_plot_draws_w_calib_data <- function(draws_w_data,
   loc <- unique(draws_w_data$location)
   include_ww <- unique(draws_w_data$include_ww)
   forecast_date <- unique(draws_w_data$forecast_date)
+  hosp_data_real_time <- unique(draws_w_data$hosp_data_real_time)
   n_draws <- max(draws_w_data$draw, na.rm = TRUE)
   draws <- draws_w_data |> dplyr::filter(
     draw %in% sample.int(n_draws, size = min(100, n_draws))
@@ -196,12 +197,12 @@ get_plot_draws_w_calib_data <- function(draws_w_data,
     theme_bw() +
     geom_vline(aes(xintercept = forecast_date), linetype = "dashed") +
     ylab("7-day rolling sum of hospital admissions") +
-    ggtitle(glue("location: {loc}, include_ww: {include_ww}, forecast_date: {forecast_date}")) # nolint
+    ggtitle(glue("location: {loc}, include_ww: {include_ww}, forecast_date: {forecast_date}, hosp data real time: {hosp_data_real_time}")) # nolint
   ggsave(
     plot = p,
     filename = file.path(
       full_fp,
-      glue::glue("7d_hosp_draws_w_data_ww_{include_ww}.png")
+      glue::glue("7d_hosp_draws_w_data_ww_{include_ww}_rt_{hosp_data_real_time}.png")
     )
   )
   return(p)

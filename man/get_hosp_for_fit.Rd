@@ -6,8 +6,10 @@
 \usage{
 get_hosp_for_fit(
   hosp_data_eval,
+  location_name,
+  location_abbr,
   forecast_date,
-  right_trunc = FALSE,
+  hosp_data_real_time,
   calibration_period = 100,
   lag = 3
 )
@@ -18,16 +20,16 @@ get_hosp_for_fit(
 \item{forecast_date}{Character string or date indicating the date of
 forecast in YYYY-MM-DD}
 
-\item{right_trunc}{Boolean indicating whether to use the real-time, right
-truncated data or the final corrected data. Default is \code{FALSE} indicating
-we will just use the corrected data.}
-
 \item{calibration_period}{Integer indicating the number of days of
 hospital admissions calibration data to extract. Default is \code{100}.
 If NULL, we use all the data.}
 
 \item{lag}{Integer indicating the number of days from the forecast date of
 the latest hospital admission. Default is \code{3}.}
+
+\item{right_trunc}{Boolean indicating whether to use the real-time, right
+truncated data or the final corrected data. Default is \code{FALSE} indicating
+we will just use the corrected data.}
 }
 \description{
 Filter hospital admissions data for fitting

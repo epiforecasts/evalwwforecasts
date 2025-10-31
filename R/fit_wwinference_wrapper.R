@@ -37,6 +37,7 @@ fit_wwinference_wrapper <- function(
     ind_filepath = file.path("output")) {
   loc <- unique(count_data$state)
   include_ww <- model_spec$include_ww
+  hosp_data_real_time <- unique(count_data$hosp_data_real_time)
   ww_fit_obj <- wwinference(
     ww_data = ww_data,
     count_data = count_data,
@@ -64,7 +65,7 @@ fit_wwinference_wrapper <- function(
   plot_hosp_draws <- get_plot_forecasted_counts(
     draws = hosp_draws,
     forecast_date = this_forecast_date
-  ) + ggtitle(glue("{loc}, wastewater: {include_ww}"))
+  ) + ggtitle(glue("{loc}, wastewater: {include_ww}, hosp data real-time: {hosp_data_real_time}")) # nolint
 
   ggsave(
     plot = plot_hosp_draws,
@@ -100,6 +101,7 @@ fit_wwinference_wrapper <- function(
     model = "wwinference",
     forecast_date = this_forecast_date,
     location = loc,
+    hosp_data_real_time = hosp_data_real_time,
     eval_data = hosp_data_eval
   )
   data_fp <- file.path(full_fp, "data")

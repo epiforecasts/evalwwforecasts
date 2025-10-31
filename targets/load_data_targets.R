@@ -4,7 +4,8 @@ load_data_targets <- list(
     get_hosp_for_eval(
       location_name = scenarios$location_name,
       location_abbr = scenarios$location_abbr,
-      forecast_date = scenarios$forecast_date
+      forecast_date = scenarios$forecast_date,
+      forecast_horizon = forecast_horizon
     ),
     pattern = map(scenarios)
   ),
@@ -12,9 +13,12 @@ load_data_targets <- list(
     hosp_data,
     get_hosp_for_fit(
       hosp_data_eval = hosp_data_eval,
+      location_name = scenarios$location_name,
+      location_abbr = scenarios$location_abbr,
       forecast_date = scenarios$forecast_date,
-      calibration_period = 100,
-      right_trunc = scenarios$data_right_trunc
+      forecast_horizon = forecast_horizon,
+      calibration_period = calibration_period_wwinference,
+      hosp_data_real_time = scenarios$hosp_data_real_time
     ),
     pattern = map(hosp_data_eval, scenarios)
   ),
@@ -33,7 +37,7 @@ load_data_targets <- list(
       forecast_date = scenarios$forecast_date,
       location_name = scenarios$location_name,
       location_abbr = scenarios$location_abbr,
-      calibration_period = 100
+      calibration_period = calibration_period_wwinference
     ),
     pattern = map(ww_data_eval, scenarios)
   )
