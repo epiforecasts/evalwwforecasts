@@ -101,18 +101,16 @@ reformat_hosp_data <- function(RKI_hosp_adj,
 #' Filter hospital admissions data for fitting
 #'
 #' @param hosp_data_eval hospital admissions data for evaluation step
-#' @param forecast_date Character string or date indicating the date of
-#'    forecast in YYYY-MM-DD
-#' @param right_trunc Boolean indicating whether to use the real-time, right
-#'    truncated data or the final corrected data. Default is `FALSE` indicating
-#'    we will just use the corrected data.
+#' @param hosp_data_real_time Boolean indicating whether to use the hospital
+#'   admissions as of the forecast date or just truncate the evaluation data.
+#' @inheritParams get_hosp_for_eval
 #' @param calibration_period Integer indicating the number of days of
 #'    hospital admissions calibration data to extract. Default is `100`.
 #'    If NULL, we use all the data.
 #' @param lag Integer indicating the number of days from the forecast date of
 #'    the latest hospital admission. Default is `3`.
 #' @autoglobal
-#' @importFrom dplyr filter
+#' @importFrom dplyr filter summarise
 #' @importFrom lubridate ymd days
 #' @autoglobal
 get_hosp_for_fit <- function(hosp_data_eval,

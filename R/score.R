@@ -100,7 +100,6 @@ format_baseline_forecasts <- function(baseline_forecasts,
                                       fp_data = "output") {
   loc <- unique(baseline_forecasts$state)
   forecast_date <- unique(baseline_forecasts$forecast_date)
-  hosp_data_real_time <- unique(baseline_forecasts$hosp_data_real_time)
   # pivot quantiles from wide to long
   bl_to_score <- baseline_forecasts |>
     tidyr::pivot_longer(
