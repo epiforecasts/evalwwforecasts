@@ -55,11 +55,11 @@ fit_wwinference_wrapper <- function(
   # Save plots
   full_fp <- file.path(ind_filepath, this_forecast_date, loc)
   if (!file.exists(file.path(full_fp))) {
-    dir_create(full_fp, recursive = TRUE, showWarnings = FALSE)
+    dir_create(full_fp, recurse = TRUE)
   }
   fig_fp <- file.path(full_fp, "figs")
   if (!file.exists(file.path(fig_fp))) {
-    dir_create(fig_fp, recursive = TRUE, showWarnings = FALSE)
+    dir_create(fig_fp, recurse = TRUE)
   }
 
   plot_hosp_draws <- get_plot_forecasted_counts(
@@ -106,7 +106,7 @@ fit_wwinference_wrapper <- function(
   )
   data_fp <- file.path(full_fp, "data")
   if (!file.exists(file.path(data_fp))) {
-    dir_create(data_fp, recursive = TRUE, showWarnings = FALSE)
+    dir_create(data_fp, recurse = TRUE)
   }
   write_csv(
     draws_w_data,

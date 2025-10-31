@@ -152,7 +152,7 @@ get_plot_model_comparison <- function(
   }
   full_fp <- file.path(fig_fp, this_location)
   if (!file.exists(full_fp)) {
-    dir_create(full_fp, recursive = TRUE, showWarnings = FALSE)
+    dir_create(full_fp, recurse = TRUE)
   }
   ggsave(
     plot = p,

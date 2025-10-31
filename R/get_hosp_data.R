@@ -195,7 +195,7 @@ get_hosp_as_of_forecast_date <- function(forecast_date,
     )
     hosp_data <- read_csv(hosp_vintage_data_url)
     dir_create(file.path(filepath_name, forecast_date),
-      recursive = TRUE, showWarnings = FALSE
+      recurse = TRUE
     )
     write_csv(hosp_data, vintage_fp)
   }
