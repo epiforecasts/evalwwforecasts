@@ -12,7 +12,7 @@ get_plot_draws_w_calib_data(draws_w_data, full_fp)
 \item{full_fp}{Directory to save}
 }
 \value{
-ggplot object theme element_text
+ggplot object
 }
 \description{
 Get a plot of the draws with both calibration and evaluation data

@@ -156,8 +156,9 @@ get_hosp_for_fit <- function(hosp_data_eval,
     }
   }
 
-  hosp_for_fit <- hosp_for_fit |>
-    mutate(hosp_data_real_time = hosp_data_real_time)
+  hosp_for_fit <- mutate(hosp_for_fit,
+    hosp_data_real_time = hosp_data_real_time
+  )
   return(hosp_for_fit)
 }
 

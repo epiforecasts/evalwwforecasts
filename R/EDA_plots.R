@@ -169,8 +169,8 @@ get_plot_model_comparison <- function(
 #'
 #' @param draws_w_data Data.frame of draws with data
 #' @param full_fp Directory to save
-#' @importFrom ggplot2 geom_vline
-#' @returns ggplot object theme element_text
+#' @importFrom ggplot2 geom_vline theme element_text
+#' @returns ggplot object
 #' @autoglobal
 get_plot_draws_w_calib_data <- function(draws_w_data,
                                         full_fp) {
