@@ -9,6 +9,7 @@ draws_for_scoring(
   forecast_date,
   offset = 1,
   quantiles = FALSE,
+  remove_before_forecast_date = FALSE,
   probs = c(0.05, 0.25, 0.5, 0.75, 0.95)
 )
 }
@@ -20,6 +21,9 @@ draws_for_scoring(
 \item{offset}{Offset to use when transforming forecasts}
 
 \item{quantiles}{Converts to quantiles if TRUE, otherwise leaves as samples}
+
+\item{remove_before_forecast_date}{Boolean indicating whether or not
+to remove the values before the forecast date, default is FALSE.}
 
 \item{probs}{Numeric vector of quantile probabilities to use
 when \code{quantiles = TRUE}}

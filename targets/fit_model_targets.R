@@ -72,100 +72,45 @@ fit_model_targets <- list(
     name = compiled_model,
     command = readRDS(compiled_model_file)
   ),
-
+  tar_target(
+    name = model_spec,
+    command = get_model_spec(
+      generation_interval = generation_interval,
+      inf_to_count_delay = inf_to_hosp,
+      infection_feedback_pmf = infection_feedback_pmf,
+      params = params,
+      include_ww = scenarios$include_ww
+    ),
+    pattern = map(scenarios),
+    iteration = "list"
+  ),
+  tar_target(
+    name = fit_opts,
+    command = list(
+      seed = 123,
+      iter_sampling = iter_sampling,
+      iter_warmup = iter_warmup
+    )
+  ),
   # Fit the model to each set of hosp and ww data for each permutation
   tar_target(
-    name = ww_fit_obj,
-    command = wwinference(
-      # if no ww, pass in NULL
+    name = hosp_quantiles_wwinference,
+    command = fit_wwinference_wrapper(
       ww_data = ww_data_to_fit,
       count_data = hosp_data_preprocessed,
-      forecast_date = scenarios$forecast_date,
-      calibration_time = 90,
-      forecast_horizon = 28,
-      model_spec = get_model_spec(
-        generation_interval = generation_interval,
-        inf_to_count_delay = inf_to_hosp,
-        infection_feedback_pmf = infection_feedback_pmf,
-        params = params,
-        include_ww = scenarios$include_ww
-      ),
-      fit_opts = list(
-        seed = 123,
-        iter_sampling = 500,
-        iter_warmup = 250
-      ),
-      compiled_model = compiled_model
+      this_forecast_date = scenarios$forecast_date,
+      calibration_time = calibration_period_wwinference,
+      forecast_horizon = forecast_horizon,
+      model_spec = model_spec,
+      fit_opts = fit_opts,
+      quantiles_to_save = quantiles_to_save,
+      compiled_model = compiled_model,
+      hosp_data_eval = hosp_data_eval,
+      ind_filepath = ind_filepath
     ),
-    format = "rds",
-    pattern = map(ww_data_to_fit, hosp_data_preprocessed, scenarios),
-    iteration = "list"
-  ),
-  tar_target(
-    name = hosp_draws,
-    command = get_draws(ww_fit_obj, what = "predicted_counts")$predicted_counts,
-    pattern = map(ww_fit_obj, scenarios)
-  ),
-  tar_target(
-    name = plot_hosp_draws,
-    command = get_plot_forecasted_counts(
-      draws = hosp_draws,
-      forecast_date = scenarios$forecast_date
-    ) +
-      ggtitle(glue("{scenarios$location_name}, wastewater: {scenarios$include_ww}")), # nolint
-    pattern = map(hosp_draws, scenarios),
-    format = "rds",
-    iteration = "list"
-  ),
-
-  # Plotting ww fit
-  tar_target(
-    name = ww_draws,
-    command = if (!is.null(ww_fit_obj$raw_input_data$input_ww_data)) {
-      get_draws(ww_fit_obj, what = "predicted_ww")$predicted_ww
-    } else {
-      NULL
-    },
-    pattern = map(ww_fit_obj, scenarios),
-    iteration = "list"
-  ),
-  tar_target(
-    name = plot_ww_draws,
-    command = if (!is.null(ww_draws)) {
-      get_plot_ww_conc(
-        draws = ww_draws,
-        forecast_date = scenarios$forecast_date
-      ) +
-        ggtitle(glue("{scenarios$location_name}, wastewater: {scenarios$include_ww}")) # nolint
-    } else {
-      NULL
-    },
-    pattern = map(ww_draws, scenarios),
-    format = "rds",
-    iteration = "list"
-  ),
-
-  # Here I am just checking that the mapping works as expected -- that only
-  # the hospital admissions from a specific location and forecast date are being
-  # used (verifying just from looking at the plot)
-  tar_target(
-    name = plot_hosp,
-    command = hosp_data |>
-      mutate(date = as.Date(date)) |>
-      ggplot() +
-      geom_line(aes(x = date, y = daily_hosp_admits)),
-    pattern = map(hosp_data, scenarios),
-    format = "rds",
-    iteration = "list"
-  ),
-
-  # Doing the same for wastewater data
-  tar_target(
-    name = plot_ww,
-    command = ggplot(ww_data) +
-      geom_line(aes(x = date, y = log_genome_copies_per_ml)),
-    pattern = map(ww_data, scenarios),
-    format = "rds",
-    iteration = "list"
+    pattern = map(
+      ww_data_to_fit, hosp_data_preprocessed, scenarios,
+      model_spec, hosp_data_eval
+    )
   )
 )

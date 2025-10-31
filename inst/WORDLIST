@@ -14,7 +14,9 @@ ggplot
 githubusercontent
 nolint
 nowcast
+quantiled
 refs
+scoringutils
 th
 ww
 wwinference

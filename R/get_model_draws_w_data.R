@@ -9,15 +9,16 @@
 #' @param eval_data Dataframe of observed data to compare against model output
 #' @return a dataframe containing model draws and observed data for scoring
 #' @importFrom wwinference get_draws
-#' @importFrom dplyr mutate rename left_join select ungroup
+#' @importFrom dplyr mutate rename left_join select ungroup group_by
 #' @importFrom lubridate ymd
 #' @importFrom glue glue
 #' @importFrom rlang arg_match .data abort
+#' @autoglobal
 get_model_draws_w_data <- function(
     fit_obj_wwinference,
     model_output = c("ww", "hosp"),
     include_ww = TRUE,
-    model = c("wwinference", "baseline"),
+    model = "wwinference",
     forecast_date,
     location,
     eval_data) {
@@ -38,7 +39,7 @@ get_model_draws_w_data <- function(
       "updated_hosp_7d_count"
     ))
 
-    draws_w_data <- new_hosp_draws |>
+    draws <- new_hosp_draws |>
       dplyr::mutate(
         name = "pred_hosp",
         include_ww = include_ww,
@@ -47,21 +48,29 @@ get_model_draws_w_data <- function(
         location = !!location
       )
 
-    draws_w_data$value <- zoo::rollsum(draws_w_data$pred_value,
-      k = 7,
-      align = "right", na.pad = TRUE
-    )
+    draws7d <- draws |>
+      group_by(draw) |>
+      arrange(date) |>
+      mutate(
+        pred_value7dsum = zoo::rollsum(pred_value,
+          k = 7,
+          align = "right", na.pad = TRUE
+        ),
+        calib_data_7dsum = zoo::rollsum(observed_value,
+          k = 7,
+          align = "right", na.pad = TRUE
+        )
+      )
 
-    draws_w_data <- draws_w_data |>
+    draws_w_data <- draws7d |>
       dplyr::rename(
-        calib_data = "observed_value",
         pop = "total_pop"
       ) |>
       dplyr::left_join(eval_data_min,
         by = "date"
       ) |>
-      dplyr::rename(eval_data = "updated_hosp_7d_count") |>
-      dplyr::ungroup()
+      dplyr::ungroup() |>
+      dplyr::filter(!is.na(pred_value7dsum))
   } else if
   (model_output == "ww") {
     new_ww_draws <- wwinference::get_draws(
