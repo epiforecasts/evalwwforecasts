@@ -284,7 +284,7 @@ add_correct_lod <- function(ww_data,
     ungroup() |>
     summarise(overall_mean = mean(mean_loq, na.rm = TRUE)) |>
     pull(overall_mean)
-  overall_mean_loq_value <- overall_mean_loq
+  overall_mean_loq_value <- overall_mean_loq # nolint: object_usage_linter
   lod_vals_clean <- filter(lod_vals, Standort %in% c(unique(ww_data$site)))
   mean_lod <- lod_vals_clean |>
     filter(!is.na(loq)) |>
