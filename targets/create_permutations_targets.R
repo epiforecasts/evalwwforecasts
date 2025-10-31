@@ -2,18 +2,20 @@ create_permutations_targets <- list(
   tar_target(
     name = locations,
     command = tibble(
-      location_name = c("Berlin", "Hamburg"),
-      # nolint start
-      # location_name = c("Nordrhein-Westfalen","Baden-Württemberg","Bayern",
-      #                   "Rheinland-Pfalz","Thüringen" ,"Sachsen", "Berlin",
-      #                   "Sachsen-Anhalt", "Niedersachsen", "Brandenburg",
-      #                   "Bremen", "Hessen",
-      #                   "Schleswig-Holstein", "Mecklenburg-Vorpommern",
-      #                   "Hamburg","Saarland"),
-      location_abbr = c("BE", "HH"),
-      # location_abbr = c("NW","BW","BY","RP","TH","SN", "BE", "ST","NI",
-      #                   "BB","HB","HE","SH","MV","HH","SL")
-      # nolint end
+      # location_name = c("Berlin", "Hamburg"),
+      location_name = c(
+        "Nordrhein-Westfalen", "Baden-Württemberg", "Bayern",
+        "Rheinland-Pfalz", "Thüringen", "Sachsen", "Berlin",
+        "Sachsen-Anhalt", "Niedersachsen", "Brandenburg",
+        "Bremen", "Hessen",
+        "Schleswig-Holstein", "Mecklenburg-Vorpommern",
+        "Hamburg", "Saarland"
+      ),
+      # location_abbr = c("BE", "HH")
+      location_abbr = c(
+        "NW", "BW", "BY", "RP", "TH", "SN", "BE", "ST", "NI",
+        "BB", "HB", "HE", "SH", "MV", "HH", "SL"
+      )
     )
   ),
   tar_file(
@@ -27,7 +29,11 @@ create_permutations_targets <- list(
   tar_target(
     name = forecast_dates,
     command = tibble(
-      forecast_date = c("2024-10-21", "2025-03-22")
+      forecast_date = seq(
+        from = ymd("2024-10-21"),
+        to = ymd("2025-07-07"),
+        by = "month"
+      )
     )
   ),
   tar_target(
@@ -46,6 +52,8 @@ create_permutations_targets <- list(
       "input", "data",
       "loq_data.csv"
     )
+  ),
+  tar_target(
     name = quantiles_to_save,
     command = c(0.025, 0.05, 0.25, 0.5, 0.75, 0.95, 0.975)
   ),
