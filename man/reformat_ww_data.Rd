@@ -5,7 +5,13 @@
 \title{Reformat the ww data, selecting only the location we need and the variables
 we need.}
 \usage{
-reformat_ww_data(raw_ww, location_abbr, location_name, log_lod_val = 1)
+reformat_ww_data(
+  raw_ww,
+  location_abbr,
+  location_name,
+  path_to_lod_vals,
+  log_lod_val = 1
+)
 }
 \arguments{
 \item{raw_ww}{Data.frame from the RKI GitHub}
@@ -13,6 +19,9 @@ reformat_ww_data(raw_ww, location_abbr, location_name, log_lod_val = 1)
 \item{location_abbr}{Character string indicating abbreviation of state}
 
 \item{location_name}{Character string indicating long form name of state.}
+
+\item{path_to_lod_vals}{Character string indicating the file path to the LOQ
+data}
 
 \item{log_lod_val}{Scalar indicating the value to reset the
 limit of detection (LOD) to, to be

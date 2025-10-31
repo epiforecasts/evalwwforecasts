@@ -3,6 +3,7 @@
 #' most recent dates
 #'
 #' @inheritParams get_hosp_for_eval
+#' @inheritParams add_correct_lod
 #' @param filepath_name Name of directory to save the raw input wastewater data.
 #' @importFrom fs dir_create
 #' @importFrom readr read_tsv read_csv write_csv
@@ -10,6 +11,7 @@
 get_ww_for_eval <- function(location_name,
                             location_abbr,
                             forecast_date,
+                            path_to_lod_vals,
                             forecast_horizon = 28,
                             filepath_name = file.path("input", "data", "ww")) {
   # For now, just pull the latest and filter to lag days before the forecast
@@ -28,7 +30,8 @@ get_ww_for_eval <- function(location_name,
   ww_clean <- reformat_ww_data(
     raw_ww = RKI_ww_sites,
     location_name = location_name,
-    location_abbr = location_abbr
+    location_abbr = location_abbr,
+    path_to_lod_vals = path_to_lod_vals
   )
 
   return(ww_clean)
@@ -42,6 +45,7 @@ get_ww_for_eval <- function(location_name,
 #' @inheritParams get_ww_for_eval
 #' @param forecast_date Character string or date indicating the date of
 #'    forecast in YYYY-MM-DD
+#' @inheritParams add_correct_lod
 #' @param calibration_period Integer indicating the number of days of
 #'    wastewater calibration data to extract. Default is `100`.
 #' @param ww_data_url Character string of the url of the wastewater data (not
@@ -53,6 +57,7 @@ get_ww_for_eval <- function(location_name,
 get_ww_as_of_forecast_date <- function(forecast_date,
                                        location_name,
                                        location_abbr,
+                                       path_to_lod_vals,
                                        filepath_name = file.path("input", "data", "ww", "vintages"), # nolint
                                        calibration_period = 100,
                                        ww_data_url = "https://raw.githubusercontent.com/robert-koch-institut/Abwassersurveillance_AMELAG/refs/heads/main/amelag_einzelstandorte.tsv") { # nolint
@@ -75,7 +80,8 @@ get_ww_as_of_forecast_date <- function(forecast_date,
   ww_for_fit <- reformat_ww_data(
     raw_ww = RKI_ww_sites,
     location_name = location_name,
-    location_abbr = location_abbr
+    location_abbr = location_abbr,
+    path_to_lod_vals = path_to_lod_vals
   ) |>
     filter(
       date >= ymd(forecast_date) - days(calibration_period)
@@ -168,6 +174,7 @@ get_vintage <- function(raw_url,
 #'
 #' @param raw_ww Data.frame from the RKI GitHub
 #' @inheritParams get_hosp_for_eval
+#' @inheritParams add_correct_lod
 #' @param log_lod_val Scalar indicating the value to reset the
 #'    limit of detection (LOD) to, to be
 #'   removed in future iterations and replace with an LOD value at each
@@ -179,6 +186,7 @@ get_vintage <- function(raw_url,
 reformat_ww_data <- function(raw_ww,
                              location_abbr,
                              location_name,
+                             path_to_lod_vals,
                              log_lod_val = 1) {
   if ("unter_bg" %in% names(raw_ww)) {
     raw_ww <- dplyr::rename(raw_ww, below_LOD = unter_bg)
@@ -238,5 +246,65 @@ reformat_ww_data <- function(raw_ww,
       below_LOD, location_abbr, location_name
     ) |>
     filter(!is.na(log_genome_copies_per_ml))
-  return(ww_clean)
+
+  ww_w_lod <- add_correct_lod(
+    ww_clean,
+    path_to_lod_vals
+  )
+  return(ww_w_lod)
+}
+
+#' Add the correct LOD using external data on LOQ for each gene at each site
+#'   and time point
+#'
+#' @param ww_data Data.frame of wastewater data from an individual location
+#' @param path_to_lod_vals Character string indicating the file path to the LOQ
+#'   data
+#'
+#' @returns Data.frame containing updated `ww_data` where the LOD column has
+#'   now been filled in with the geometric mean of the LOQ across all genes
+#'   measured on that date and in that site, if the data is flagged as being
+#'   below the LOD.
+#' @autoglobal
+#' @importFrom cli cli_warn
+#' @importFrom dplyr group_by summarise case_when filter
+add_correct_lod <- function(ww_data,
+                            path_to_lod_vals = NULL) {
+  if (!file.exists(path_to_lod_vals) || !file.exists(path_to_lod_vals)) {
+    cli_warn(
+      message = "LOD values are missing!"
+    )
+    return(ww_data)
+  }
+
+  lod_vals <- read_csv(path_to_lod_vals)
+  overall_mean_loq <- lod_vals |>
+    group_by(Standort, Bundesland, date) |>
+    summarise(mean_loq = exp(mean(log(loq), na.rm = TRUE))) |>
+    ungroup() |>
+    summarise(overall_mean = mean(mean_loq, na.rm = TRUE)) |>
+    pull(overall_mean)
+  overall_mean_loq_value <- overall_mean_loq # nolint: object_usage_linter
+  lod_vals_clean <- filter(lod_vals, Standort %in% c(unique(ww_data$site)))
+  mean_lod <- lod_vals_clean |>
+    filter(!is.na(loq)) |>
+    group_by(Standort, Bundesland, date) |>
+    summarise(mean_loq = exp(mean(log(loq), na.rm = TRUE)))
+
+  ww_data_lod_joined <- ww_data |>
+    left_join(mean_lod, by = c(
+      # nolint start
+      "site" = "Standort",
+      "location_name" = "Bundesland",
+      "date"
+      # nolint end
+    )) |>
+    mutate(log_lod = case_when(
+      !is.na(mean_loq) & below_LOD == "ja" ~ log(mean_loq),
+      is.na(mean_loq) & below_LOD == "ja" ~ log(overall_mean_loq_value),
+      TRUE ~ log_lod
+    )) |>
+    select(-mean_loq)
+
+  return(ww_data_lod_joined)
 }

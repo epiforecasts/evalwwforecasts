@@ -23,7 +23,8 @@ load_data_targets <- list(
     get_ww_for_eval(
       location_name = scenarios$location_name,
       location_abbr = scenarios$location_abbr,
-      forecast_date = scenarios$forecast_date
+      forecast_date = scenarios$forecast_date,
+      path_to_lod_vals = path_to_lod_vals,
     ),
     pattern = map(scenarios)
   ),
@@ -33,6 +34,7 @@ load_data_targets <- list(
       forecast_date = scenarios$forecast_date,
       location_name = scenarios$location_name,
       location_abbr = scenarios$location_abbr,
+      path_to_lod_vals = path_to_lod_vals,
       calibration_period = 100
     ),
     pattern = map(ww_data_eval, scenarios)
