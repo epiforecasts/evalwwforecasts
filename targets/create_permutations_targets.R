@@ -20,11 +20,43 @@ create_permutations_targets <- list(
       forecast_date = c("2025-03-22", "2025-06-27")
     )
   ),
+  tar_target(
+    name = ind_filepath,
+    command = file.path("output", "individual_forecasts")
+  ),
   tar_file(
     name = save_forecast_dates,
     command = save_csv(forecast_dates, "forecast_dates.csv",
       path = "metadata/meta"
     )
+  ),
+  tar_target(
+    name = quantiles_to_save,
+    command = c(0.025, 0.05, 0.25, 0.5, 0.75, 0.95, 0.975)
+  ),
+  tar_target(
+    name = prediction_intervals,
+    command = c(0.5, 0.9, 0.95)
+  ),
+  tar_target(
+    name = quantiles_to_plot,
+    command = c(0.025, 0.25, 0.5, 0.75, 0.975)
+  ),
+  tar_target(
+    name = calibration_period_wwinference,
+    command = 90
+  ),
+  tar_target(
+    name = forecast_horizon,
+    command = 28
+  ),
+  tar_target(
+    name = iter_sampling,
+    command = 500
+  ),
+  tar_target(
+    name = iter_warmup,
+    command = 250
   ),
   tar_target(
     name = models,

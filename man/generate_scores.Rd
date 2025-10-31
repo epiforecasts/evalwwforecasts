@@ -4,12 +4,27 @@
 \alias{generate_scores}
 \title{Scores samples against observed data}
 \usage{
-generate_scores(draws_for_scoring, metrics)
+generate_scores(
+  draws_for_scoring,
+  metrics = NULL,
+  scale_selected = "log",
+  save_scores = FALSE,
+  fp_data = NULL
+)
 }
 \arguments{
 \item{draws_for_scoring}{Dataframe of samples/quantiles on log scale}
 
-\item{metrics}{Metrics to use for scoring}
+\item{metrics}{Metrics to use for scoring. Default is NULL which will
+get metrics from scoringutils function.}
+
+\item{scale_selected}{Character string indicating whether to score
+on natural or log scale, default is "log".}
+
+\item{save_scores}{Boolean indicating whether or not to save the scores.}
+
+\item{fp_data}{Character string indicating file path to save the scores.
+Default is NULL.}
 }
 \value{
 a dataframe containing scores for each day of forecasting horizon

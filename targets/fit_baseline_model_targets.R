@@ -8,9 +8,18 @@ fit_baseline_model_targets <- list(
       data_right_trunc = scenarios_baseline$data_right_trunc,
       include_ww = scenarios_baseline$include_ww,
       model = scenarios_baseline$model,
-      prediction_intervals = c(0.5, 0.9)
+      prediction_intervals = prediction_intervals
     ),
     pattern = map(hosp_data_bl, hosp_data_eval_bl, scenarios_baseline)
+  ),
+  tar_target(
+    name = baseline_quantiles,
+    command = format_baseline_forecasts(
+      baseline_forecasts,
+      quantiles_to_save,
+      fp_data = ind_filepath
+    ),
+    pattern = map(baseline_forecasts)
   ),
   tar_group_by(
     name = baseline_forecasts_by_loc,
@@ -32,10 +41,11 @@ fit_baseline_model_targets <- list(
     command = plot_forecast_comparison(
       forecasts_w_eval_data = baseline_forecasts_by_loc,
       hosp_data_long = full_hosp_time_series_by_loc
-
     ),
-    pattern = map(baseline_forecasts_by_loc,
-                  full_hosp_time_series_by_loc),
+    pattern = map(
+      baseline_forecasts_by_loc,
+      full_hosp_time_series_by_loc
+    ),
     iteration = "list",
     format = "rds"
   )

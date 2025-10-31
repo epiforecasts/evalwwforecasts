@@ -9,6 +9,24 @@ utils::globalVariables(c(
   "q_0.75", # <plot_forecast_comparison>
   "q_0.05", # <plot_forecast_comparison>
   "q_0.95", # <plot_forecast_comparison>
+  "forecast_date", # <get_plot_model_comparison>
+  "quantile_level", # <get_plot_model_comparison>
+  "predicted", # <get_plot_model_comparison>
+  "location", # <get_plot_model_comparison>
+  "q_0.5", # <get_plot_model_comparison>
+  "forecast_date_model_ww", # <get_plot_model_comparison>
+  "model_ww", # <get_plot_model_comparison>
+  "updated_hosp_7d_count", # <get_plot_model_comparison>
+  "q_0.25", # <get_plot_model_comparison>
+  "q_0.75", # <get_plot_model_comparison>
+  "q_0.05", # <get_plot_model_comparison>
+  "q_0.95", # <get_plot_model_comparison>
+  "draw", # <get_plot_draws_w_calib_data>
+  "pred_value7dsum", # <get_plot_draws_w_calib_data>
+  "calib_data_7dsum", # <get_plot_draws_w_calib_data>
+  "updated_hosp_7d_count", # <get_plot_draws_w_calib_data>
+  "model_ww", # <get_bar_chart_overall_scores>
+  "wis", # <get_bar_chart_overall_scores>
   "age_group", # <get_hosp_for_eval>
   "location", # <get_hosp_for_eval>
   "value", # <get_hosp_for_eval>
@@ -26,6 +44,10 @@ utils::globalVariables(c(
   "location", # <get_initial_values>
   "age_group", # <get_initial_values>
   "value", # <get_initial_values>
+  "draw", # <get_model_draws_w_data>
+  "pred_value", # <get_model_draws_w_data>
+  "observed_value", # <get_model_draws_w_data>
+  "pred_value7dsum", # <get_model_draws_w_data>
   "unter_bg", # <reformat_ww_data>
   "unter_BG", # <reformat_ww_data>
   "pathogen", # <reformat_ww_data>
@@ -40,5 +62,7 @@ utils::globalVariables(c(
   "log_genome_copies_per_ml", # <reformat_ww_data>
   "log_lod", # <reformat_ww_data>
   "site_pop", # <reformat_ww_data>
+  "state", # <format_baseline_forecasts>
+  "quantile_level", # <format_baseline_forecasts>
   NULL
 ))
