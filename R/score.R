@@ -100,6 +100,7 @@ format_baseline_forecasts <- function(baseline_forecasts,
                                       fp_data = "output") {
   loc <- unique(baseline_forecasts$state)
   forecast_date <- unique(baseline_forecasts$forecast_date)
+  hosp_data_real_time <- unique(baseline_forecasts$hosp_data_real_time)
   # pivot quantiles from wide to long
   bl_to_score <- baseline_forecasts |>
     tidyr::pivot_longer(
@@ -127,7 +128,7 @@ format_baseline_forecasts <- function(baseline_forecasts,
     as_forecast_quantile(
       forecast_unit = c(
         "model", "include_ww",
-        "location", "forecast_date",
+        "location", "forecast_date", "hosp_data_real_time",
         "date"
       ),
       predicted = "pred_value7dsum",
@@ -151,7 +152,7 @@ format_baseline_forecasts <- function(baseline_forecasts,
     bl_to_score,
     file.path(
       full_fp,
-      "baseline_quantiles.csv"
+      "baseline_quantiles_rt_{hosp_data_real_time}.csv"
     )
   )
   return(bl_to_score)

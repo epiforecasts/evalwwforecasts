@@ -85,7 +85,7 @@ create_permutations_targets <- list(
   tar_target(
     name = hosp_data_real_time,
     command = tibble(
-      hosp_data_real_time = TRUE, # c(TRUE,FALSE)
+      hosp_data_real_time = c(TRUE, FALSE)
     )
   ),
   tar_file(

@@ -195,6 +195,7 @@ get_plot_draws_w_calib_data <- function(draws_w_data,
     ) +
     xlab("") +
     theme_bw() +
+    theme(plot.title = element_text(size = 10)) +
     geom_vline(aes(xintercept = forecast_date), linetype = "dashed") +
     ylab("7-day rolling sum of hospital admissions") +
     ggtitle(glue("location: {loc}, include_ww: {include_ww}, forecast_date: {forecast_date}, hosp data real time: {hosp_data_real_time}")) # nolint
@@ -202,7 +203,7 @@ get_plot_draws_w_calib_data <- function(draws_w_data,
     plot = p,
     filename = file.path(
       full_fp,
-      glue::glue("7d_hosp_draws_w_data_ww_{include_ww}_rt_{hosp_data_real_time}.png")
+      glue::glue("7d_hosp_draws_w_data_ww_{include_ww}_rt_{hosp_data_real_time}.png") # nolint
     )
   )
   return(p)

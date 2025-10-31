@@ -71,7 +71,7 @@ fit_wwinference_wrapper <- function(
     plot = plot_hosp_draws,
     filename = file.path(
       fig_fp,
-      glue("hosp_draws_ww_{include_ww}.png")
+      glue("hosp_draws_ww_{include_ww}_rt_{hosp_data_real_time}.png")
     )
   )
   ww_draws <- if (!is.null(ww_fit_obj$raw_input_data$input_ww_data)) {
@@ -111,7 +111,7 @@ fit_wwinference_wrapper <- function(
   write_csv(
     draws_w_data,
     file.path(data_fp, glue::glue(
-      "hosp_draws_ww_{include_ww}.csv"
+      "hosp_draws_ww_{include_ww}_rt_{hosp_data_real_time}.csv"
     ))
   )
   # Make a plot here with calibration and evaluation data and save it.

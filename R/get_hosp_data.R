@@ -45,6 +45,7 @@ get_hosp_for_eval <- function(location_name,
 #'   `"aktualisierte_7T_Hospitalisierung_Faelle"` which is the updated counts.
 #'
 #' @returns Data.frame with daily and 7d counts
+#' @autoglobal
 reformat_hosp_data <- function(RKI_hosp_adj,
                                location_abbr,
                                location_name,
@@ -94,6 +95,7 @@ reformat_hosp_data <- function(RKI_hosp_adj,
       state_pop,
       updated_hosp_7d_count
     )
+  return(hosp_clean)
 }
 
 #' Filter hospital admissions data for fitting
@@ -112,7 +114,7 @@ reformat_hosp_data <- function(RKI_hosp_adj,
 #' @autoglobal
 #' @importFrom dplyr filter
 #' @importFrom lubridate ymd days
-
+#' @autoglobal
 get_hosp_for_fit <- function(hosp_data_eval,
                              location_name,
                              location_abbr,
@@ -148,11 +150,11 @@ get_hosp_for_fit <- function(hosp_data_eval,
         filter(!is.na(daily_hosp_admits)) |>
         summarise(max_date = max(date)) |>
         pull(max_date)
-      hosp_for_fit <- hosp_for_fit |>
-        filter(
-          date >= last_data_date - days(calibration_period),
-          !is.na(daily_hosp_admits)
-        )
+      hosp_for_fit <- filter(
+        hosp_for_fit,
+        date >= last_data_date - days(calibration_period),
+        !is.na(daily_hosp_admits)
+      )
     }
   }
 
