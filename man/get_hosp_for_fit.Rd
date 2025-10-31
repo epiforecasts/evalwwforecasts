@@ -9,6 +9,7 @@ get_hosp_for_fit(
   location_name,
   location_abbr,
   forecast_date,
+  forecast_horizon,
   hosp_data_real_time,
   calibration_period = 100,
   lag = 3

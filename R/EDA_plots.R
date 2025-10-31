@@ -219,8 +219,8 @@ get_plot_draws_w_calib_data <- function(draws_w_data,
 #' @autoglobal
 get_bar_chart_overall_scores <- function(scores) {
   scores_summarised <- scores |>
-    summarise_scores(by = c("model", "include_ww")) |>
-    mutate(model_ww = glue::glue("{model}-{include_ww}"))
+    summarise_scores(by = c("model", "include_ww", "hosp_data_real_time")) |>
+    mutate(model_ww = glue::glue("{model}-{include_ww}-{hosp_data_real_time}"))
 
   p <- ggplot(scores_summarised) +
     geom_bar(

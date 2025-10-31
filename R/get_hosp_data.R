@@ -36,7 +36,7 @@ get_hosp_for_eval <- function(location_name,
   return(hosp_clean)
 }
 
-#' Reformat the hospital admissions data (english to German, and daily values)
+#' Reformat the hospital admissions data (English to German, and daily values)
 #'
 #' @param RKI_hosp_adj Data.frame of raw data from GitHub
 #' @inheritParams get_hosp_for_eval
@@ -166,7 +166,7 @@ get_hosp_for_fit <- function(hosp_data_eval,
 #' Get hospital admissions data as of the forecast date
 #'
 #' @inheritParams get_hosp_for_eval
-#' @param filepath_name Character string indicating filepath to save or
+#' @param filepath_name Character string indicating file path to save or
 #'   extract hospital admissions vintage
 #' @param hosp_data_url Character string of URL to hospital admissions data
 #'

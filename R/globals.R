@@ -27,6 +27,19 @@ utils::globalVariables(c(
   "updated_hosp_7d_count", # <get_plot_draws_w_calib_data>
   "model_ww", # <get_bar_chart_overall_scores>
   "wis", # <get_bar_chart_overall_scores>
+  "age_group", # <reformat_hosp_data>
+  "location", # <reformat_hosp_data>
+  "value", # <reformat_hosp_data>
+  "Datum", # <reformat_hosp_data>
+  "Bundesland", # <reformat_hosp_data>
+  "Altersgruppe", # <reformat_hosp_data>
+  "Bevoelkerung", # <reformat_hosp_data>
+  "state", # <reformat_hosp_data>
+  "updated_hosp_7d_count", # <reformat_hosp_data>
+  "daily_hosp_admits", # <reformat_hosp_data>
+  "state_pop", # <reformat_hosp_data>
+  "daily_hosp_admits", # <get_hosp_for_fit>
+  "max_date", # <get_hosp_for_fit>
   "location", # <get_initial_values>
   "age_group", # <get_initial_values>
   "value", # <get_initial_values>

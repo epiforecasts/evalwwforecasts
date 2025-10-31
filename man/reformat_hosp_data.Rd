@@ -2,13 +2,14 @@
 % Please edit documentation in R/get_hosp_data.R
 \name{reformat_hosp_data}
 \alias{reformat_hosp_data}
-\title{Reformat the hospital admissions data (english to German, and daily values)}
+\title{Reformat the hospital admissions data (English to German, and daily values)}
 \usage{
 reformat_hosp_data(
   RKI_hosp_adj,
   location_abbr,
   location_name,
   forecast_date,
+  forecast_horizon,
   col_for_final_counts = "aktualisierte_7T_Hospitalisierung_Faelle"
 )
 }
@@ -22,6 +23,8 @@ reformat_hosp_data(
 \item{forecast_date}{Character string or date indicating the date of
 forecast in YYYY-MM-DD}
 
+\item{forecast_horizon}{Forecast horizon. Default is \code{28}.}
+
 \item{col_for_final_counts}{Character string indicating the column to use
 for the "final"counts at each reference date. Default is
 \code{"aktualisierte_7T_Hospitalisierung_Faelle"} which is the updated counts.}
@@ -30,5 +33,5 @@ for the "final"counts at each reference date. Default is
 Data.frame with daily and 7d counts
 }
 \description{
-Reformat the hospital admissions data (english to German, and daily values)
+Reformat the hospital admissions data (English to German, and daily values)
 }

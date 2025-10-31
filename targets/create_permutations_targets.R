@@ -17,7 +17,7 @@ create_permutations_targets <- list(
   tar_target(
     name = forecast_dates,
     command = tibble(
-      forecast_date = "2025-03-22", # c("2025-03-22", "2025-06-27")
+      forecast_date = c("2024-10-21", "2025-03-22")
     )
   ),
   tar_target(
@@ -85,7 +85,7 @@ create_permutations_targets <- list(
   tar_target(
     name = hosp_data_real_time,
     command = tibble(
-      hosp_data_real_time = c(TRUE, FALSE)
+      hosp_data_real_time = TRUE
     )
   ),
   tar_file(

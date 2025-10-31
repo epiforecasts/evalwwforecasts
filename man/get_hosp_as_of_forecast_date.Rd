@@ -8,6 +8,7 @@ get_hosp_as_of_forecast_date(
   forecast_date,
   location_name,
   location_abbr,
+  forecast_horizon,
   filepath_name = file.path("input", "data", "hosp", "vintages"),
   hosp_data_url =
     "https://raw.githubusercontent.com/robert-koch-institut/COVID-19-Hospitalisierungen_in_Deutschland/refs/heads/main/Aktuell_Deutschland_adjustierte-COVID-19-Hospitalisierungen.csv"
@@ -21,7 +22,9 @@ forecast in YYYY-MM-DD}
 
 \item{location_abbr}{Character string indicating abbreviation of state}
 
-\item{filepath_name}{Character string indicating filepath to save or
+\item{forecast_horizon}{Forecast horizon. Default is \code{28}.}
+
+\item{filepath_name}{Character string indicating file path to save or
 extract hospital admissions vintage}
 
 \item{hosp_data_url}{Character string of URL to hospital admissions data}
