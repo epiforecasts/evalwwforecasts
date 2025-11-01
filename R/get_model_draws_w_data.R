@@ -5,6 +5,8 @@
 #' @param include_ww Whether model included wastewater data, "TRUE" or "FALSE"
 #' @param model Model type, either "wwinference" or "baseline"
 #' @param forecast_date Forecast date
+#' @param hosp_data_real_time Boolean indicating if this model run used the
+#'   real-time hospital admissions data
 #' @param location Location name
 #' @param eval_data Dataframe of observed data to compare against model output
 #' @return a dataframe containing model draws and observed data for scoring
@@ -20,6 +22,7 @@ get_model_draws_w_data <- function(
     include_ww = TRUE,
     model = "wwinference",
     forecast_date,
+    hosp_data_real_time,
     location,
     eval_data) {
   model_output <- arg_match(model_output, values = c("ww", "hosp"))
@@ -35,7 +38,7 @@ get_model_draws_w_data <- function(
     )$predicted_counts
 
     eval_data_min <- dplyr::select(eval_data, c(
-      "date", "init_hosp_7d_count",
+      "date",
       "updated_hosp_7d_count"
     ))
 
@@ -45,7 +48,8 @@ get_model_draws_w_data <- function(
         include_ww = include_ww,
         model = !!model,
         forecast_date = lubridate::ymd(!!forecast_date),
-        location = !!location
+        location = !!location,
+        hosp_data_real_time = !!hosp_data_real_time
       )
 
     draws7d <- draws |>

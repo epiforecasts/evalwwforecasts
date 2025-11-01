@@ -27,20 +27,19 @@ utils::globalVariables(c(
   "updated_hosp_7d_count", # <get_plot_draws_w_calib_data>
   "model_ww", # <get_bar_chart_overall_scores>
   "wis", # <get_bar_chart_overall_scores>
-  "age_group", # <get_hosp_for_eval>
-  "location", # <get_hosp_for_eval>
-  "value", # <get_hosp_for_eval>
-  "Datum", # <get_hosp_for_eval>
-  "Bundesland", # <get_hosp_for_eval>
-  "Altersgruppe", # <get_hosp_for_eval>
-  "fixierte_7T_Hospitalisierung_Faelle", # <get_hosp_for_eval>
-  "aktualisierte_7T_Hospitalisierung_Faelle", # <get_hosp_for_eval>
-  "Bevoelkerung", # <get_hosp_for_eval>
-  "state", # <get_hosp_for_eval>
-  "updated_hosp_7d_count", # <get_hosp_for_eval>
-  "daily_hosp_admits", # <get_hosp_for_eval>
-  "state_pop", # <get_hosp_for_eval>
-  "init_hosp_7d_count", # <get_hosp_for_eval>
+  "age_group", # <reformat_hosp_data>
+  "location", # <reformat_hosp_data>
+  "value", # <reformat_hosp_data>
+  "Datum", # <reformat_hosp_data>
+  "Bundesland", # <reformat_hosp_data>
+  "Altersgruppe", # <reformat_hosp_data>
+  "Bevoelkerung", # <reformat_hosp_data>
+  "state", # <reformat_hosp_data>
+  "updated_hosp_7d_count", # <reformat_hosp_data>
+  "daily_hosp_admits", # <reformat_hosp_data>
+  "state_pop", # <reformat_hosp_data>
+  "daily_hosp_admits", # <get_hosp_for_fit>
+  "max_date", # <get_hosp_for_fit>
   "location", # <get_initial_values>
   "age_group", # <get_initial_values>
   "value", # <get_initial_values>

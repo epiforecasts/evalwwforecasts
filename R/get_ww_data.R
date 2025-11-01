@@ -72,7 +72,9 @@ get_ww_as_of_forecast_date <- function(forecast_date,
       target_date = forecast_date
     )
     RKI_ww_sites <- read_tsv(ww_vintage_data_url)
-    dir_create(file.path(filepath_name, forecast_date))
+    dir_create(file.path(filepath_name, forecast_date),
+      recurse = TRUE
+    )
     write_csv(RKI_ww_sites, vintage_fp)
   }
 

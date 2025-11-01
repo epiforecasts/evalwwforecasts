@@ -47,6 +47,7 @@ draws_for_scoring <- function(
         "include_ww",
         "location",
         "forecast_date",
+        "hosp_data_real_time",
         "date",
         "pred_value7dsum",
         "updated_hosp_7d_count",
@@ -57,7 +58,7 @@ draws_for_scoring <- function(
     to_score <- forecasted_draws |>
       as_forecast_sample(
         forecast_unit = c(
-          "model", "include_ww",
+          "model", "include_ww", "hosp_data_real_time",
           "location", "forecast_date", "date"
         ),
         predicted = "pred_value7dsum",
@@ -116,16 +117,18 @@ format_baseline_forecasts <- function(baseline_forecasts,
       "location",
       "forecast_date",
       "date",
+      "hosp_data_real_time",
       "pred_value7dsum",
       "updated_hosp_7d_count",
       "quantile_level"
     ) |>
     filter(quantile_level %in% quantiles_to_save) |>
     mutate(quantile_level = as.numeric(quantile_level)) |>
+    mutate(pred_value7dsum = pmax(pred_value7dsum, 0)) |> # Also hacky solution
     as_forecast_quantile(
       forecast_unit = c(
         "model", "include_ww",
-        "location", "forecast_date",
+        "location", "forecast_date", "hosp_data_real_time",
         "date"
       ),
       predicted = "pred_value7dsum",
@@ -149,7 +152,7 @@ format_baseline_forecasts <- function(baseline_forecasts,
     bl_to_score,
     file.path(
       full_fp,
-      "baseline_quantiles.csv"
+      "baseline_quantiles_rt_{hosp_data_real_time}.csv"
     )
   )
   return(bl_to_score)

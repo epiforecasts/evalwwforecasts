@@ -2,18 +2,20 @@ create_permutations_targets <- list(
   tar_target(
     name = locations,
     command = tibble(
-      location_name = c("Berlin", "Hamburg"),
-      # nolint start
-      # location_name = c("Nordrhein-Westfalen","Baden-Württemberg","Bayern",
-      #                   "Rheinland-Pfalz","Thüringen" ,"Sachsen", "Berlin",
-      #                   "Sachsen-Anhalt", "Niedersachsen", "Brandenburg",
-      #                   "Bremen", "Hessen",
-      #                   "Schleswig-Holstein", "Mecklenburg-Vorpommern",
-      #                   "Hamburg","Saarland"),
-      location_abbr = c("BE", "HH"),
-      # location_abbr = c("NW","BW","BY","RP","TH","SN", "BE", "ST","NI",
-      #                   "BB","HB","HE","SH","MV","HH","SL")
-      # nolint end
+      # location_name = c("Berlin", "Hamburg"),
+      location_name = c(
+        "Nordrhein-Westfalen", "Baden-Württemberg", "Bayern",
+        "Rheinland-Pfalz", "Thüringen", "Sachsen", "Berlin",
+        "Sachsen-Anhalt", "Niedersachsen", "Brandenburg",
+        "Bremen", "Hessen",
+        "Schleswig-Holstein", "Mecklenburg-Vorpommern",
+        "Hamburg", "Saarland"
+      ),
+      # location_abbr = c("BE", "HH")
+      location_abbr = c(
+        "NW", "BW", "BY", "RP", "TH", "SN", "BE", "ST", "NI",
+        "BB", "HB", "HE", "SH", "MV", "HH", "SL"
+      )
     )
   ),
   tar_file(
@@ -27,7 +29,18 @@ create_permutations_targets <- list(
   tar_target(
     name = forecast_dates,
     command = tibble(
-      forecast_date = c("2025-03-22", "2025-06-27")
+      forecast_date = c(
+        "2024-10-21",
+        "2024-11-18",
+        "2024-12-16",
+        "2025-01-13",
+        "2025-02-10",
+        "2025-03-10",
+        "2025-04-07",
+        "2025-05-05",
+        "2025-06-02",
+        "2025-06-30"
+      )
     )
   ),
   tar_target(
@@ -46,6 +59,8 @@ create_permutations_targets <- list(
       "input", "data",
       "loq_data.csv"
     )
+  ),
+  tar_target(
     name = quantiles_to_save,
     command = c(0.025, 0.05, 0.25, 0.5, 0.75, 0.95, 0.975)
   ),
@@ -98,14 +113,14 @@ create_permutations_targets <- list(
     )
   ),
   tar_target(
-    name = right_trunc,
+    name = hosp_data_real_time,
     command = tibble(
-      data_right_trunc = FALSE
+      hosp_data_real_time = TRUE
     )
   ),
   tar_file(
-    name = save_right_trunc,
-    command = save_csv(right_trunc, "right_trunc.csv",
+    name = save_hosp_data_real_time,
+    command = save_csv(hosp_data_real_time, "hosp_data_real_time.csv",
       path = "metadata/meta"
     )
   ),
@@ -114,13 +129,13 @@ create_permutations_targets <- list(
     name = scenarios,
     command = crossing(
       locations, forecast_dates, ww, models,
-      right_trunc
+      hosp_data_real_time
     ) |>
       mutate(
         scenario_id = row_number(),
         scenario_name = paste(location_abbr, forecast_date, model,
           ifelse(include_ww, "ww", "no_ww"),
-          ifelse(data_right_trunc, "trunc", "no_trunc"),
+          ifelse(hosp_data_real_time, "hosp_data_rt", "hosp_data_final"),
           sep = "_"
         )
       ),
@@ -135,14 +150,14 @@ create_permutations_targets <- list(
     name = scenarios_baseline,
     command = crossing(
       locations, forecast_dates, ww, baseline_models,
-      right_trunc
+      hosp_data_real_time
     ) |>
       filter(!(model == "arima_baseline" & include_ww == TRUE)) |>
       mutate(
         scenario_id = row_number(),
         scenario_name = paste(location_abbr, forecast_date, model,
           ifelse(include_ww, "ww", "no_ww"),
-          ifelse(data_right_trunc, "trunc", "no_trunc"),
+          ifelse(hosp_data_real_time, "real_time", "using_final"),
           sep = "_"
         )
       ),

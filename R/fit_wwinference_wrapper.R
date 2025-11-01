@@ -37,6 +37,7 @@ fit_wwinference_wrapper <- function(
     ind_filepath = file.path("output")) {
   loc <- unique(count_data$state)
   include_ww <- model_spec$include_ww
+  hosp_data_real_time <- unique(count_data$hosp_data_real_time)
   ww_fit_obj <- wwinference(
     ww_data = ww_data,
     count_data = count_data,
@@ -54,23 +55,23 @@ fit_wwinference_wrapper <- function(
   # Save plots
   full_fp <- file.path(ind_filepath, this_forecast_date, loc)
   if (!file.exists(file.path(full_fp))) {
-    dir_create(full_fp, recursive = TRUE, showWarnings = FALSE)
+    dir_create(full_fp, recurse = TRUE)
   }
   fig_fp <- file.path(full_fp, "figs")
   if (!file.exists(file.path(fig_fp))) {
-    dir_create(fig_fp, recursive = TRUE, showWarnings = FALSE)
+    dir_create(fig_fp, recurse = TRUE)
   }
 
   plot_hosp_draws <- get_plot_forecasted_counts(
     draws = hosp_draws,
     forecast_date = this_forecast_date
-  ) + ggtitle(glue("{loc}, wastewater: {include_ww}"))
+  ) + ggtitle(glue("{loc}, wastewater: {include_ww}, hosp data real-time: {hosp_data_real_time}")) # nolint
 
   ggsave(
     plot = plot_hosp_draws,
     filename = file.path(
       fig_fp,
-      glue("hosp_draws_ww_{include_ww}.png")
+      glue("hosp_draws_ww_{include_ww}_rt_{hosp_data_real_time}.png")
     )
   )
   ww_draws <- if (!is.null(ww_fit_obj$raw_input_data$input_ww_data)) {
@@ -100,16 +101,17 @@ fit_wwinference_wrapper <- function(
     model = "wwinference",
     forecast_date = this_forecast_date,
     location = loc,
+    hosp_data_real_time = hosp_data_real_time,
     eval_data = hosp_data_eval
   )
   data_fp <- file.path(full_fp, "data")
   if (!file.exists(file.path(data_fp))) {
-    dir_create(data_fp, recursive = TRUE, showWarnings = FALSE)
+    dir_create(data_fp, recurse = TRUE)
   }
   write_csv(
     draws_w_data,
     file.path(data_fp, glue::glue(
-      "hosp_draws_ww_{include_ww}.csv"
+      "hosp_draws_ww_{include_ww}_rt_{hosp_data_real_time}.csv"
     ))
   )
   # Make a plot here with calibration and evaluation data and save it.

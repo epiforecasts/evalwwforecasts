@@ -6,8 +6,11 @@
 \usage{
 get_hosp_for_fit(
   hosp_data_eval,
+  location_name,
+  location_abbr,
   forecast_date,
-  right_trunc = FALSE,
+  forecast_horizon,
+  hosp_data_real_time,
   calibration_period = 100,
   lag = 3
 )
@@ -15,12 +18,17 @@ get_hosp_for_fit(
 \arguments{
 \item{hosp_data_eval}{hospital admissions data for evaluation step}
 
+\item{location_name}{Character string indicating long form name of state.}
+
+\item{location_abbr}{Character string indicating abbreviation of state}
+
 \item{forecast_date}{Character string or date indicating the date of
 forecast in YYYY-MM-DD}
 
-\item{right_trunc}{Boolean indicating whether to use the real-time, right
-truncated data or the final corrected data. Default is \code{FALSE} indicating
-we will just use the corrected data.}
+\item{forecast_horizon}{Forecast horizon. Default is \code{28}.}
+
+\item{hosp_data_real_time}{Boolean indicating whether to use the hospital
+admissions as of the forecast date or just truncate the evaluation data.}
 
 \item{calibration_period}{Integer indicating the number of days of
 hospital admissions calibration data to extract. Default is \code{100}.
