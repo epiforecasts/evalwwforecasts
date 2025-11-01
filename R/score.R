@@ -124,6 +124,7 @@ format_baseline_forecasts <- function(baseline_forecasts,
     ) |>
     filter(quantile_level %in% quantiles_to_save) |>
     mutate(quantile_level = as.numeric(quantile_level)) |>
+    mutate(pred_value7dsum = pmax(pred_value7dsum, 0)) |> # Also hacky solution
     as_forecast_quantile(
       forecast_unit = c(
         "model", "include_ww",
