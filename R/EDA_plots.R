@@ -234,5 +234,56 @@ get_bar_chart_overall_scores <- function(scores) {
     ) +
     theme_bw() +
     ggtitle("Scores across all locations and forecast dates")
+
+  scores_by_loc <- scores |>
+    summarise_scores(by = c(
+      "model", "include_ww",
+      "hosp_data_real_time", "forecast_date"
+    )) |>
+    mutate(model_ww = glue::glue("{model}-{include_ww}-{hosp_data_real_time}"))
+  p <- ggplot(scores_by_loc) +
+    geom_bar(
+      aes(
+        x = forecast_date,
+        y = wis,
+        fill = model_ww
+      ),
+      stat = "identity",
+      position = "dodge"
+    ) +
+    theme_bw() +
+    theme(legend.position = "bottom") +
+    ggtitle("Scores across all locations by forecast dates")
+  return(p)
+}
+
+#' Get bar chart of the scores by forecast date
+#'
+#' @param scores Data.frame of scores from across locations and forecast dates
+#'
+#' @importFrom ggplot2 geom_bar
+#' @importFrom scoringutils summarise_scores
+#' @returns ggplot object
+#' @autoglobal
+get_plot_scores_by_date <- function(scores) {
+  scores_by_loc <- scores |>
+    summarise_scores(by = c(
+      "model", "include_ww",
+      "hosp_data_real_time", "forecast_date"
+    )) |>
+    mutate(model_ww = glue::glue("{model}-{include_ww}-{hosp_data_real_time}"))
+  p <- ggplot(scores_by_loc) +
+    geom_bar(
+      aes(
+        x = forecast_date,
+        y = wis,
+        fill = model_ww
+      ),
+      stat = "identity",
+      position = "dodge"
+    ) +
+    theme_bw() +
+    theme(legend.position = "bottom") +
+    ggtitle("Scores across all locations by forecast dates")
   return(p)
 }

@@ -52,5 +52,11 @@ scoring_targets <- list(
     command = get_bar_chart_overall_scores(score_hosp_quantiles),
     format = "rds",
     iteration = "list"
+  ),
+  tar_target(
+    name = bar_chart_scores_forecast_date,
+    command = get_bar_chart_overall_scores(score_hosp_quantiles),
+    format = "rds",
+    iteration = "list"
   )
 )

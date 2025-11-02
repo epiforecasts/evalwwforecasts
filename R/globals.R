@@ -27,6 +27,10 @@ utils::globalVariables(c(
   "updated_hosp_7d_count", # <get_plot_draws_w_calib_data>
   "model_ww", # <get_bar_chart_overall_scores>
   "wis", # <get_bar_chart_overall_scores>
+  "forecast_date", # <get_bar_chart_overall_scores>
+  "forecast_date", # <get_plot_scores_by_date>
+  "wis", # <get_plot_scores_by_date>
+  "model_ww", # <get_plot_scores_by_date>
   "age_group", # <reformat_hosp_data>
   "location", # <reformat_hosp_data>
   "value", # <reformat_hosp_data>
@@ -68,5 +72,6 @@ utils::globalVariables(c(
   "overall_mean", # <add_correct_lod>
   "state", # <format_baseline_forecasts>
   "quantile_level", # <format_baseline_forecasts>
+  "pred_value7dsum", # <format_baseline_forecasts>
   NULL
 ))
