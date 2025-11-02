@@ -100,6 +100,7 @@ format_baseline_forecasts <- function(baseline_forecasts,
                                       fp_data = "output") {
   loc <- unique(baseline_forecasts$state)
   forecast_date <- unique(baseline_forecasts$forecast_date)
+  hosp_data_real_time <- unique(baseline_forecasts$hosp_data_real_time)
   # pivot quantiles from wide to long
   bl_to_score <- baseline_forecasts |>
     tidyr::pivot_longer(
@@ -146,7 +147,7 @@ format_baseline_forecasts <- function(baseline_forecasts,
   }
   full_fp <- file.path(fp_data, forecast_date, loc, "data")
   if (!file.exists(file.path(full_fp))) {
-    dir_create(full_fp, recursive = TRUE, showWarnings = FALSE)
+    dir_create(full_fp, recurse = TRUE)
   }
   write_csv(
     bl_to_score,
