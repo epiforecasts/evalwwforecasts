@@ -55,13 +55,13 @@ To ensure that we are fairly assessing retrospective performance with data that 
 
 #### Limit of quantification of the wastewater concentrations
 
-The limit of quantification (LOQ) of a measured wastewater concentration (genome copies per unit volume) is calculated as the geometric mean of the limit of quantification for each measured gene for measured sample on a particular date and processed in a particular lab. All values that are flagged in the dataset as having more than half of the measured genes below the limit of detecton are treated as censored in the `wwinference` model, as is described in \[cite model definition\], and the LOQ calculated is used to censor these observations.
+The limit of quantification (LOQ) of a measured wastewater concentration (genome copies per unit volume) is calculated as the geometric mean of the limit of quantification for each measured gene for measured sample on a particular date and processed in a particular lab.
 
-In the case where half or fewer than half of the measured genes are below the the limit of detection for a measured sample, the concentration of that sample is calculated as the geometric mean across the measured genes, using half the LOQ as a replacement for the measured gene below the LOQ. This process is described in detail in [@Abunjela\_et_al, @BMChealth, @RKIGithub] (check this).
+In the case where half or fewer than half of the measured genes are below the the LOQ for a measured sample, the concentration of that sample is calculated as the geometric mean across the measured genes, using half the LOQ as a replacement for the measured gene below the LOQ. This process is described in detail in [@Abunjela\_et_al, @BMChealth, @RKIGithub] (check this).
 
 ## Model specification
 
-We will use the following models, implemented via the [R package](https://github.com/CDCgov/ww-inference-model) `wwinference`, to produce forecasts of the 7-day rolling sum of hopsital admissions for 28 days ahead of the forecast date:
+We will use the following models to produce forecasts of the 7-day rolling sum of COVID-19 hopsital admissions for 28 days ahead of the forecast date:
 
 1.  `wwinference` (`ww + hosp`): This model jointly fits to the daily hospital admissions at the state-level and the wastewater concentration data from the treatment plants within the state. It will be calibrated using the most recent 90 days of data from both wastewater and hospital admissions.
 
@@ -69,7 +69,7 @@ We will use the following models, implemented via the [R package](https://github
 
 3.  Baseline ARIMA (`arima_baseline`): This model will be fit only to the 7-day rolling sum of hospital admissions at the state level, using the `auto.arima()` function in the `forecasts` R package, which will perform an optimization of both the model parameters and the autoregressive order $p$, differencing order $d$ and the moving average order $q$. We intend to use this as a reference point for comparing the magnitude of the absolute scores so that we can put the forecast comparison with and without wastewater in context. It will be calibrated using the entire historical admissions time series.
 
-Both semi-mechanistic renewal models, which we refer to as the`wwinference` models, will be implemented using the R package `wwinference`. This model expects the input in terms of daily hospital admissions and returns forecasts of the number of daily hospital admissions. Forecasts will be transformed from daily values to 7-day rolling sums for visualisation and evaluation. Full mathematical details on the model are available in \[\\cite R package\] as well as an abbreviated version provided in S1. Text: Mathematical model
+Both semi-mechanistic renewal models, which we refer to as the `wwinference` models, will be implemented using the R package `wwinference`. This model expects the input in terms of daily hospital admissions and returns forecasts of the number of daily hospital admissions. Forecasts will be transformed from daily values to 7-day rolling sums for visualisation and evaluation. Full mathematical details on the model are available in \[\\cite R package\] as well as an abbreviated version provided in S1. Text: Mathematical model
 
 ## Implementation
 
@@ -79,45 +79,33 @@ The hospital admissions data provided are indexed by the data of the positive te
 
 ## Evaluation
 
-We will use a single evaluation dataset from November X, 2025. It is assume that as of this date, all forecast horizons from the entire period of study (July 1st 2-24 to July 7th 2025) will have reached a stable value. We will evaluate all forecasts using the 7-day rolling sum of hospital admissions. Posterior samples of forecasts will be log-transformed, along with the observations the models are evaluated against. Forecasts will be scored using proper scoring rules, with metrics including the CRPS, energy score over horizons, coverage, and bias.
+We will use a single evaluation dataset from November X, 2025. It is assume that as of this date, all forecast horizons from the entire period of study (July 1st 2-24 to July 7th 2025) will have reached a stable value. We will evaluate all forecasts using the 7-day rolling sum of hospital admissions. Posterior samples of forecasts will be log-transformed, along with the observations the models are evaluated against. Forecasts will be scored using proper scoring rules, with metrics including the Continuous Ranked Probabilist Score (CRPS), its component breakdown (underprediction, overprediction, dispersion) and interval coverage.
 
-Visual comparisons of forecasts overlaid with evaluation data will be used to assess the forecast performance of each model.
+Visual comparisons of forecasts overlaid with evaluation data will be used to assess the forecast performance of each model for individual locations.
 
-We will present the results by analysing the mean scores by model and then stratifying by location, forecast date, and horizon for the models fit to the vintaged hospitalization datasets: 1. CRPS by model summarised across locations and forecast dates, broken down by under/over prediction and dispersion, in the form of a horizontal bar chart for each of the models, for 3 different horizons (7, 14, 28 day horizon).
+We will present the results by analysing the mean scores by model and then stratifying by location, forecast date, and horizon for the models fit to the vintaged hospitalization datasets.
 
-1.  CRPS by model stratified by location ordered by CRPS of the hosp-only model (stacked bar chart x-axis = location, y-axis = CRPS breakdown, color = model)
+When comparing forecast performance with and without wastewater, we will compute the relative WIS compared to the hospital admissions only `wwinference` model.
 
-2.  scatterplot of CRPS from wastewater model vs CRPS from hospital admissions only model summarised by location
-
-3.  CRPS by model stratified by forecast date (stacked bar chart x-axis = date, y-axis = CRPS breakdown, color = model)
-
-4.  scatterplot of CRPS from wastewater model vs CRPS from hospital admissions only model summarised by location
-
-5.  50th and 90th interval coverage summarised across locations and forecast dates (horizontal bar chart, color = model)
-
-We will make the same set of plots for the models fit to the hospitalization datasets without right-truncation (retrospectively truncated hospital admissions datasets), to assess whether the findings differ, as right-truncation in the data may introduce bias influencing forecast performance.
-
-We will also compare the overall scores across locations, forecast dates, and horizons, with and without wastewater and with and without right-truncation in the data via a bar chart of CRPS broken down by underprediction, overprediction, and dispersion.
+Results which include the baseline ARIMA model will be presented in the supplement.
 
 ### Model-based evaluation: investigation into drivers of differences in forecast performance with and without wastewater
 
-We will then perform an exploratory analysis into the factors that may contribute to the relative performance of the `ww + hosp` model compared to the `hosp only` model. However, we could consider additional predictors for each location (either involving wastewater or population demographics) that we think might have an impact on relative forecast performance.
+In addition to stratifying results by forecast date, location, and horizon, we perform an exploratory analysis into the factors that may contribute to the relative performance of the `ww + hosp` model compared to the `hosp only` model.
 
-We will include the following variables with which we would like to understand their impact on relative forecast performance: 1. score of the `hosp only` model (as an offset)
+We will include the following variables with which we would like to understand their impact on relative forecast performance:
 
-1.  number of wastewater treatment plants (sites)
-
-2.  population coverage of all the wastewater treatment plants
-
-3.  average sampling frequency across sites (this is likely very similar so may not be useful)
-
-4.  average latency from last collection date to the forecast date
-
-5.  variability in wastewater data as measured by some indicator/metric e.g. coefficient of variation?
+1.  score of the `hosp only` model (as an offset)
+2.  number of wastewater treatment plants (sites)
+3.  population coverage of all the wastewater treatment plants (proportion of the state population on wastewater)
+4.  average sampling frequency across sites (this is likely very similar so may not be useful)
+5.  average latency from last collection date to the forecast date
+6.  minimum latency from last collection date to forecast date
+7.  variability in wastewater data as measured by the coefficient of variation across sites and time during the calibration period
 
 Resulting in the following model formulation:
 
-`CRPS^{ww+hosp}_{h,d,l} ~ \beta + CRPS^{hosponly}_{h,d,l}+ s(numberofsites, k ) + s(popcoverageww, k ) + s(avgfreqsampling, k) + s(avglatencyreporting,k) + s(variability_wwdata)`
+`CRPS^{ww+hosp}_{h,d,l} ~ \beta + CRPS^{hosponly}_{h,d,l}+ s(numberofsites, k ) + s(popcoverageww, k ) + s(avgfreqsampling, k) + s(avglatencyreporting,k) + s(minlatencyreporting, k) + s(variability_wwdata)`
 
 The idea behind this analysis will be that including the CRPS score for the `hosp only` model as an offset accounts for the baseline "difficulty" in that particular location $l$, at forecast date $d$ and horizon $h$. Each of the additional components has some (assumed to be non-linear) positive or negative impact on the relative forecast performance of the wastewater-informed model that we would like to estimate.
 
@@ -125,12 +113,71 @@ We will plot the partial effects as a function of the number of sites, populatio
 
 The estimated $\beta$ reflects the adjusted additive impact of incorporating wastewater on forecast performance taking into account the other covariates. We will implement this using a linear-link function in the R package `brms`. These exploratory analyses will be used to generate hypotheses into the impact of the characteristics of wastewater surveillance system on the performance of the `wwinference` model.
 
-## Extensions to consider:
+# Results
 
-1.  Expanding beyond 2024-2025 season– evaluate all dates weekly from 2022-2025?
-2.  Incorporating other models for comparison with and without wasteawater (e.g. ARIMA, ML models)
-3.  Consider including indicators/metrics of variability in wastewater data as predictors in the model-based evaluation component.
-4.  Evaluation of trend categorisation: We could classify each posterior draw of each forecast as increasing, decreasing, or stable based on the trajectory of hospital admissions, and so each forecast we could assign a probability for each of the three categories. We could then evaluate compared to the later observed data using the Brier score, and compare the Brier scores across different strata (locations, forecast dates, overall).
-5.  Expansion to flu and RSV: In both cases, hospital admissions and wastewater data are available. We could consider expanding this analysis to these other pathogens, which would require GI estimates, infection -\> hospital admissions delay estimates, and shedding kinetics trajectories (though we could assume similar to COVID). However, the wastewater data for flu and RSV measure subtypes A and B separately, whereas the hospital admissions does not specify subtype. The current `wwinference` model does not yet support multiple strains in the wastewater data, and so we would need to separately forecast A and B and aggregate, which wouldn't be possible without separate counts of admissions.
+Figure 1. Schematic diagram describing the retrospective production of forecasts and the evaluation procedure
+
+## Visual comparison of forecast performance
+
+Q: Do we include baseline in all of the below? Probably not necessary in main text but could make supplement version where we include it
+
+Figure 2. Visual comparison of fit and forecast for a subset of locations and forecast dates (can pick ones where ww improves, wastewater has no impact, wastewater degrades performance) + fit to wastewater data
+
+3 rows, 4 columns
+
+row = location
+
+column 1 = hospital admissions fit with `ww+hosp` vs `hosp_only`
+
+columns 2:4 = fit to wastewater data by site
+
+Figure 3. Visual comparison of forecast performance across forecast dates for a subset of locations for horizons 1-7
+
+2 rows, 3 columns
+
+row 1 = forecast eval overlay `ww+hosp` vs `hosp only`
+
+row 2 = score underlay (bar chart)
+
+columns = locations
+
+Supplement:
+
+1.  Fig 2 & 3 with baseline ARIMA
+2.  Fig 3 for additional horizons (7-14, 14-21, 21-28)
+
+## Quantitative forecast comparison
+
+Figure 4. "traditional" score comparison: overall, by horizon, by location, by forecast date, by location and forecast date
+
+A. CRPS by model summarised across locations and forecast dates, broken down by under/over prediction and dispersion, in the form of a horizontal bar chart for each of the models across all 28 day horizons.
+
+C. 50th and 90th interval coverage summarised across locations and forecast dates (horizontal bar chart, color = model)
+
+B. rWIS by horizon overall
+
+D. CRPS by model stratified by location ordered by CRPS of the hosp-only model (stacked bar chart x-axis = location, y-axis = CRPS breakdown, color = model, shading = CRPS breakdown)
+
+E. CRPS by model stratified by forecast date (stacked bar chart x-axis = date, y-axis = CRPS breakdown, color = model, shading = CRPS breakdown)
+
+F. National hospital admissions over time
+
+G. Heatmap of rWIS (relative to hosp only) averaged across horizons for each forecast date and location (x-axis = forecast date, y-axis = location, color = rWIS)
+
+## Investigation into drivers of differences in forecast performance with and without wastewater
+
+Result table from GAM output (what is $\beta$)
+
+A. scatterplot of CRPS from wastewater model vs CRPS from hospital admissions only model summarised by location-forecast date
+
+B. scatterplot of CRPS from wastewater vs hosp only summarised by location
+
+C. scatter plot of CRPS from wastewater vs hosp only summarise by forecast date
+
+D. Partial effect of min latency, avg latency, avg frequency, pop coverage, variability in ww, number of sites
+
+## Extensions to still consider:
+
+1.  Evaluation of trend categorisation: We could classify each posterior draw of each forecast as increasing, decreasing, or stable based on the trajectory of hospital admissions, and so each forecast we could assign a probability for each of the three categories. We could then evaluate compared to the later observed data using the Brier score, and compare the Brier scores across different strata (locations, forecast dates, overall).
 
 # References
