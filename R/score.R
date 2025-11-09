@@ -100,7 +100,7 @@ format_baseline_forecasts <- function(baseline_forecasts,
                                       fp_data = "output") {
   loc <- unique(baseline_forecasts$state)
   forecast_date <- unique(baseline_forecasts$forecast_date)
-  hosp_data_real_time <- unique(baseline_forecasts$hosp_data_real_time)
+  real_time_hosp_bool <- unique(baseline_forecasts$hosp_data_real_time)
   # pivot quantiles from wide to long
   bl_to_score <- baseline_forecasts |>
     tidyr::pivot_longer(
@@ -124,8 +124,10 @@ format_baseline_forecasts <- function(baseline_forecasts,
       "quantile_level"
     ) |>
     filter(quantile_level %in% quantiles_to_save) |>
-    mutate(quantile_level = as.numeric(quantile_level)) |>
-    mutate(pred_value7dsum = pmax(pred_value7dsum, 0)) |> # Also hacky solution
+    mutate(
+      quantile_level = as.numeric(quantile_level),
+      pred_value7dsum = pmax(pred_value7dsum, 0)
+    ) |> # Also hacky solution
     as_forecast_quantile(
       forecast_unit = c(
         "model", "include_ww",
@@ -153,7 +155,7 @@ format_baseline_forecasts <- function(baseline_forecasts,
     bl_to_score,
     file.path(
       full_fp,
-      "baseline_quantiles_rt_{hosp_data_real_time}.csv"
+      glue::glue("baseline_quantiles_rt_{real_time_hosp_bool}.csv")
     )
   )
   return(bl_to_score)

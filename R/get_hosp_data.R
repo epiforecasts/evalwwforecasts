@@ -208,10 +208,8 @@ get_hosp_as_of_forecast_date <- function(forecast_date,
     forecast_horizon = forecast_horizon,
     col_for_final_counts = "PS_adjustierte_7T_Hospitalisierung_Faelle" # nolint
   ) |>
-    mutate(daily_hosp_admits = if_else(daily_hosp_admits < 0,
-      0,
-      daily_hosp_admits
-    )) # hacky solution to remove 0s for now #nolint
+    mutate(daily_hosp_admits = pmax(daily_hosp_admits, 0))
+  # hacky solution to remove 0s for now
   return(hosp_data_clean)
 }
 
