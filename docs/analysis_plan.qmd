@@ -61,13 +61,13 @@ In the case where half or fewer than half of the measured genes are below the th
 
 ## Model specification
 
-We will use the following models to produce forecasts of the 7-day rolling sum of COVID-19 hopsital admissions for 28 days ahead of the forecast date:
+We will use the following models to produce forecasts of the 7-day rolling sum of COVID-19 hospital admissions for 28 days ahead of the forecast date:
 
 1.  `wwinference` (`ww + hosp`): This model jointly fits to the daily hospital admissions at the state-level and the wastewater concentration data from the treatment plants within the state. It will be calibrated using the most recent 90 days of data from both wastewater and hospital admissions.
 
 2.  `wwinference` (`hosp only`): This model fits to only to the daily hospital admissions at the state-level. It will be calibrated using the most recent 90 days of data on hospital admissions.
 
-3.  Baseline ARIMA (`arima_baseline`): This model will be fit only to the 7-day rolling sum of hospital admissions at the state level, using the `auto.arima()` function in the `forecasts` R package, which will perform an optimization of both the model parameters and the autoregressive order $p$, differencing order $d$ and the moving average order $q$. We intend to use this as a reference point for comparing the magnitude of the absolute scores so that we can put the forecast comparison with and without wastewater in context. It will be calibrated using the entire historical admissions time series.
+3.  Baseline ARIMA (`arima_baseline`): This model will be fit only to the 7-day rolling sum of hospital admissions at the state level, using the `auto.arima()` function in the `forecast` R package, which will perform an optimization of both the model parameters and the autoregressive order $p$, differencing order $d$ and the moving average order $q$. We intend to use this as a reference point for comparing the magnitude of the absolute scores so that we can put the forecast comparison with and without wastewater in context. It will be calibrated using the entire historical admissions time series.
 
 Both semi-mechanistic renewal models, which we refer to as the `wwinference` models, will be implemented using the R package `wwinference`. This model expects the input in terms of daily hospital admissions and returns forecasts of the number of daily hospital admissions. Forecasts will be transformed from daily values to 7-day rolling sums for visualisation and evaluation. Full mathematical details on the model are available in \[\\cite R package\] as well as an abbreviated version provided in S1. Text: Mathematical model
 
@@ -115,13 +115,15 @@ The estimated $\beta$ reflects the adjusted additive impact of incorporating was
 
 # Results
 
-Figure 1. Schematic diagram describing the retrospective production of forecasts and the evaluation procedure
+Figure 1. Model schematic?
+
+Figure 2. Schematic diagram describing the retrospective production of forecasts and the evaluation procedure
 
 ## Visual comparison of forecast performance
 
 Q: Do we include baseline in all of the below? Probably not necessary in main text but could make supplement version where we include it
 
-Figure 2. Visual comparison of fit and forecast for a subset of locations and forecast dates (can pick ones where ww improves, wastewater has no impact, wastewater degrades performance) + fit to wastewater data
+Figure 3. Visual comparison of fit and forecast for a subset of locations and forecast dates (can pick ones where ww improves, wastewater has no impact, wastewater degrades performance) + fit to wastewater data
 
 3 rows, 4 columns
 
@@ -131,7 +133,7 @@ column 1 = hospital admissions fit with `ww+hosp` vs `hosp_only`
 
 columns 2:4 = fit to wastewater data by site
 
-Figure 3. Visual comparison of forecast performance across forecast dates for a subset of locations for horizons 1-7
+Figure 4. Visual comparison of forecast performance across forecast dates for a subset of locations for horizons 1-7
 
 2 rows, 3 columns
 
@@ -143,12 +145,12 @@ columns = locations
 
 Supplement:
 
-1.  Fig 2 & 3 with baseline ARIMA
-2.  Fig 3 for additional horizons (7-14, 14-21, 21-28)
+1.  Fig 3 & 4 with baseline ARIMA
+2.  Fig 4 for additional horizons (7-14, 14-21, 21-28)
 
 ## Quantitative forecast comparison
 
-Figure 4. "traditional" score comparison: overall, by horizon, by location, by forecast date, by location and forecast date
+Figure 5. "traditional" score comparison: overall, by horizon, by location, by forecast date, by location and forecast date
 
 A. CRPS by model summarised across locations and forecast dates, broken down by under/over prediction and dispersion, in the form of a horizontal bar chart for each of the models across all 28 day horizons.
 
@@ -167,6 +169,8 @@ G. Heatmap of rWIS (relative to hosp only) averaged across horizons for each for
 ## Investigation into drivers of differences in forecast performance with and without wastewater
 
 Result table from GAM output (what is $\beta$)
+
+Figure 6: Model based eval results
 
 A. scatterplot of CRPS from wastewater model vs CRPS from hospital admissions only model summarised by location-forecast date
 
