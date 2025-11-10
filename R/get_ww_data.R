@@ -216,9 +216,9 @@ reformat_ww_data <- function(raw_ww,
       change_in_lab_indicator = "neinlo"
     )
   }
-  
+
   # Add a grouping variable for changes in lab indicators:
-  
+
   ww_clean <- raw_ww |>
     rename(
       location = "standort",

@@ -14,6 +14,8 @@
 #' @param quantiles_to_save Vector of numerics indicating the quantiles
 #' @param ind_filepath Character string of the file path to save the outputs
 #'   from each model run
+#' @param save_draws Boolean indicating whether or not to save the draws,
+#'   default is FALSE.
 #'
 #' @returns Data.frame of the quantiles alongside the evaluation data.
 #' @autoglobal
@@ -34,7 +36,8 @@ fit_wwinference_wrapper <- function(
     calibration_time = 90,
     forecast_horizon = 28,
     quantiles_to_save = c(0.025, 0.1, 0.25, 0.5, 0.75, 0.9, 0.975),
-    ind_filepath = file.path("output")) {
+    ind_filepath = file.path("output"),
+    save_draws = FALSE) {
   loc <- unique(count_data$state)
   include_ww <- model_spec$include_ww
   hosp_data_real_time <- unique(count_data$hosp_data_real_time)
@@ -108,12 +111,14 @@ fit_wwinference_wrapper <- function(
   if (!file.exists(file.path(data_fp))) {
     dir_create(data_fp, recurse = TRUE)
   }
-  write_csv(
-    draws_w_data,
-    file.path(data_fp, glue::glue(
-      "hosp_draws_ww_{include_ww}_rt_{hosp_data_real_time}.csv"
-    ))
-  )
+  if (isTRUE(save_draws)) {
+    arrow::write_parquet(
+      draws_w_data,
+      file.path(data_fp, glue::glue(
+        "hosp_draws_ww_{include_ww}_rt_{hosp_data_real_time}.parquet"
+      ))
+    )
+  }
   # Make a plot here with calibration and evaluation data and save it.
   get_plot_draws_w_calib_data(
     draws_w_data,
