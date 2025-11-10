@@ -213,7 +213,7 @@ reformat_ww_data <- function(raw_ww,
     )
   } else {
     raw_ww <- dplyr::mutate(raw_ww,
-      change_in_lab_indicator = "neinlo"
+      change_in_lab_indicator = "nein"
     )
   }
 

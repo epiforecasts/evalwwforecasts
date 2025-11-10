@@ -39,6 +39,12 @@ fit_wwinference_wrapper <- function(
     ind_filepath = file.path("output"),
     save_draws = FALSE) {
   loc <- unique(count_data$state)
+  if ((nrow(ww_data) == 0 || is.null(ww_data)) & isTRUE(model_spec$include_ww)) {
+    model_spec$include_ww <- FALSE
+    flag_missing_ww <- TRUE
+  } else {
+    flag_missing_ww <- FALSE
+  }
   include_ww <- model_spec$include_ww
   hosp_data_real_time <- unique(count_data$hosp_data_real_time)
   ww_fit_obj <- wwinference(
@@ -170,7 +176,8 @@ fit_wwinference_wrapper <- function(
     offset = 1,
     quantiles = TRUE,
     probs = quantiles_to_save
-  )
+  ) |>
+    mutate(flag_missing_ww = flag_missing_ww)
 
   write_csv(
     hosp_quantiles,
