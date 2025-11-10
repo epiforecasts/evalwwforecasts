@@ -39,7 +39,8 @@ fit_wwinference_wrapper <- function(
     ind_filepath = file.path("output"),
     save_draws = FALSE) {
   loc <- unique(count_data$state)
-  if ((nrow(ww_data) == 0 || is.null(ww_data)) & isTRUE(model_spec$include_ww)) {
+  if ((nrow(ww_data) == 0 || is.null(ww_data)) &&
+    isTRUE(model_spec$include_ww)) {
     model_spec$include_ww <- FALSE
     flag_missing_ww <- TRUE
   } else {
@@ -106,6 +107,19 @@ fit_wwinference_wrapper <- function(
         "ww_draws.png"
       )
     )
+    ww_data_obs <- select(
+      ww_data,
+      date, site, lab,
+      log_genome_copies_per_ml, below_lod,
+      log_lod, flag_as_ww_outlier
+    )
+    ww_metadata <- ww_data |>
+      select(
+        site, lab, site_pop,
+        location_name, location_abbr,
+        forecast_date, lab_site_name
+      ) |>
+      distinct()
 
     # Get and save quantiles
     ww_quantiles <- ww_draws |>
@@ -117,23 +131,10 @@ fit_wwinference_wrapper <- function(
         quantile_level_name = "quantile_level",
         id_cols = c("site", "lab")
       ) |>
-      left_join(
-        ww_data |>
-          select(
-            date, site, lab,
-            log_genome_copies_per_ml, below_lod,
-            log_lod, flag_as_ww_outlier
-          ),
+      left_join(ww_data_obs,
         by = c("date", "site", "lab")
       ) |>
-      left_join(
-        ww_data |>
-          select(
-            site, lab, site_pop,
-            location_name, location_abbr,
-            forecast_date, lab_site_name
-          ) |>
-          distinct(),
+      left_join(ww_metadata,
         by = c("site", "lab")
       )
     write_csv(

@@ -6,8 +6,7 @@
 #' @importFrom dplyr rename select
 #' @returns scoringutils object
 convert_to_su_object <- function(scores_data) {
-  scores2 <- scores_data |>
-    data.table::as.data.table()
+  scores2 <- data.table::as.data.table(scores_data)
   class(scores2) <- c("scores", class(scores2))
   scores_su <- data.table::setattr(
     scores2,
