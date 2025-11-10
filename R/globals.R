@@ -27,20 +27,34 @@ utils::globalVariables(c(
   "updated_hosp_7d_count", # <get_plot_draws_w_calib_data>
   "model_ww", # <get_bar_chart_overall_scores>
   "wis", # <get_bar_chart_overall_scores>
-  "age_group", # <get_hosp_for_eval>
-  "location", # <get_hosp_for_eval>
-  "value", # <get_hosp_for_eval>
-  "Datum", # <get_hosp_for_eval>
-  "Bundesland", # <get_hosp_for_eval>
-  "Altersgruppe", # <get_hosp_for_eval>
-  "fixierte_7T_Hospitalisierung_Faelle", # <get_hosp_for_eval>
-  "aktualisierte_7T_Hospitalisierung_Faelle", # <get_hosp_for_eval>
-  "Bevoelkerung", # <get_hosp_for_eval>
-  "state", # <get_hosp_for_eval>
-  "updated_hosp_7d_count", # <get_hosp_for_eval>
-  "daily_hosp_admits", # <get_hosp_for_eval>
-  "state_pop", # <get_hosp_for_eval>
-  "init_hosp_7d_count", # <get_hosp_for_eval>
+  "forecast_date", # <get_bar_chart_overall_scores>
+  "forecast_date", # <get_plot_scores_by_date>
+  "wis", # <get_plot_scores_by_date>
+  "model_ww", # <get_plot_scores_by_date>
+  "site", # <fit_wwinference_wrapper>
+  "lab", # <fit_wwinference_wrapper>
+  "log_genome_copies_per_ml", # <fit_wwinference_wrapper>
+  "below_lod", # <fit_wwinference_wrapper>
+  "log_lod", # <fit_wwinference_wrapper>
+  "flag_as_ww_outlier", # <fit_wwinference_wrapper>
+  "site_pop", # <fit_wwinference_wrapper>
+  "location_name", # <fit_wwinference_wrapper>
+  "location_abbr", # <fit_wwinference_wrapper>
+  "forecast_date", # <fit_wwinference_wrapper>
+  "lab_site_name", # <fit_wwinference_wrapper>
+  "age_group", # <reformat_hosp_data>
+  "location", # <reformat_hosp_data>
+  "value", # <reformat_hosp_data>
+  "Datum", # <reformat_hosp_data>
+  "Bundesland", # <reformat_hosp_data>
+  "Altersgruppe", # <reformat_hosp_data>
+  "Bevoelkerung", # <reformat_hosp_data>
+  "state", # <reformat_hosp_data>
+  "updated_hosp_7d_count", # <reformat_hosp_data>
+  "daily_hosp_admits", # <reformat_hosp_data>
+  "state_pop", # <reformat_hosp_data>
+  "daily_hosp_admits", # <get_hosp_for_fit>
+  "max_date", # <get_hosp_for_fit>
   "location", # <get_initial_values>
   "age_group", # <get_initial_values>
   "value", # <get_initial_values>
@@ -69,5 +83,7 @@ utils::globalVariables(c(
   "overall_mean", # <add_correct_lod>
   "state", # <format_baseline_forecasts>
   "quantile_level", # <format_baseline_forecasts>
+  "pred_value7dsum", # <format_baseline_forecasts>
+  ":=", # <trajectories_to_quantiles>
   NULL
 ))

@@ -10,12 +10,16 @@ fit_model_targets <- list(
   ),
   tar_target(
     name = ww_data_preprocessed,
-    command = wwinference::preprocess_ww_data(
-      ww_data,
-      conc_col_name = "log_genome_copies_per_ml",
-      lod_col_name = "log_lod"
-    ),
-    pattern = map(ww_data, scenarios)
+    command = if (nrow(ww_data) > 0) {
+      wwinference::preprocess_ww_data(
+        ww_data,
+        conc_col_name = "log_genome_copies_per_ml",
+        lod_col_name = "log_lod"
+      )
+    } else {
+      return(NULL)
+    },
+    pattern = map(ww_data)
   ),
   tar_target(
     name = hosp_data_preprocessed,
@@ -24,16 +28,20 @@ fit_model_targets <- list(
       count_col_name = "daily_hosp_admits",
       pop_size_col_name = "state_pop"
     ),
-    pattern = map(hosp_data, scenarios)
+    pattern = map(hosp_data)
   ),
   tar_target(
     name = ww_data_to_fit,
-    command = indicate_ww_exclusions(
-      ww_data_preprocessed,
-      outlier_col_name = "flag_as_ww_outlier",
-      remove_outliers = TRUE
-    ),
-    pattern = map(ww_data_preprocessed, scenarios)
+    command = if (!is.null(ww_data_preprocessed)) {
+      indicate_ww_exclusions(
+        ww_data_preprocessed,
+        outlier_col_name = "flag_as_ww_outlier",
+        remove_outliers = TRUE
+      )
+    } else {
+      return(NULL)
+    },
+    pattern = map(ww_data_preprocessed)
   ),
 
   # Model targets (the same for all model runs)

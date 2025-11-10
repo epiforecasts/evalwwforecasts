@@ -25,6 +25,7 @@ Depends:
     R (>= 4.0.0)
 Imports:
     cli,
+    data.table,
     forecast,
     dplyr,
     tidyr,
@@ -34,7 +35,8 @@ Imports:
     wwinference,
     lubridate,
     fs,
-    purrr,
+    arrow,
+    tidyselect,
     glue,
     scoringutils,
     zoo,

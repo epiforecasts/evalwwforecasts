@@ -2,8 +2,9 @@ scoring_targets <- list(
   tar_target(
     name = hosp_quantiles_for_scoring,
     command = hosp_quantiles_wwinference |>
-      filter(date >= lubridate::ymd(scenarios$forecast_date)),
-    pattern = map(hosp_quantiles_wwinference, scenarios)
+      filter(
+        date >= forecast_date
+      )
   ),
   # Need to ensure both forecasts have the same columns and format and such
   tar_target(
@@ -11,6 +12,7 @@ scoring_targets <- list(
     command = bind_rows(
       hosp_quantiles_for_scoring,
       baseline_quantiles |>
+        mutate(flag_missing_ww = FALSE) |>
         select(colnames(hosp_quantiles_for_scoring))
     )
   ),
@@ -47,9 +49,25 @@ scoring_targets <- list(
       save_scores = TRUE
     )
   ),
+  # Exclude from the analysis any location forecast dates which don't
+  # contain ww, convert back to scoring utils object
+  tar_target(
+    name = scores,
+    command = score_hosp_quantiles |>
+      group_by(location, forecast_date) |>
+      filter(!any(flag_missing_ww)) |>
+      ungroup() |>
+      convert_to_su_object()
+  ),
   tar_target(
     name = bar_chart_overall_scores,
-    command = get_bar_chart_overall_scores(score_hosp_quantiles),
+    command = get_bar_chart_overall_scores(scores),
+    format = "rds",
+    iteration = "list"
+  ),
+  tar_target(
+    name = bar_chart_scores_forecast_date,
+    command = get_bar_chart_overall_scores(scores),
     format = "rds",
     iteration = "list"
   )

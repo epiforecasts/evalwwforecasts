@@ -31,7 +31,7 @@ fit_arima <- function(hosp_data_for_fit,
       date >= ymd(forecast_date),
       date <= ymd(forecast_date) + days(forecast_horizon)
     )
-
+  hosp_data_real_time <- unique(hosp_data_for_fit$hosp_data_real_time)
   auto_arima_model <- auto.arima(hosp_data_for_fit$updated_hosp_7d_count,
     seasonal = FALSE,
     stepwise = FALSE,
@@ -68,6 +68,9 @@ fit_arima <- function(hosp_data_for_fit,
     left_join(hosp_data_eval_forecast,
       by = "date"
     ) |>
-    mutate(forecast_date = ymd(forecast_date))
+    mutate(
+      forecast_date = ymd(forecast_date),
+      hosp_data_real_time = hosp_data_real_time
+    )
   return(forecast_df)
 }

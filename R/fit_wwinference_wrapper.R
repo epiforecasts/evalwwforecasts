@@ -14,6 +14,8 @@
 #' @param quantiles_to_save Vector of numerics indicating the quantiles
 #' @param ind_filepath Character string of the file path to save the outputs
 #'   from each model run
+#' @param save_draws Boolean indicating whether or not to save the draws,
+#'   default is FALSE.
 #'
 #' @returns Data.frame of the quantiles alongside the evaluation data.
 #' @autoglobal
@@ -34,9 +36,18 @@ fit_wwinference_wrapper <- function(
     calibration_time = 90,
     forecast_horizon = 28,
     quantiles_to_save = c(0.025, 0.1, 0.25, 0.5, 0.75, 0.9, 0.975),
-    ind_filepath = file.path("output")) {
+    ind_filepath = file.path("output"),
+    save_draws = FALSE) {
   loc <- unique(count_data$state)
+  if ((nrow(ww_data) == 0 || is.null(ww_data)) &&
+    isTRUE(model_spec$include_ww)) {
+    model_spec$include_ww <- FALSE
+    flag_missing_ww <- TRUE
+  } else {
+    flag_missing_ww <- FALSE
+  }
   include_ww <- model_spec$include_ww
+  hosp_data_real_time <- unique(count_data$hosp_data_real_time)
   ww_fit_obj <- wwinference(
     ww_data = ww_data,
     count_data = count_data,
@@ -54,23 +65,23 @@ fit_wwinference_wrapper <- function(
   # Save plots
   full_fp <- file.path(ind_filepath, this_forecast_date, loc)
   if (!file.exists(file.path(full_fp))) {
-    dir_create(full_fp, recursive = TRUE, showWarnings = FALSE)
+    dir_create(full_fp, recurse = TRUE)
   }
   fig_fp <- file.path(full_fp, "figs")
   if (!file.exists(file.path(fig_fp))) {
-    dir_create(fig_fp, recursive = TRUE, showWarnings = FALSE)
+    dir_create(fig_fp, recurse = TRUE)
   }
 
   plot_hosp_draws <- get_plot_forecasted_counts(
     draws = hosp_draws,
     forecast_date = this_forecast_date
-  ) + ggtitle(glue("{loc}, wastewater: {include_ww}"))
+  ) + ggtitle(glue("{loc}, wastewater: {include_ww}, hosp data real-time: {hosp_data_real_time}")) # nolint
 
   ggsave(
     plot = plot_hosp_draws,
     filename = file.path(
       fig_fp,
-      glue("hosp_draws_ww_{include_ww}.png")
+      glue("hosp_draws_ww_{include_ww}_rt_{hosp_data_real_time}.png")
     )
   )
   ww_draws <- if (!is.null(ww_fit_obj$raw_input_data$input_ww_data)) {
@@ -78,8 +89,13 @@ fit_wwinference_wrapper <- function(
   } else {
     NULL
   }
+  data_fp <- file.path(full_fp, "data")
+  if (!file.exists(file.path(data_fp))) {
+    dir_create(data_fp, recurse = TRUE)
+  }
 
   if (!is.null(ww_draws)) {
+    # Plot
     plot_ww_draws <- get_plot_ww_conc(
       draws = ww_draws,
       forecast_date = this_forecast_date
@@ -91,6 +107,43 @@ fit_wwinference_wrapper <- function(
         "ww_draws.png"
       )
     )
+    ww_data_obs <- select(
+      ww_data,
+      date, site, lab,
+      log_genome_copies_per_ml, below_lod,
+      log_lod, flag_as_ww_outlier
+    )
+    ww_metadata <- ww_data |>
+      select(
+        site, lab, site_pop,
+        location_name, location_abbr,
+        forecast_date, lab_site_name
+      ) |>
+      distinct()
+
+    # Get and save quantiles
+    ww_quantiles <- ww_draws |>
+      trajectories_to_quantiles(
+        quantiles = quantiles_to_save,
+        timepoint_cols = "date",
+        value_col = "pred_value",
+        quantile_value_name = "predicted",
+        quantile_level_name = "quantile_level",
+        id_cols = c("site", "lab")
+      ) |>
+      left_join(ww_data_obs,
+        by = c("date", "site", "lab")
+      ) |>
+      left_join(ww_metadata,
+        by = c("site", "lab")
+      )
+    write_csv(
+      ww_quantiles,
+      file.path(
+        data_fp,
+        "ww_quantiles.csv"
+      )
+    )
   }
 
   draws_w_data <- get_model_draws_w_data(
@@ -100,18 +153,18 @@ fit_wwinference_wrapper <- function(
     model = "wwinference",
     forecast_date = this_forecast_date,
     location = loc,
+    hosp_data_real_time = hosp_data_real_time,
     eval_data = hosp_data_eval
   )
-  data_fp <- file.path(full_fp, "data")
-  if (!file.exists(file.path(data_fp))) {
-    dir_create(data_fp, recursive = TRUE, showWarnings = FALSE)
+
+  if (isTRUE(save_draws)) {
+    arrow::write_parquet(
+      draws_w_data,
+      file.path(data_fp, glue::glue(
+        "hosp_draws_ww_{include_ww}_rt_{hosp_data_real_time}.parquet"
+      ))
+    )
   }
-  write_csv(
-    draws_w_data,
-    file.path(data_fp, glue::glue(
-      "hosp_draws_ww_{include_ww}.csv"
-    ))
-  )
   # Make a plot here with calibration and evaluation data and save it.
   get_plot_draws_w_calib_data(
     draws_w_data,
@@ -124,7 +177,8 @@ fit_wwinference_wrapper <- function(
     offset = 1,
     quantiles = TRUE,
     probs = quantiles_to_save
-  )
+  ) |>
+    mutate(flag_missing_ww = flag_missing_ww)
 
   write_csv(
     hosp_quantiles,

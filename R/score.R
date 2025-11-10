@@ -47,6 +47,7 @@ draws_for_scoring <- function(
         "include_ww",
         "location",
         "forecast_date",
+        "hosp_data_real_time",
         "date",
         "pred_value7dsum",
         "updated_hosp_7d_count",
@@ -57,7 +58,7 @@ draws_for_scoring <- function(
     to_score <- forecasted_draws |>
       as_forecast_sample(
         forecast_unit = c(
-          "model", "include_ww",
+          "model", "include_ww", "hosp_data_real_time",
           "location", "forecast_date", "date"
         ),
         predicted = "pred_value7dsum",
@@ -99,6 +100,7 @@ format_baseline_forecasts <- function(baseline_forecasts,
                                       fp_data = "output") {
   loc <- unique(baseline_forecasts$state)
   forecast_date <- unique(baseline_forecasts$forecast_date)
+  real_time_hosp_bool <- unique(baseline_forecasts$hosp_data_real_time)
   # pivot quantiles from wide to long
   bl_to_score <- baseline_forecasts |>
     tidyr::pivot_longer(
@@ -116,16 +118,20 @@ format_baseline_forecasts <- function(baseline_forecasts,
       "location",
       "forecast_date",
       "date",
+      "hosp_data_real_time",
       "pred_value7dsum",
       "updated_hosp_7d_count",
       "quantile_level"
     ) |>
     filter(quantile_level %in% quantiles_to_save) |>
-    mutate(quantile_level = as.numeric(quantile_level)) |>
+    mutate(
+      quantile_level = as.numeric(quantile_level),
+      pred_value7dsum = pmax(pred_value7dsum, 0)
+    ) |> # Also hacky solution
     as_forecast_quantile(
       forecast_unit = c(
         "model", "include_ww",
-        "location", "forecast_date",
+        "location", "forecast_date", "hosp_data_real_time",
         "date"
       ),
       predicted = "pred_value7dsum",
@@ -143,13 +149,13 @@ format_baseline_forecasts <- function(baseline_forecasts,
   }
   full_fp <- file.path(fp_data, forecast_date, loc, "data")
   if (!file.exists(file.path(full_fp))) {
-    dir_create(full_fp, recursive = TRUE, showWarnings = FALSE)
+    dir_create(full_fp, recurse = TRUE)
   }
   write_csv(
     bl_to_score,
     file.path(
       full_fp,
-      "baseline_quantiles.csv"
+      glue::glue("baseline_quantiles_rt_{real_time_hosp_bool}.csv")
     )
   )
   return(bl_to_score)

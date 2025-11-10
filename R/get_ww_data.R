@@ -72,7 +72,9 @@ get_ww_as_of_forecast_date <- function(forecast_date,
       target_date = forecast_date
     )
     RKI_ww_sites <- read_tsv(ww_vintage_data_url)
-    dir_create(file.path(filepath_name, forecast_date))
+    dir_create(file.path(filepath_name, forecast_date),
+      recurse = TRUE
+    )
     write_csv(RKI_ww_sites, vintage_fp)
   }
 
@@ -211,9 +213,11 @@ reformat_ww_data <- function(raw_ww,
     )
   } else {
     raw_ww <- dplyr::mutate(raw_ww,
-      change_in_lab_indicator = 1
+      change_in_lab_indicator = "nein"
     )
   }
+
+  # Add a grouping variable for changes in lab indicators:
 
   ww_clean <- raw_ww |>
     rename(
@@ -230,10 +234,15 @@ reformat_ww_data <- function(raw_ww,
     filter(
       state == location_abbr
     ) |>
+    group_by(location) |>
+    mutate(
+      change_in_lab_indicator = cumsum(change_in_lab_indicator == "ja") + 1
+    ) |>
+    ungroup() |>
     mutate(
       lab = glue::glue("{location}-{change_in_lab_indicator}"),
       log_genome_copies_per_ml = log((conc / 1e3) + 1e-8),
-      log_lod = log_lod_val, # make this up for now (maybe )
+      log_lod = log_lod_val,
       location_name = location_name,
       location_abbr = location_abbr
     ) |>

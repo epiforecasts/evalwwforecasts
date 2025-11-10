@@ -10,6 +10,7 @@ get_model_draws_w_data(
   include_ww = TRUE,
   model = "wwinference",
   forecast_date,
+  hosp_data_real_time,
   location,
   eval_data
 )
@@ -24,6 +25,9 @@ get_model_draws_w_data(
 \item{model}{Model type, either "wwinference" or "baseline"}
 
 \item{forecast_date}{Forecast date}
+
+\item{hosp_data_real_time}{Boolean indicating if this model run used the
+real-time hospital admissions data}
 
 \item{location}{Location name}
 

@@ -152,7 +152,7 @@ get_plot_model_comparison <- function(
   }
   full_fp <- file.path(fig_fp, this_location)
   if (!file.exists(full_fp)) {
-    dir_create(full_fp, recursive = TRUE, showWarnings = FALSE)
+    dir_create(full_fp, recurse = TRUE)
   }
   ggsave(
     plot = p,
@@ -169,7 +169,7 @@ get_plot_model_comparison <- function(
 #'
 #' @param draws_w_data Data.frame of draws with data
 #' @param full_fp Directory to save
-#' @importFrom ggplot2 geom_vline
+#' @importFrom ggplot2 geom_vline theme element_text
 #' @returns ggplot object
 #' @autoglobal
 get_plot_draws_w_calib_data <- function(draws_w_data,
@@ -177,6 +177,7 @@ get_plot_draws_w_calib_data <- function(draws_w_data,
   loc <- unique(draws_w_data$location)
   include_ww <- unique(draws_w_data$include_ww)
   forecast_date <- unique(draws_w_data$forecast_date)
+  hosp_data_real_time <- unique(draws_w_data$hosp_data_real_time)
   n_draws <- max(draws_w_data$draw, na.rm = TRUE)
   draws <- draws_w_data |> dplyr::filter(
     draw %in% sample.int(n_draws, size = min(100, n_draws))
@@ -194,14 +195,15 @@ get_plot_draws_w_calib_data <- function(draws_w_data,
     ) +
     xlab("") +
     theme_bw() +
+    theme(plot.title = element_text(size = 10)) +
     geom_vline(aes(xintercept = forecast_date), linetype = "dashed") +
     ylab("7-day rolling sum of hospital admissions") +
-    ggtitle(glue("location: {loc}, include_ww: {include_ww}, forecast_date: {forecast_date}")) # nolint
+    ggtitle(glue("location: {loc}, include_ww: {include_ww}, forecast_date: {forecast_date}, hosp data real time: {hosp_data_real_time}")) # nolint
   ggsave(
     plot = p,
     filename = file.path(
       full_fp,
-      glue::glue("7d_hosp_draws_w_data_ww_{include_ww}.png")
+      glue::glue("7d_hosp_draws_w_data_ww_{include_ww}_rt_{hosp_data_real_time}.png") # nolint
     )
   )
   return(p)
@@ -217,8 +219,8 @@ get_plot_draws_w_calib_data <- function(draws_w_data,
 #' @autoglobal
 get_bar_chart_overall_scores <- function(scores) {
   scores_summarised <- scores |>
-    summarise_scores(by = c("model", "include_ww")) |>
-    mutate(model_ww = glue::glue("{model}-{include_ww}"))
+    summarise_scores(by = c("model", "include_ww", "hosp_data_real_time")) |>
+    mutate(model_ww = glue::glue("{model}-{include_ww}-{hosp_data_real_time}"))
 
   p <- ggplot(scores_summarised) +
     geom_bar(
@@ -232,5 +234,56 @@ get_bar_chart_overall_scores <- function(scores) {
     ) +
     theme_bw() +
     ggtitle("Scores across all locations and forecast dates")
+
+  scores_by_loc <- scores |>
+    summarise_scores(by = c(
+      "model", "include_ww",
+      "hosp_data_real_time", "forecast_date"
+    )) |>
+    mutate(model_ww = glue::glue("{model}-{include_ww}-{hosp_data_real_time}"))
+  p <- ggplot(scores_by_loc) +
+    geom_bar(
+      aes(
+        x = forecast_date,
+        y = wis,
+        fill = model_ww
+      ),
+      stat = "identity",
+      position = "dodge"
+    ) +
+    theme_bw() +
+    theme(legend.position = "bottom") +
+    ggtitle("Scores across all locations by forecast dates")
+  return(p)
+}
+
+#' Get bar chart of the scores by forecast date
+#'
+#' @param scores Data.frame of scores from across locations and forecast dates
+#'
+#' @importFrom ggplot2 geom_bar
+#' @importFrom scoringutils summarise_scores
+#' @returns ggplot object
+#' @autoglobal
+get_plot_scores_by_date <- function(scores) {
+  scores_by_loc <- scores |>
+    summarise_scores(by = c(
+      "model", "include_ww",
+      "hosp_data_real_time", "forecast_date"
+    )) |>
+    mutate(model_ww = glue::glue("{model}-{include_ww}-{hosp_data_real_time}"))
+  p <- ggplot(scores_by_loc) +
+    geom_bar(
+      aes(
+        x = forecast_date,
+        y = wis,
+        fill = model_ww
+      ),
+      stat = "identity",
+      position = "dodge"
+    ) +
+    theme_bw() +
+    theme(legend.position = "bottom") +
+    ggtitle("Scores across all locations by forecast dates")
   return(p)
 }

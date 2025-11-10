@@ -1,5 +1,8 @@
+CDCgov
 COVID
+COVIDHub
 DD
+FluSight
 KITmetricslab
 LOD
 LOQ
@@ -10,7 +13,10 @@ abbr
 com
 csv
 df
+etc
+forecasttools
 ggplot
+github
 githubusercontent
 nolint
 nowcast
@@ -18,5 +24,8 @@ quantiled
 refs
 scoringutils
 th
+tibble
+timepoint
+timeseries
 ww
 wwinference
