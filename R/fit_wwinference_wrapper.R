@@ -82,6 +82,10 @@ fit_wwinference_wrapper <- function(
   } else {
     NULL
   }
+  data_fp <- file.path(full_fp, "data")
+  if (!file.exists(file.path(data_fp))) {
+    dir_create(data_fp, recurse = TRUE)
+  }
 
   if (!is.null(ww_draws)) {
     # Plot
@@ -129,6 +133,7 @@ fit_wwinference_wrapper <- function(
     write_csv(
       ww_quantiles,
       file.path(
+        data_fp,
         "ww_quantiles.csv"
       )
     )
@@ -144,10 +149,7 @@ fit_wwinference_wrapper <- function(
     hosp_data_real_time = hosp_data_real_time,
     eval_data = hosp_data_eval
   )
-  data_fp <- file.path(full_fp, "data")
-  if (!file.exists(file.path(data_fp))) {
-    dir_create(data_fp, recurse = TRUE)
-  }
+
   if (isTRUE(save_draws)) {
     arrow::write_parquet(
       draws_w_data,
