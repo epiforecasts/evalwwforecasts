@@ -110,7 +110,7 @@ fit_wwinference_wrapper <- function(
     # Get and save quantiles
     ww_quantiles <- ww_draws |>
       trajectories_to_quantiles(
-        quantile = quantiles_to_save,
+        quantiles = quantiles_to_save,
         timepoint_cols = "date",
         value_col = "pred_value",
         quantile_value_name = "predicted",

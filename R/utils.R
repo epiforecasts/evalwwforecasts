@@ -64,6 +64,7 @@ save_csv <- function(df, filename, path, allow_empty = TRUE) {
 #' locations, such as different US States and Territories.
 #' If NULL, ignored. Default NULL.
 #' @export
+#' @autoglobal
 trajectories_to_quantiles <- function(
     trajectories,
     quantiles = c(

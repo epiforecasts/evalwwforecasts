@@ -84,5 +84,6 @@ utils::globalVariables(c(
   "state", # <format_baseline_forecasts>
   "quantile_level", # <format_baseline_forecasts>
   "pred_value7dsum", # <format_baseline_forecasts>
+  ":=", # <trajectories_to_quantiles>
   NULL
 ))
