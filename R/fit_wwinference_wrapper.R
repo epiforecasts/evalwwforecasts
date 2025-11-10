@@ -84,6 +84,7 @@ fit_wwinference_wrapper <- function(
   }
 
   if (!is.null(ww_draws)) {
+    # Plot
     plot_ww_draws <- get_plot_ww_conc(
       draws = ww_draws,
       forecast_date = this_forecast_date
@@ -93,6 +94,42 @@ fit_wwinference_wrapper <- function(
       filename = file.path(
         fig_fp,
         "ww_draws.png"
+      )
+    )
+
+    # Get and save quantiles
+    ww_quantiles <- ww_draws |>
+      trajectories_to_quantiles(
+        quantile = quantiles_to_save,
+        timepoint_cols = "date",
+        value_col = "pred_value",
+        quantile_value_name = "predicted",
+        quantile_level_name = "quantile_level",
+        id_cols = c("site", "lab")
+      ) |>
+      left_join(
+        ww_data |>
+          select(
+            date, site, lab,
+            log_genome_copies_per_ml, below_lod,
+            log_lod, flag_as_ww_outlier
+          ),
+        by = c("date", "site", "lab")
+      ) |>
+      left_join(
+        ww_data |>
+          select(
+            site, lab, site_pop,
+            location_name, location_abbr,
+            forecast_date, lab_site_name
+          ) |>
+          distinct(),
+        by = c("site", "lab")
+      )
+    write_csv(
+      ww_quantiles,
+      file.path(
+        "ww_quantiles.csv"
       )
     )
   }

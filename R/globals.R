@@ -31,6 +31,17 @@ utils::globalVariables(c(
   "forecast_date", # <get_plot_scores_by_date>
   "wis", # <get_plot_scores_by_date>
   "model_ww", # <get_plot_scores_by_date>
+  "site", # <fit_wwinference_wrapper>
+  "lab", # <fit_wwinference_wrapper>
+  "log_genome_copies_per_ml", # <fit_wwinference_wrapper>
+  "below_lod", # <fit_wwinference_wrapper>
+  "log_lod", # <fit_wwinference_wrapper>
+  "flag_as_ww_outlier", # <fit_wwinference_wrapper>
+  "site_pop", # <fit_wwinference_wrapper>
+  "location_name", # <fit_wwinference_wrapper>
+  "location_abbr", # <fit_wwinference_wrapper>
+  "forecast_date", # <fit_wwinference_wrapper>
+  "lab_site_name", # <fit_wwinference_wrapper>
   "age_group", # <reformat_hosp_data>
   "location", # <reformat_hosp_data>
   "value", # <reformat_hosp_data>

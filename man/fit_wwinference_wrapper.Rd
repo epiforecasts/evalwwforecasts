@@ -16,7 +16,8 @@ fit_wwinference_wrapper(
   calibration_time = 90,
   forecast_horizon = 28,
   quantiles_to_save = c(0.025, 0.1, 0.25, 0.5, 0.75, 0.9, 0.975),
-  ind_filepath = file.path("output")
+  ind_filepath = file.path("output"),
+  save_draws = FALSE
 )
 }
 \arguments{
@@ -43,6 +44,9 @@ model}
 
 \item{ind_filepath}{Character string of the file path to save the outputs
 from each model run}
+
+\item{save_draws}{Boolean indicating whether or not to save the draws,
+default is FALSE.}
 }
 \value{
 Data.frame of the quantiles alongside the evaluation data.

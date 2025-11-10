@@ -2,20 +2,21 @@ create_permutations_targets <- list(
   tar_target(
     name = locations,
     command = tibble(
-      # location_name = c("Berlin", "Hamburg"),
-      location_name = c(
-        "Nordrhein-Westfalen", "Baden-Württemberg", "Bayern",
-        "Rheinland-Pfalz", "Thüringen", "Sachsen", "Berlin",
-        "Sachsen-Anhalt", "Niedersachsen", "Brandenburg",
-        "Bremen", "Hessen",
-        "Schleswig-Holstein", "Mecklenburg-Vorpommern",
-        "Hamburg", "Saarland"
-      ),
-      # location_abbr = c("BE", "HH")
-      location_abbr = c(
-        "NW", "BW", "BY", "RP", "TH", "SN", "BE", "ST", "NI",
-        "BB", "HB", "HE", "SH", "MV", "HH", "SL"
-      )
+      location_name = c("Berlin"),
+      # nolint start
+      # location_name = c(
+      #   "Nordrhein-Westfalen", "Baden-Württemberg", "Bayern",
+      #   "Rheinland-Pfalz", "Thüringen", "Sachsen", "Berlin",
+      #   "Sachsen-Anhalt", "Niedersachsen", "Brandenburg",
+      #   "Bremen", "Hessen",
+      #   "Schleswig-Holstein", "Mecklenburg-Vorpommern",
+      #   "Hamburg", "Saarland"
+      # ),
+      location_abbr = c("BE")
+      # location_abbr = c(
+      #   "NW", "BW", "BY", "RP", "TH", "SN", "BE", "ST", "NI",
+      #   "BB", "HB", "HE", "SH", "MV", "HH", "SL"
+      # )
     )
   ),
   tar_file(
@@ -28,21 +29,12 @@ create_permutations_targets <- list(
   # 2025-07-07
   tar_target(
     name = forecast_dates,
-    command = tibble(
-      forecast_date = c(
-        "2024-10-21",
-        "2024-11-18",
-        "2024-12-16",
-        "2025-01-13",
-        "2025-02-10",
-        "2025-03-10",
-        "2025-04-07",
-        "2025-05-05",
-        "2025-06-02",
-        "2025-06-30"
-      )
-    )
+    command = tibble(forecast_date = c("2025-03-10"))
+    # seq(from = ymd("2024-07-01"),
+    #             to = ymd("2025-06-30"),
+    #             by = "week")
   ),
+  # nolint end
   tar_target(
     name = ind_filepath,
     command = file.path("output", "individual_forecasts")
@@ -57,7 +49,7 @@ create_permutations_targets <- list(
     name = path_to_lod_vals,
     command = file.path(
       "input", "data",
-      "loq_data.csv"
+      "loq_data_RKI_clean.csv"
     )
   ),
   tar_target(

@@ -38,10 +38,6 @@ convert_rolling_sum_to_inc <- function(rolling_sums,
     stop("rolling_sums cannot be empty", call. = FALSE)
   }
 
-  if (anyNA(rolling_sums)) {
-    warning("rolling_sums contains NA values. Function expects right-aligned rolling sums", call. = FALSE) # nolint
-  }
-
   # Handle initial values
   if (is.null(initial_values)) {
     # If no initial values provided, assume the first 6 days were zeros
