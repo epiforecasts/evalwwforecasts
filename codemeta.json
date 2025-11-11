@@ -13,7 +13,7 @@
     "name": "R",
     "url": "https://r-project.org"
   },
-  "runtimePlatform": "R version 4.5.1 (2025-06-13)",
+  "runtimePlatform": "R version 4.5.2 (2025-10-31)",
   "author": [
     {
       "@type": "Person",
@@ -175,6 +175,18 @@
     },
     "3": {
       "@type": "SoftwareApplication",
+      "identifier": "data.table",
+      "name": "data.table",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=data.table"
+    },
+    "4": {
+      "@type": "SoftwareApplication",
       "identifier": "forecast",
       "name": "forecast",
       "provider": {
@@ -185,7 +197,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=forecast"
     },
-    "4": {
+    "5": {
       "@type": "SoftwareApplication",
       "identifier": "dplyr",
       "name": "dplyr",
@@ -197,7 +209,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=dplyr"
     },
-    "5": {
+    "6": {
       "@type": "SoftwareApplication",
       "identifier": "tidyr",
       "name": "tidyr",
@@ -209,7 +221,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=tidyr"
     },
-    "6": {
+    "7": {
       "@type": "SoftwareApplication",
       "identifier": "rlang",
       "name": "rlang",
@@ -221,7 +233,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=rlang"
     },
-    "7": {
+    "8": {
       "@type": "SoftwareApplication",
       "identifier": "readr",
       "name": "readr",
@@ -233,7 +245,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=readr"
     },
-    "8": {
+    "9": {
       "@type": "SoftwareApplication",
       "identifier": "ggplot2",
       "name": "ggplot2",
@@ -245,12 +257,12 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=ggplot2"
     },
-    "9": {
+    "10": {
       "@type": "SoftwareApplication",
       "identifier": "wwinference",
       "name": "wwinference"
     },
-    "10": {
+    "11": {
       "@type": "SoftwareApplication",
       "identifier": "lubridate",
       "name": "lubridate",
@@ -262,7 +274,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=lubridate"
     },
-    "11": {
+    "12": {
       "@type": "SoftwareApplication",
       "identifier": "fs",
       "name": "fs",
@@ -274,19 +286,31 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=fs"
     },
-    "12": {
+    "13": {
       "@type": "SoftwareApplication",
-      "identifier": "purrr",
-      "name": "purrr",
+      "identifier": "arrow",
+      "name": "arrow",
       "provider": {
         "@id": "https://cran.r-project.org",
         "@type": "Organization",
         "name": "Comprehensive R Archive Network (CRAN)",
         "url": "https://cran.r-project.org"
       },
-      "sameAs": "https://CRAN.R-project.org/package=purrr"
+      "sameAs": "https://CRAN.R-project.org/package=arrow"
     },
-    "13": {
+    "14": {
+      "@type": "SoftwareApplication",
+      "identifier": "tidyselect",
+      "name": "tidyselect",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=tidyselect"
+    },
+    "15": {
       "@type": "SoftwareApplication",
       "identifier": "glue",
       "name": "glue",
@@ -298,7 +322,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=glue"
     },
-    "14": {
+    "16": {
       "@type": "SoftwareApplication",
       "identifier": "scoringutils",
       "name": "scoringutils",
@@ -310,7 +334,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=scoringutils"
     },
-    "15": {
+    "17": {
       "@type": "SoftwareApplication",
       "identifier": "zoo",
       "name": "zoo",
@@ -322,7 +346,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=zoo"
     },
-    "16": {
+    "18": {
       "@type": "SoftwareApplication",
       "identifier": "stringr",
       "name": "stringr",
@@ -334,7 +358,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=stringr"
     },
-    "17": {
+    "19": {
       "@type": "SoftwareApplication",
       "identifier": "httr",
       "name": "httr",
@@ -346,7 +370,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=httr"
     },
-    "18": {
+    "20": {
       "@type": "SoftwareApplication",
       "identifier": "jsonlite",
       "name": "jsonlite",
@@ -360,7 +384,7 @@
     },
     "SystemRequirements": null
   },
-  "fileSize": "88.234KB",
+  "fileSize": "111.021KB",
   "releaseNotes": "https://github.com/epiforecasts/evalwwforecasts/blob/main/NEWS.md",
   "readme": "https://github.com/epiforecasts/evalwwforecasts/blob/main/README.md"
 }
