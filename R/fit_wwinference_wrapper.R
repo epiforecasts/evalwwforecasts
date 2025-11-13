@@ -25,6 +25,8 @@
 #' @importFrom fs dir_create
 #' @importFrom readr write_csv
 #' @importFrom glue glue
+#' @importFrom dplyr filter
+#' @importFrom arrow write_parquet
 fit_wwinference_wrapper <- function(
     ww_data,
     count_data,
@@ -164,6 +166,40 @@ fit_wwinference_wrapper <- function(
         "hosp_draws_ww_{include_ww}_rt_{hosp_data_real_time}.parquet"
       ))
     )
+
+    # Extract and save R(t) draws at forecast date only
+    global_rt_draws <- get_draws(ww_fit_obj,
+      what = "global_rt"
+    )$global_rt
+
+    if (!is.null(global_rt_draws)) {
+      global_rt_forecast_date <- global_rt_draws |>
+        filter(date == this_forecast_date)
+
+      arrow::write_parquet(
+        global_rt_forecast_date,
+        file.path(data_fp, glue::glue(
+          "global_rt_forecast_date_ww_{include_ww}_rt_{hosp_data_real_time}.parquet"
+        ))
+      )
+    }
+
+    # Extract and save subpopulation R(t) draws at forecast date only
+    subpop_rt_draws <- get_draws(ww_fit_obj,
+      what = "subpop_rt"
+    )$subpop_rt
+
+    if (!is.null(subpop_rt_draws)) {
+      subpop_rt_forecast_date <- subpop_rt_draws |>
+        filter(date == this_forecast_date)
+
+      arrow::write_parquet(
+        subpop_rt_forecast_date,
+        file.path(data_fp, glue::glue(
+          "subpop_rt_forecast_date_ww_{include_ww}_rt_{hosp_data_real_time}.parquet"
+        ))
+      )
+    }
   }
   # Make a plot here with calibration and evaluation data and save it.
   get_plot_draws_w_calib_data(
