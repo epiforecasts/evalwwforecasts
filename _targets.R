@@ -20,11 +20,15 @@ library(fs)
 library(rlang)
 library(scoringutils)
 library(forecast)
+library(future)
+library(future.callr)
 
 # load functions
 functions <- list.files(here("R"), full.names = TRUE)
 walk(functions, source)
 rm("functions")
+
+plan(multisession, workers = 2)
 
 # load target modules
 targets <- list.files(here("targets"), full.names = TRUE)
