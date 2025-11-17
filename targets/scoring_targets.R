@@ -40,8 +40,7 @@ scoring_targets <- list(
     ),
     pattern = map(quantiles_by_loc, full_hosp_time_series_by_loc),
     format = "rds",
-    iteration = "list",
-    deployment = "main"
+    iteration = "list"
   ),
   # Target for scoring quantiles
   tar_target(
@@ -51,8 +50,7 @@ scoring_targets <- list(
       metrics = quantile_metrics,
       fp_data = file.path("output", "overall_data"),
       save_scores = TRUE
-    ),
-    deployment = "worker"
+    )
   ),
   # Exclude from the analysis any location forecast dates which don't
   # contain ww, convert back to scoring utils object
@@ -62,21 +60,18 @@ scoring_targets <- list(
       group_by(location, forecast_date) |>
       filter(!any(flag_missing_ww)) |>
       ungroup() |>
-      convert_to_su_object(),
-    deployment = "main"
+      convert_to_su_object()
   ),
   tar_target(
     name = bar_chart_overall_scores,
     command = get_bar_chart_overall_scores(scores),
     format = "rds",
-    iteration = "list",
-    deployment = "main"
+    iteration = "list"
   ),
   tar_target(
     name = bar_chart_scores_forecast_date,
     command = get_bar_chart_overall_scores(scores),
     format = "rds",
-    iteration = "list",
-    deployment = "main"
+    iteration = "list"
   )
 )

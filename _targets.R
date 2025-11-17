@@ -23,8 +23,9 @@ library(forecast)
 library(crew)
 
 controller <- crew_controller_local(
-  workers = 3,
-  seconds_idle = 600
+  workers = 2,
+  seconds_idle = 60,
+  name = "local_workers"
 )
 
 # load functions
@@ -39,6 +40,7 @@ purrr::walk(targets, source)
 
 tar_option_set(
   packages = c(
+    "crew",
     "wwinference",
     "tibble",
     "dplyr",
@@ -51,10 +53,11 @@ tar_option_set(
     "jsonlite",
     "httr"
   ),
-  workspace_on_error = TRUE,
   controller = controller,
-  storage = "worker",
-  retrieval = "worker",
+  workspace_on_error = TRUE,
+  deployment = "main",
+  storage = "main",
+  retrieval = "main",
   memory = "transient",
   garbage_collection = TRUE,
   format = "parquet", # default storage format

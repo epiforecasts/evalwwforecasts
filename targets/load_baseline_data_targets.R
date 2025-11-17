@@ -7,8 +7,7 @@ load_baseline_data_targets <- list(
       forecast_date = scenarios_baseline$forecast_date,
       forecast_horizon = forecast_horizon
     ),
-    pattern = map(scenarios_baseline),
-    deployment = "main"
+    pattern = map(scenarios_baseline)
   ),
   tar_target(
     hosp_data_bl,
@@ -22,6 +21,5 @@ load_baseline_data_targets <- list(
       hosp_data_real_time = scenarios_baseline$hosp_data_real_time
     ),
     pattern = map(hosp_data_eval_bl, scenarios_baseline),
-    deployment = "main"
   )
 )

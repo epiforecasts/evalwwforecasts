@@ -7,8 +7,7 @@ load_data_targets <- list(
       forecast_date = scenarios$forecast_date,
       forecast_horizon = forecast_horizon
     ),
-    pattern = map(scenarios),
-    deployment = "main"
+    pattern = map(scenarios)
   ),
   tar_target(
     hosp_data,
@@ -21,8 +20,7 @@ load_data_targets <- list(
       calibration_period = calibration_period_wwinference,
       hosp_data_real_time = scenarios$hosp_data_real_time
     ),
-    pattern = map(hosp_data_eval, scenarios),
-    deployment = "main"
+    pattern = map(hosp_data_eval, scenarios)
   ),
   tar_target(
     ww_data_eval,
@@ -32,8 +30,7 @@ load_data_targets <- list(
       forecast_date = scenarios$forecast_date,
       path_to_lod_vals = path_to_lod_vals,
     ),
-    pattern = map(scenarios),
-    deployment = "main"
+    pattern = map(scenarios)
   ),
   tar_target(
     ww_data,
@@ -44,7 +41,6 @@ load_data_targets <- list(
       calibration_period = calibration_period_wwinference,
       path_to_lod_vals = path_to_lod_vals
     ),
-    pattern = map(ww_data_eval, scenarios),
-    deployment = "main"
+    pattern = map(ww_data_eval, scenarios)
   )
 )

@@ -10,8 +10,7 @@ fit_baseline_model_targets <- list(
       model = scenarios_baseline$model,
       prediction_intervals = prediction_intervals
     ),
-    pattern = map(hosp_data_bl, hosp_data_eval_bl, scenarios_baseline),
-    deployment = "worker"
+    pattern = map(hosp_data_bl, hosp_data_eval_bl, scenarios_baseline)
   ),
   tar_target(
     name = baseline_quantiles,
@@ -20,8 +19,7 @@ fit_baseline_model_targets <- list(
       quantiles_to_save,
       fp_data = ind_filepath
     ),
-    pattern = map(baseline_forecasts),
-    deployment = "main"
+    pattern = map(baseline_forecasts)
   ),
   tar_group_by(
     name = baseline_forecasts_by_loc,
@@ -31,8 +29,7 @@ fit_baseline_model_targets <- list(
   tar_target(
     name = full_hosp_time_series,
     command = hosp_data_eval_bl |>
-      filter(forecast_date == max(forecast_date)),
-    deployment = "main"
+      filter(forecast_date == max(forecast_date))
   ),
   tar_group_by(
     name = full_hosp_time_series_by_loc,
@@ -50,8 +47,7 @@ fit_baseline_model_targets <- list(
       full_hosp_time_series_by_loc
     ),
     iteration = "list",
-    format = "rds",
-    deployment = "main"
+    format = "rds"
   )
   # format for scoring the same as the output from the wwinference model
   # wrapper

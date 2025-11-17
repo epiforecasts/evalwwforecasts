@@ -6,8 +6,7 @@ fit_model_targets <- list(
       system.file("extdata", "example_params.toml",
         package = "wwinference"
       )
-    ),
-    deployment = "main"
+    )
   ),
   tar_target(
     name = ww_data_preprocessed,
@@ -20,8 +19,7 @@ fit_model_targets <- list(
     } else {
       return(NULL)
     },
-    pattern = map(ww_data),
-    deployment = "main"
+    pattern = map(ww_data)
   ),
   tar_target(
     name = hosp_data_preprocessed,
@@ -30,8 +28,7 @@ fit_model_targets <- list(
       count_col_name = "daily_hosp_admits",
       pop_size_col_name = "state_pop"
     ),
-    pattern = map(hosp_data),
-    deployment = "main"
+    pattern = map(hosp_data)
   ),
   tar_target(
     name = ww_data_to_fit,
@@ -44,24 +41,20 @@ fit_model_targets <- list(
     } else {
       return(NULL)
     },
-    pattern = map(ww_data_preprocessed),
-    deployment = "main"
+    pattern = map(ww_data_preprocessed)
   ),
   # Model targets (the same for all model runs)
   tar_target(
     name = generation_interval,
-    command = wwinference::default_covid_gi,
-    deployment = "main"
+    command = wwinference::default_covid_gi
   ),
   tar_target(
     name = inf_to_hosp,
-    command = wwinference::default_covid_inf_to_hosp,
-    deployment = "main"
+    command = wwinference::default_covid_inf_to_hosp
   ),
   tar_target(
     name = infection_feedback_pmf,
-    command = generation_interval,
-    deployment = "main"
+    command = generation_interval
   ),
   # Check to make sure a compiled model can be a target. Look at old
   # code. Otherwise we can do within a wrapper function
@@ -80,13 +73,11 @@ fit_model_targets <- list(
 
       return(model_path)
     },
-    format = "file",
-    deployment = "main"
+    format = "file"
   ),
   tar_target(
     name = compiled_model,
-    command = readRDS(compiled_model_file),
-    deployment = "main"
+    command = readRDS(compiled_model_file)
   ),
   tar_target(
     name = model_spec,
@@ -98,17 +89,17 @@ fit_model_targets <- list(
       include_ww = scenarios$include_ww
     ),
     pattern = map(scenarios),
-    iteration = "list",
-    deployment = "main"
+    iteration = "list"
   ),
   tar_target(
     name = fit_opts,
     command = list(
       seed = 123,
       iter_sampling = iter_sampling,
-      iter_warmup = iter_warmup
-    ),
-    deployment = "main"
+      iter_warmup = iter_warmup,
+      parallel_chains = 4,
+      threads_per_chain = 1
+    )
   ),
   # Fit the model to each set of hosp and ww data for each permutation
   tar_target(
@@ -130,6 +121,9 @@ fit_model_targets <- list(
       ww_data_to_fit, hosp_data_preprocessed, scenarios,
       model_spec, hosp_data_eval
     ),
-    deployment = "worker"
+    deployment = "worker",
+    resources = tar_resources(
+      crew = tar_resources_crew(controller = "local_workers")
+    )
   )
 )
