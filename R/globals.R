@@ -58,6 +58,25 @@ utils::globalVariables(c(
   "location", # <get_initial_values>
   "age_group", # <get_initial_values>
   "value", # <get_initial_values>
+  "forecast_date", # <calculate_ww_metadata_table>
+  "location_abbr", # <calculate_ww_metadata_table>
+  "location_name", # <calculate_ww_metadata_table>
+  "site", # <calculate_ww_metadata_table>
+  "site_pop", # <calculate_ww_metadata_table>
+  "max_date", # <calculate_ww_metadata_table>
+  "min_date", # <calculate_ww_metadata_table>
+  "n_obs", # <calculate_ww_metadata_table>
+  "n_days_in_window", # <calculate_ww_metadata_table>
+  "lab", # <calculate_ww_metadata_table>
+  "n_labs", # <calculate_ww_metadata_table>
+  "log_genome_copies_per_ml", # <calculate_ww_metadata_table>
+  "sampling_freq", # <calculate_ww_metadata_table>
+  "latency", # <calculate_ww_metadata_table>
+  "lab_changes", # <calculate_ww_metadata_table>
+  "data_variability", # <calculate_ww_metadata_table>
+  "below_LOD", # <calculate_ww_metadata_table>
+  "total_site_pop", # <calculate_ww_metadata_table>
+  "state_pop", # <calculate_ww_metadata_table>
   "draw", # <get_model_draws_w_data>
   "pred_value", # <get_model_draws_w_data>
   "observed_value", # <get_model_draws_w_data>

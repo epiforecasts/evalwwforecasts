@@ -43,7 +43,6 @@ fit_model_targets <- list(
     },
     pattern = map(ww_data_preprocessed)
   ),
-
   # Model targets (the same for all model runs)
   tar_target(
     name = generation_interval,

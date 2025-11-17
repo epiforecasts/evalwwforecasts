@@ -34,6 +34,7 @@ purrr::walk(targets, source)
 tar_option_set(
   packages = c(
     "wwinference",
+    "tibble",
     "dplyr",
     "ggplot2",
     "readr",
@@ -76,6 +77,9 @@ load_data <- list(
   load_data_targets,
   load_baseline_data_targets
 )
+get_metadata <- list(
+  get_metadata_targets
+)
 fit_models <- list(
   fit_model_targets,
   fit_baseline_model_targets
@@ -88,6 +92,7 @@ scoring <- list(
 list(
   set_up,
   load_data,
+  get_metadata,
   fit_models,
   scoring
 )
