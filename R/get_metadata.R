@@ -8,8 +8,9 @@
 #'   following columns: forecast_date, location_abbr, location_name, site, lab,
 #'   date, log_genome_copies_per_ml, site_pop
 #' @param state_pop_data Optional data.frame with columns location_name and
-#'   state_pop. If provided, population coverage will be calculated as proportion
-#'   of state population. If NULL, total site population will be reported.
+#'   state_pop. If provided, population coverage will be calculated as
+#'   proportion of state population. If NULL, total site population will be
+#'   reported.
 #' @param sampling_freq_window Number of days prior to forecast date to use for
 #'   calculating sampling frequency. Default is 90 days.
 #'
@@ -58,7 +59,8 @@ calculate_ww_metadata_table <- function(ww_data,
       # Days covered in the sampling frequency window
       n_days_in_window = as.numeric(
         min(max_date, ymd(first(forecast_date))) -
-          max(min_date, ymd(first(forecast_date)) - days(sampling_freq_window)) + 1
+          max(min_date, ymd(first(forecast_date)) -
+            days(sampling_freq_window)) + 1
       ),
       # Sampling frequency (observations per day over the window)
       sampling_freq = n_obs / pmax(n_days_in_window, 1),
@@ -142,12 +144,15 @@ calculate_ww_metadata_table <- function(ww_data,
       mutate(pop_coverage = total_site_pop / state_pop)
   } else {
     # Otherwise, report as total site population
-    metadata_table <- metadata_table |>
-      rename(pop_coverage = total_site_pop)
+    metadata_table <- rename(metadata_table,
+      pop_coverage = total_site_pop
+    )
   }
 
-  metadata_table <- metadata_table |>
-    arrange(forecast_date, location_abbr)
+  metadata_table <- arrange(
+    metadata_table,
+    forecast_date, location_abbr
+  )
 
   return(metadata_table)
 }

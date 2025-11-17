@@ -16,8 +16,9 @@ following columns: forecast_date, location_abbr, location_name, site, lab,
 date, log_genome_copies_per_ml, site_pop}
 
 \item{state_pop_data}{Optional data.frame with columns location_name and
-state_pop. If provided, population coverage will be calculated as proportion
-of state population. If NULL, total site population will be reported.}
+state_pop. If provided, population coverage will be calculated as
+proportion of state population. If NULL, total site population will be
+reported.}
 
 \item{sampling_freq_window}{Number of days prior to forecast date to use for
 calculating sampling frequency. Default is 90 days.}
