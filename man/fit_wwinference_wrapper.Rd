@@ -45,8 +45,8 @@ model}
 \item{ind_filepath}{Character string of the file path to save the outputs
 from each model run}
 
-\item{save_draws}{Boolean indicating whether or not to save the draws,
-default is FALSE.}
+\item{save_draws}{Boolean indicating whether or not to save the draws of the
+hospital admissions calibration and forecasts. Default is FALSE.}
 }
 \value{
 Data.frame of the quantiles alongside the evaluation data.

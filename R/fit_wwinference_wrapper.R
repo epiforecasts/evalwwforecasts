@@ -14,8 +14,8 @@
 #' @param quantiles_to_save Vector of numerics indicating the quantiles
 #' @param ind_filepath Character string of the file path to save the outputs
 #'   from each model run
-#' @param save_draws Boolean indicating whether or not to save the draws,
-#'   default is FALSE.
+#' @param save_draws Boolean indicating whether or not to save the draws of the
+#'   hospital admissions calibration and forecasts. Default is FALSE.
 #'
 #' @returns Data.frame of the quantiles alongside the evaluation data.
 #' @autoglobal
@@ -25,6 +25,8 @@
 #' @importFrom fs dir_create
 #' @importFrom readr write_csv
 #' @importFrom glue glue
+#' @importFrom dplyr filter
+#' @importFrom arrow write_parquet
 fit_wwinference_wrapper <- function(
     ww_data,
     count_data,
@@ -144,6 +146,25 @@ fit_wwinference_wrapper <- function(
         "ww_quantiles.csv"
       )
     )
+
+    # Extract and save subpopulation R(t) draws at forecast date only
+    subpop_rt_draws <- get_draws(ww_fit_obj,
+      what = "subpop_rt"
+    )$subpop_rt
+    subpop_rt_forecast_date <- subpop_rt_draws |>
+      filter(date == this_forecast_date) |>
+      mutate(
+        forecast_date = this_forecast_date,
+        location = loc,
+        real_time = hosp_data_real_time
+      )
+
+    arrow::write_parquet(
+      subpop_rt_forecast_date,
+      file.path(data_fp, glue::glue(
+        "subpop_rt_ww_{include_ww}_rt_{hosp_data_real_time}.parquet"
+      ))
+    )
   }
 
   draws_w_data <- get_model_draws_w_data(
@@ -165,6 +186,29 @@ fit_wwinference_wrapper <- function(
       ))
     )
   }
+
+  # Extract and save R(t) draws at forecast date only (always save as these
+  # are not as large)
+  global_rt_draws <- get_draws(ww_fit_obj,
+    what = "global_rt"
+  )$global_rt
+
+  global_rt_forecast_date <- global_rt_draws |>
+    filter(date == this_forecast_date) |>
+    mutate(
+      forecast_date = this_forecast_date,
+      location = loc,
+      real_time = hosp_data_real_time
+    )
+
+  arrow::write_parquet(
+    global_rt_forecast_date,
+    file.path(data_fp, glue::glue(
+      "global_rt_ww_{include_ww}_rt_{hosp_data_real_time}.parquet"
+    ))
+  )
+
+
   # Make a plot here with calibration and evaluation data and save it.
   get_plot_draws_w_calib_data(
     draws_w_data,
