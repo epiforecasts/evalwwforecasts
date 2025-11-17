@@ -34,6 +34,7 @@ purrr::walk(targets, source)
 tar_option_set(
   packages = c(
     "wwinference",
+    "tibble",
     "dplyr",
     "ggplot2",
     "readr",

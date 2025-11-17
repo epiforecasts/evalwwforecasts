@@ -7,28 +7,34 @@
 #' @param ww_data Data.frame containing wastewater data with at least the
 #'   following columns: forecast_date, location_abbr, location_name, site, lab,
 #'   date, log_genome_copies_per_ml, site_pop
-#' @param state_pop_data Optional data.frame with columns location_abbr and
+#' @param state_pop_data Optional data.frame with columns location_name and
 #'   state_pop. If provided, population coverage will be calculated as proportion
 #'   of state population. If NULL, total site population will be reported.
 #' @param sampling_freq_window Number of days prior to forecast date to use for
 #'   calculating sampling frequency. Default is 90 days.
 #'
-#' @returns A data.frame with one row per forecast_date and location combination,
-#'   containing the following metrics:
+#' @returns A data.frame with one row per forecast_date and location
+#'  combination, containing the following metrics:
 #'   - forecast_date: Date of forecast
 #'   - location_abbr: State abbreviation
 #'   - location_name: State name
 #'   - n_sites: Number of wastewater treatment plants
-#'   - pop_coverage: Proportion of state population served (or total if state_pop not provided)
-#'   - avg_sampling_freq: Average sampling frequency across sites (observations per day over prior 90 days)
+#'   - pop_coverage: Proportion of state population served
+#'   (or total if state_pop not provided)
+#'   - avg_sampling_freq: Average sampling frequency across sites (observations
+#'    per day over prior 90 days)
 #'   - max_sampling_freq: Maximum site-level sampling frequency
 #'   - avg_latency: Mean days from last collection to forecast date
 #'   - min_latency: Minimum latency across sites
 #'   - avg_lab_changes: Average number of laboratory transitions per site
-#'   - data_variability: Coefficient of variation of log genome copies
+#'   - min_data_variability: Minimum coefficient of variation of log genome
+#'    copies
+#'   - avg_data_variability: Average coefficient of variation across all sites
+#'   - prop_below_LOD: proportion of observations below LOD across all sites
 #'
 #' @autoglobal
-#' @importFrom dplyr group_by summarise n_distinct n mutate ungroup arrange left_join filter
+#' @importFrom dplyr group_by summarise n_distinct n mutate ungroup arrange
+#' left_join filter first
 #' @importFrom lubridate ymd days
 #' @export
 calculate_ww_metadata_table <- function(ww_data,
@@ -98,7 +104,7 @@ calculate_ww_metadata_table <- function(ww_data,
       avg_lab_changes = mean(lab_changes, na.rm = TRUE),
 
       # 8. Minimum data variability
-      min_data_variability = min(data_variability, na.m = TRUE),
+      min_data_variability = min(data_variability, na.rm = TRUE),
       .groups = "drop"
     )
 

@@ -15,7 +15,7 @@ calculate_ww_metadata_table(
 following columns: forecast_date, location_abbr, location_name, site, lab,
 date, log_genome_copies_per_ml, site_pop}
 
-\item{state_pop_data}{Optional data.frame with columns location_abbr and
+\item{state_pop_data}{Optional data.frame with columns location_name and
 state_pop. If provided, population coverage will be calculated as proportion
 of state population. If NULL, total site population will be reported.}
 
@@ -23,20 +23,25 @@ of state population. If NULL, total site population will be reported.}
 calculating sampling frequency. Default is 90 days.}
 }
 \value{
-A data.frame with one row per forecast_date and location combination,
-containing the following metrics:
+A data.frame with one row per forecast_date and location
+combination, containing the following metrics:
 \itemize{
 \item forecast_date: Date of forecast
 \item location_abbr: State abbreviation
 \item location_name: State name
 \item n_sites: Number of wastewater treatment plants
-\item pop_coverage: Proportion of state population served (or total if state_pop not provided)
-\item avg_sampling_freq: Average sampling frequency across sites (observations per day over prior 90 days)
+\item pop_coverage: Proportion of state population served
+(or total if state_pop not provided)
+\item avg_sampling_freq: Average sampling frequency across sites (observations
+per day over prior 90 days)
 \item max_sampling_freq: Maximum site-level sampling frequency
 \item avg_latency: Mean days from last collection to forecast date
 \item min_latency: Minimum latency across sites
 \item avg_lab_changes: Average number of laboratory transitions per site
-\item data_variability: Coefficient of variation of log genome copies
+\item min_data_variability: Minimum coefficient of variation of log genome
+copies
+\item avg_data_variability: Average coefficient of variation across all sites
+\item prop_below_LOD: proportion of observations below LOD across all sites
 }
 }
 \description{
