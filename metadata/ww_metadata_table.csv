@@ -1,0 +1,3 @@
+forecast_date,location_abbr,location_name,n_sites,total_site_pop,avg_sampling_freq,max_sampling_freq,avg_latency,min_latency,avg_lab_changes,min_data_variability,avg_data_variability,prop_below_LOD,state_pop,pop_coverage
+2024-10-21,BE,Berlin,3,3736494,0.27117370892018783,0.28,15,15,0,0.029651965100367488,0.04315412903216705,0,3755251,0.9950051274868178
+2024-10-21,BE,Berlin,3,3736494,0.27117370892018783,0.28,15,15,0,0.029651965100367488,0.04315412903216705,0,3755251,0.9950051274868178
