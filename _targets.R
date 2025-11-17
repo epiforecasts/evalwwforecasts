@@ -20,6 +20,12 @@ library(fs)
 library(rlang)
 library(scoringutils)
 library(forecast)
+library(crew)
+
+controller <- crew_controller_local(
+  workers = 3,
+  seconds_idle = 600
+)
 
 # load functions
 functions <- list.files(here("R"), full.names = TRUE)
@@ -46,12 +52,13 @@ tar_option_set(
     "httr"
   ),
   workspace_on_error = TRUE,
+  controller = controller,
   storage = "worker",
   retrieval = "worker",
   memory = "transient",
   garbage_collection = TRUE,
   format = "parquet", # default storage format
-  error = "null"
+  error = NULL
 )
 
 ## Set up the date:location:model:ww+/-:right-trunc+/- permutations

@@ -1,7 +1,8 @@
 get_metadata_targets <- list(
   tar_target(
     name = state_pop_data,
-    command = get_state_pop_data()
+    command = get_state_pop_data(),
+    deployment = "main"
   ),
   tar_target(
     name = ww_metadata_table,
@@ -14,7 +15,8 @@ get_metadata_targets <- list(
     } else {
       tibble()
     },
-    pattern = map(ww_data)
+    pattern = map(ww_data),
+    deployment = "main"
   ),
   tar_target(
     name = ww_metadata_table_combined,
@@ -26,6 +28,7 @@ get_metadata_targets <- list(
       }
       write_csv(combined, file.path(output_dir, "ww_metadata_table.csv"))
       return(combined)
-    }
+    },
+    deployment = "main"
   )
 )
