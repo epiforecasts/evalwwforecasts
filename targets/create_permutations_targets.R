@@ -29,7 +29,7 @@ create_permutations_targets <- list(
   # 2025-07-07
   tar_target(
     name = forecast_dates,
-    command = tibble(forecast_date = c("2024-07-01", "2024-10-21"))
+    command = tibble(forecast_date = c("2024-10-21", "2024-11-18"))
     # seq(from = ymd("2024-07-01"),
     #             to = ymd("2025-06-30"),
     #             by = "week")

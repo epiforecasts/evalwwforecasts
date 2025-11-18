@@ -42,7 +42,9 @@ Imports:
     zoo,
     stringr,
     httr,
-    jsonlite
+    jsonlite,
+    future,
+    future.callr
 Suggests:
     bookdown,
     targets,

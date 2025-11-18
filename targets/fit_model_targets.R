@@ -96,7 +96,9 @@ fit_model_targets <- list(
     command = list(
       seed = 123,
       iter_sampling = iter_sampling,
-      iter_warmup = iter_warmup
+      iter_warmup = iter_warmup,
+      parallel_chains = 4,
+      threads_per_chain = 1
     )
   ),
   # Fit the model to each set of hosp and ww data for each permutation
@@ -118,6 +120,7 @@ fit_model_targets <- list(
     pattern = map(
       ww_data_to_fit, hosp_data_preprocessed, scenarios,
       model_spec, hosp_data_eval
-    )
+    ),
+    deployment = "worker"
   )
 )
