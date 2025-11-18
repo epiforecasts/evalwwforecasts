@@ -19,6 +19,8 @@
 ^inst/scripts$
 ^vignettes/precompile\.R$
 ^vignettes/chunks$
+^output$
+^input$
 ^doc$
 ^Meta$
 ^\.vscode$
