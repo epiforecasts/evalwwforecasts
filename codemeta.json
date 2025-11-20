@@ -382,9 +382,33 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=jsonlite"
     },
+    "21": {
+      "@type": "SoftwareApplication",
+      "identifier": "future",
+      "name": "future",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=future"
+    },
+    "22": {
+      "@type": "SoftwareApplication",
+      "identifier": "future.callr",
+      "name": "future.callr",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=future.callr"
+    },
     "SystemRequirements": null
   },
-  "fileSize": "111.021KB",
+  "fileSize": "5974.061KB",
   "releaseNotes": "https://github.com/epiforecasts/evalwwforecasts/blob/main/NEWS.md",
   "readme": "https://github.com/epiforecasts/evalwwforecasts/blob/main/README.md"
 }
