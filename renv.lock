@@ -1740,29 +1740,10 @@
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
+      "RemoteUsername": "kaitejohnson",
       "RemoteRepo": "ww-inference-model",
-      "RemoteUsername": "CDCgov",
-      "RemoteSha": "85a6d5c57e6f4c6450cd637750fa58e036a8c0dd",
-      "Requirements": [
-        "R",
-        "RcppTOML",
-        "checkmate",
-        "cli",
-        "cmdstanr",
-        "dplyr",
-        "fs",
-        "ggplot2",
-        "glue",
-        "lubridate",
-        "posterior",
-        "purrr",
-        "rlang",
-        "scales",
-        "tibble",
-        "tidybayes",
-        "tidyr"
-      ],
-      "Hash": "326faf5961df0b11f9fd7cbc78365098"
+      "RemoteRef": "main",
+      "RemoteSha": "26b6cf1752bac98bd0bd028443a968155fe3420e"
     },
     "xfun": {
       "Package": "xfun",
