@@ -56,7 +56,7 @@ tar_option_set(
   memory = "transient",
   garbage_collection = TRUE,
   format = "parquet", # default storage format
-  error = "null"
+  error = "continue"
 )
 
 ## Set up the date:location:model:ww+/-:right-trunc+/- permutations
