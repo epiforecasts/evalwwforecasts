@@ -91,7 +91,7 @@ trajectories_to_quantiles <- function(
       !!quantile_value_name := stats::quantile(
         .data$value_col,
         probs = !!quantiles,
-        nam.rm = TRUE
+        na.rm = TRUE
       ),
       !!quantile_level_name := !!quantiles
     )
