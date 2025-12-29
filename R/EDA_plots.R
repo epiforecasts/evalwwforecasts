@@ -310,8 +310,8 @@ get_scatterplot_scores <- function(scores) {
       id_cols = c(forecast_date, location)
     ) |>
     rename(
-      "ww_plus_hosp" = "TRUE",
-      "hosp_only" = "FALSE"
+      ww_plus_hosp = TRUE,
+      hosp_only = FALSE
     )
 
 
