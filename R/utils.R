@@ -97,3 +97,25 @@ trajectories_to_quantiles <- function(
     )
   return(quant_df)
 }
+
+#' Convert the scores to a scoringutils object
+#'
+#' @param scores_raw Data.frame from Variant Nowcast Hub GitHub
+#' @importFrom data.table setattr as.data.table
+#' @importFrom dplyr rename select
+#' @returns scoringutils object
+convert_to_su_object <- function(scores_raw) {
+  scores <- scores_raw |>
+    data.table::as.data.table()
+  class(scores) <- c("scores", class(scores))
+  scores_su <- data.table::setattr(
+    scores,
+    "metrics",
+    c(
+      "wis", "overprediction", "underprediction",
+      "dispersion", "bias", "interval_coverage_50",
+      "interval_coverage_90", "ae_median"
+    )
+  )
+  return(scores_su)
+}

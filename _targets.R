@@ -82,11 +82,13 @@ get_metadata <- list(
 # Secondary outputs
 secondary_outputs <- list(
   # GAM meta-model on scores ()
-  # compute coverage metrics
+  run_gam_targets
+  # compute coverage metrics (?)
 )
 
 # Figures
 plot_targets <- list(
+  analysis_EDA_plot_targets
   # Fig 1: visual comparison for a single forecast date
   # Fig 2: visual comparison + scores across forecast dates
   # Fig 3: overall, by horizon, by location, by forecast date
@@ -95,8 +97,8 @@ plot_targets <- list(
 )
 
 list(
-  analysis_config
-  # get_metadata,
-  # secondary_outputs,
-  # plot_targets
+  analysis_config,
+  get_metadata,
+  secondary_outputs,
+  plot_targets
 )

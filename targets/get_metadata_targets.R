@@ -19,7 +19,8 @@ get_metadata_targets <- list(
   tar_target(
     name = ww_metadata_table_combined,
     command = {
-      combined <- bind_rows(ww_metadata_table)
+      combined <- bind_rows(ww_metadata_table) |>
+        distinct()
       output_dir <- file.path("metadata")
       if (!dir.exists(output_dir)) {
         dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)

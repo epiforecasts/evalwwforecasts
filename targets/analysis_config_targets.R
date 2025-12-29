@@ -9,5 +9,9 @@ analysis_config_targets <- list(
       path_to_lod_vals = path_to_lod_vals
     ),
     pattern = map(scenarios)
+  ),
+  tar_target(
+    name = scores_fp,
+    command = file.path("output", "overall_data_all_runs", "scores.csv")
   )
 )
