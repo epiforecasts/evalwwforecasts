@@ -1,21 +1,21 @@
 #' Convert the scores to a scoringutils object
 #'
-#' @param scores_data Data.frame from Variant Nowcast Hub GitHub
+#' @param scores_raw Data.frame of scores
 #' @importFrom data.table setattr as.data.table
-#' @importFrom rlang arg_match
 #' @importFrom dplyr rename select
 #' @returns scoringutils object
-convert_to_su_object <- function(scores_data) {
-  scores2 <- data.table::as.data.table(scores_data)
-  class(scores2) <- c("scores", class(scores2))
+convert_to_su_object <- function(scores_raw) {
+  scores <- data.table::as.data.table(scores_raw)
+  class(scores) <- c("scores", class(scores))
   scores_su <- data.table::setattr(
-    scores2,
+    scores,
     "metrics",
     c(
-      "wis", "underprediction", "overprediction", "dispersion",
-      "bias", "interval_coverage_50", "interval_coverage_90",
-      "ae_median"
+      "wis", "overprediction", "underprediction",
+      "dispersion", "bias", "interval_coverage_50",
+      "interval_coverage_90", "ae_median"
     )
   )
   return(scores_su)
 }
+
