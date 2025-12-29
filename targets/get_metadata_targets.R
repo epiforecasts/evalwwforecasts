@@ -5,16 +5,16 @@ get_metadata_targets <- list(
   ),
   tar_target(
     name = ww_metadata_table,
-    command = if (nrow(ww_data) > 0) {
+    command = if (nrow(ww_data_post) > 0) {
       calculate_ww_metadata_table(
-        ww_data = ww_data,
+        ww_data = ww_data_post,
         state_pop_data = state_pop_data,
         sampling_freq_window = calibration_period_wwinference
       )
     } else {
       tibble()
     },
-    pattern = map(ww_data)
+    pattern = map(ww_data_post)
   ),
   tar_target(
     name = ww_metadata_table_combined,
