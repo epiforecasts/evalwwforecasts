@@ -9,7 +9,7 @@ convert_to_su_object(scores_raw)
 convert_to_su_object(scores_raw)
 }
 \arguments{
-\item{scores_raw}{Data.frame from Variant Nowcast Hub GitHub}
+\item{scores_raw}{Data.frame of scores}
 
 \item{scores_data}{Data.frame from Variant Nowcast Hub GitHub}
 }
