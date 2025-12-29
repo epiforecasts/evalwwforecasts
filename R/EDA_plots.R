@@ -266,13 +266,13 @@ get_bar_chart_overall_scores <- function(scores) {
 #' @returns ggplot object
 #' @autoglobal
 get_plot_scores_by_date <- function(scores) {
-  scores_by_loc <- scores |>
+  scores_by_date <- scores |>
     summarise_scores(by = c(
       "model", "include_ww",
       "hosp_data_real_time", "forecast_date"
     )) |>
     mutate(model_ww = glue::glue("{model}-{include_ww}-{hosp_data_real_time}"))
-  p <- ggplot(scores_by_loc) +
+  p <- ggplot(scores_by_date) +
     geom_bar(
       aes(
         x = forecast_date,
@@ -285,5 +285,38 @@ get_plot_scores_by_date <- function(scores) {
     theme_bw() +
     theme(legend.position = "bottom") +
     ggtitle("Scores across all locations by forecast dates")
+  return(p)
+}
+
+#' Get scatterplot of scores by forecast date and location
+#'
+#' @param scores Data.frame of scores from across locations and forecast dates
+#'
+#' @importFrom ggplot2 geom_bar
+#' @importFrom scoringutils summarise_scores
+#' @returns ggplot object
+#' @autoglobal
+get_scatterplot_scores <- function(scores) {
+  scores_by_forecast <- scores |>
+    summarise_scores(by = c(
+      "model", "include_ww",
+      "hosp_data_real_time", "forecast_date",
+      "location"
+    )) |>
+    filter(model == "wwinference") |>
+    pivot_wider(
+      names_from = include_ww,
+      values_from = wis,
+      id_cols = c(forecast_date, location)
+    ) |>
+    rename(
+      "ww_plus_hosp" = "TRUE",
+      "hosp_only" = "FALSE"
+    )
+
+
+  p <- ggplot(scores_by_forecast) +
+    geom_point(aes(x = hosp_only, y = ww_plus_hosp)) +
+    geom_line(aes(x = hosp_only, y = hosp_only), linetype = "dashed")
   return(p)
 }

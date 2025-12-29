@@ -4,6 +4,7 @@
 #' @importFrom data.table setattr as.data.table
 #' @importFrom dplyr rename select
 #' @returns scoringutils object
+#' @autoglobal
 convert_to_su_object <- function(scores_raw) {
   scores <- data.table::as.data.table(scores_raw)
   class(scores) <- c("scores", class(scores))
@@ -18,4 +19,3 @@ convert_to_su_object <- function(scores_raw) {
   )
   return(scores_su)
 }
-
