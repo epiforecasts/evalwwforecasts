@@ -74,9 +74,16 @@ analysis_config <- list(
   analysis_config_targets
 )
 
-# Wastewater metadata
+# Wastewater and state metadata
 get_metadata <- list(
-  get_metadata_targets
+  tar_target(
+    name = ww_metadata,
+    command = read_csv(ww_metadat_fp)
+  ),
+  tar_target(
+    name = state_pop_data,
+    command = get_state_pop_data()
+  )
 )
 
 # Secondary outputs

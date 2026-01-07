@@ -92,9 +92,14 @@ scoring <- list(
   scoring_targets
 )
 
+metadata <- list(
+  get_metadata_targets
+)
+
 list(
   set_up,
   load_data,
   fit_models,
-  scoring
+  scoring,
+  metadata
 )

@@ -1,9 +1,5 @@
 get_metadata_targets <- list(
   tar_target(
-    name = state_pop_data,
-    command = get_state_pop_data()
-  ),
-  tar_target(
     name = ww_metadata_table,
     command = if (nrow(ww_data_post) > 0) {
       calculate_ww_metadata_table(
