@@ -292,7 +292,7 @@ get_plot_scores_by_date <- function(scores) {
 #'
 #' @param scores Data.frame of scores from across locations and forecast dates
 #'
-#' @importFrom ggplot2 geom_bar
+#' @importFrom ggplot2 geom_point geom_line
 #' @importFrom scoringutils summarise_scores
 #' @returns ggplot object
 #' @autoglobal
@@ -307,11 +307,11 @@ get_scatterplot_scores <- function(scores) {
     pivot_wider(
       names_from = include_ww,
       values_from = wis,
-      id_cols = c(forecast_date, location)
+      id_cols = c(forecast_date, location, hosp_data_real_time)
     ) |>
     rename(
-      ww_plus_hosp = TRUE,
-      hosp_only = FALSE
+      ww_plus_hosp = `TRUE`,
+      hosp_only = `FALSE`
     )
 
 

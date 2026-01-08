@@ -15,7 +15,7 @@ analysis_config_targets <- list(
     command = file.path("output", "overall_data_all_runs", "scores.csv")
   ),
   tar_target(
-    name = wastewater_metadata_fp,
-    command = file.path(output_dir, "ww_metadata_table.csv")
+    name = ww_metadata_fp,
+    command = file.path("metadata", "ww_metadata_table.csv")
   )
 )

@@ -78,7 +78,7 @@ analysis_config <- list(
 get_metadata <- list(
   tar_target(
     name = ww_metadata,
-    command = read_csv(ww_metadat_fp)
+    command = read_csv(ww_metadata_fp)
   ),
   tar_target(
     name = state_pop_data,

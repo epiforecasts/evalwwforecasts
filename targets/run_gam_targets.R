@@ -11,7 +11,7 @@ run_gam_targets <- list(
     name = scores_to_model,
     command = prep_scores_to_model(
       scores_long = scores,
-      ww_metadata = ww_metadata_table_combines
+      ww_metadata = ww_metadata
     )
   )
 )

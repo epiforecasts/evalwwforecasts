@@ -36,6 +36,9 @@ utils::globalVariables(c(
   "wis", # <get_scatterplot_scores>
   "forecast_date", # <get_scatterplot_scores>
   "location", # <get_scatterplot_scores>
+  "hosp_data_real_time", # <get_scatterplot_scores>
+  "TRUE", # <get_scatterplot_scores>
+  "FALSE", # <get_scatterplot_scores>
   "hosp_only", # <get_scatterplot_scores>
   "ww_plus_hosp", # <get_scatterplot_scores>
   "site", # <fit_wwinference_wrapper>
