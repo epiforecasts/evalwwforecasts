@@ -1,5 +1,13 @@
-# Targets script for generating forecasts and performing immediate
-# post-processing (quantiling and scoring)
+# Targets script for analysing forecasts and scores
+# This pipeline assumes that the `output/` folder contains:
+# - overall_data_all_runs/scores.csv: a single file with all of the scores
+# for all forecasts for the 3 models (wwinference with and without ww and
+# baseline ARIMA)
+# - individual_forecasts_all_runs/{forecast_date}/{location}/data: hospital
+# admissions quantiles for wwinference with and without wastewater, R(t)
+# estimates for the location with and without wastewater, and predicted
+# quantiled wastewater concentrations
+
 
 # The pipeline can be run using `tar_make()`
 
@@ -27,9 +35,6 @@ library(future.callr)
 functions <- list.files(here("R"), full.names = TRUE)
 walk(functions, source)
 rm("functions")
-
-n_workers <- as.integer(floor(future::availableCores() / 4))
-plan(multisession, workers = n_workers)
 
 # load target modules
 targets <- list.files(here("targets"), full.names = TRUE)
@@ -59,45 +64,48 @@ tar_option_set(
   error = "continue"
 )
 
-## Set up the date:location:model:ww+/-:right-trunc+/- permutations
-set_up <- list(
-  create_permutations_targets
+# Analysis config
+analysis_config <- list(
+  # Full set of dates and locations and models for which the model
+  # was run for
+  create_permutations_targets,
+  # Set of dates and locations to focus on in example figures +
+  # specifications of any post-processing model outputs
+  analysis_config_targets
 )
 
-
-## Iterate over all permutations. For each:
-# - extract the necessary data
-# - pre-process the data based on the model's requirements
-# - fit the model
-# - extract posterior hospital admissions (calibration and forecast)
-# - score the forecasts using CRPS and extract
-# - quantile the calibration and forecasted admissions and extract
-# - extract input data (hosp and/or ww)
-# - extract model diagnostics
-
-# Current set up: uses the `scenarios` tibble to do dynamic branching within
-# each function via pattern = map(ind_data_created, scenarios)
-load_data <- list(
-  # Load data for each location/forecast date combination
-  load_data_targets,
-  load_baseline_data_targets
-)
+# Wastewater and state metadata
 get_metadata <- list(
-  get_metadata_targets
-)
-fit_models <- list(
-  fit_model_targets,
-  fit_baseline_model_targets
+  tar_target(
+    name = ww_metadata,
+    command = read_csv(ww_metadata_fp)
+  ),
+  tar_target(
+    name = state_pop_data,
+    command = get_state_pop_data()
+  )
 )
 
-scoring <- list(
-  scoring_targets
+# Secondary outputs
+secondary_outputs <- list(
+  # GAM meta-model on scores ()
+  run_gam_targets
+  # compute coverage metrics (?)
+)
+
+# Figures
+plot_targets <- list(
+  analysis_EDA_plot_targets
+  # Fig 1: visual comparison for a single forecast date
+  # Fig 2: visual comparison + scores across forecast dates
+  # Fig 3: overall, by horizon, by location, by forecast date
+  # by location and forecast date
+  # Fig 4: Model-based evaluation results
 )
 
 list(
-  set_up,
-  load_data,
+  analysis_config,
   get_metadata,
-  fit_models,
-  scoring
+  secondary_outputs,
+  plot_targets
 )

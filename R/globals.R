@@ -31,6 +31,16 @@ utils::globalVariables(c(
   "forecast_date", # <get_plot_scores_by_date>
   "wis", # <get_plot_scores_by_date>
   "model_ww", # <get_plot_scores_by_date>
+  "model", # <get_scatterplot_scores>
+  "include_ww", # <get_scatterplot_scores>
+  "wis", # <get_scatterplot_scores>
+  "forecast_date", # <get_scatterplot_scores>
+  "location", # <get_scatterplot_scores>
+  "hosp_data_real_time", # <get_scatterplot_scores>
+  "TRUE", # <get_scatterplot_scores>
+  "FALSE", # <get_scatterplot_scores>
+  "hosp_only", # <get_scatterplot_scores>
+  "ww_plus_hosp", # <get_scatterplot_scores>
   "site", # <fit_wwinference_wrapper>
   "lab", # <fit_wwinference_wrapper>
   "log_genome_copies_per_ml", # <fit_wwinference_wrapper>

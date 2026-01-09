@@ -4,10 +4,10 @@
 \alias{convert_to_su_object}
 \title{Convert the scores to a scoringutils object}
 \usage{
-convert_to_su_object(scores_data)
+convert_to_su_object(scores_raw)
 }
 \arguments{
-\item{scores_data}{Data.frame from Variant Nowcast Hub GitHub}
+\item{scores_raw}{Data.frame of scores}
 }
 \value{
 scoringutils object
