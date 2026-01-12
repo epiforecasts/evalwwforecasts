@@ -44,7 +44,9 @@ Imports:
     httr,
     jsonlite,
     future,
-    future.callr
+    future.callr,
+    patchwork,
+    purrr
 Suggests:
     bookdown,
     targets,

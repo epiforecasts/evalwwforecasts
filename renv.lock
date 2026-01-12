@@ -253,6 +253,45 @@
       "Maintainer": "Dirk Eddelbuettel <edd@debian.org>",
       "Repository": "CRAN"
     },
+    "S7": {
+      "Package": "S7",
+      "Version": "0.2.1",
+      "Source": "Repository",
+      "Title": "An Object Oriented System Meant to Become a Successor to S3 and S4",
+      "Authors@R": "c( person(\"Object-Oriented Programming Working Group\", role = \"cph\"), person(\"Davis\", \"Vaughan\", role = \"aut\"), person(\"Jim\", \"Hester\", role = \"aut\", comment = c(ORCID = \"0000-0002-2739-7082\")), person(\"Tomasz\", \"Kalinowski\", role = \"aut\"), person(\"Will\", \"Landau\", role = \"aut\"), person(\"Michael\", \"Lawrence\", role = \"aut\"), person(\"Martin\", \"Maechler\", role = \"aut\", comment = c(ORCID = \"0000-0002-8685-9910\")), person(\"Luke\", \"Tierney\", role = \"aut\"), person(\"Hadley\", \"Wickham\", , \"hadley@posit.co\", role = c(\"aut\", \"cre\"), comment = c(ORCID = \"0000-0003-4757-117X\")) )",
+      "Description": "A new object oriented programming system designed to be a successor to S3 and S4. It includes formal class, generic, and method specification, and a limited form of multiple dispatch. It has been designed and implemented collaboratively by the R Consortium Object-Oriented Programming Working Group, which includes representatives from R-Core, 'Bioconductor', 'Posit'/'tidyverse', and the wider R community.",
+      "License": "MIT + file LICENSE",
+      "URL": "https://rconsortium.github.io/S7/, https://github.com/RConsortium/S7",
+      "BugReports": "https://github.com/RConsortium/S7/issues",
+      "Depends": [
+        "R (>= 3.5.0)"
+      ],
+      "Imports": [
+        "utils"
+      ],
+      "Suggests": [
+        "bench",
+        "callr",
+        "covr",
+        "knitr",
+        "methods",
+        "rmarkdown",
+        "testthat (>= 3.2.0)",
+        "tibble"
+      ],
+      "VignetteBuilder": "knitr",
+      "Config/build/compilation-database": "true",
+      "Config/Needs/website": "sloop",
+      "Config/testthat/edition": "3",
+      "Config/testthat/parallel": "TRUE",
+      "Config/testthat/start-first": "external-generic",
+      "Encoding": "UTF-8",
+      "RoxygenNote": "7.3.3",
+      "NeedsCompilation": "yes",
+      "Author": "Object-Oriented Programming Working Group [cph], Davis Vaughan [aut], Jim Hester [aut] (ORCID: <https://orcid.org/0000-0002-2739-7082>), Tomasz Kalinowski [aut], Will Landau [aut], Michael Lawrence [aut], Martin Maechler [aut] (ORCID: <https://orcid.org/0000-0002-8685-9910>), Luke Tierney [aut], Hadley Wickham [aut, cre] (ORCID: <https://orcid.org/0000-0003-4757-117X>)",
+      "Maintainer": "Hadley Wickham <hadley@posit.co>",
+      "Repository": "CRAN"
+    },
     "TTR": {
       "Package": "TTR",
       "Version": "0.24.4",
@@ -1617,6 +1656,51 @@
       "Author": "Matthew Kay [aut, cre], Brenton M. Wiernik [ctb]",
       "Repository": "CRAN"
     },
+    "ggh4x": {
+      "Package": "ggh4x",
+      "Version": "0.3.1",
+      "Source": "Repository",
+      "Title": "Hacks for 'ggplot2'",
+      "Authors@R": "person(given = \"Teun\", family = \"van den Brand\", role = c(\"aut\", \"cre\"), email = \"tahvdbrand@gmail.com\", comment = c(ORCID = \"0000-0002-9335-7468\"))",
+      "Description": "A 'ggplot2' extension that does a variety of little helpful things.  The package extends 'ggplot2' facets through customisation, by setting individual scales per panel, resizing panels and providing nested facets.  Also allows multiple colour and fill scales per plot. Also hosts a smaller collection of stats, geoms and axis  guides.",
+      "License": "MIT + file LICENSE",
+      "URL": "https://github.com/teunbrand/ggh4x, https://teunbrand.github.io/ggh4x/",
+      "BugReports": "https://github.com/teunbrand/ggh4x/issues",
+      "Depends": [
+        "ggplot2 (>= 3.5.2)"
+      ],
+      "Imports": [
+        "grid",
+        "gtable",
+        "scales",
+        "vctrs (>= 0.5.0)",
+        "rlang (>= 1.1.0)",
+        "lifecycle",
+        "stats",
+        "cli",
+        "S7"
+      ],
+      "Suggests": [
+        "covr",
+        "fitdistrplus",
+        "ggdendro",
+        "vdiffr",
+        "knitr",
+        "MASS",
+        "rmarkdown",
+        "testthat (>= 3.0.0)",
+        "utils"
+      ],
+      "VignetteBuilder": "knitr",
+      "Encoding": "UTF-8",
+      "RoxygenNote": "7.3.2",
+      "Config/testthat/edition": "3",
+      "Collate": "'at_panel.R' 'borrowed_ggplot2.R' 'conveniences.R' 'ggh4x_extensions.R' 'coord_axes_inside.R' 'deprecated.R' 'element_part_rect.R' 'facet_grid2.R' 'facet_wrap2.R' 'facet_manual.R' 'facet_nested.R' 'facet_nested_wrap.R' 'facetted_pos_scales.R' 'force_panelsize.R' 'geom_box.R' 'geom_outline_point.R' 'geom_pointpath.R' 'geom_polygonraster.R' 'geom_rectrug.R' 'geom_text_aimed.R' 'ggh4x-package.R' 'guide_stringlegend.R' 'help_secondary.R' 'position_disjoint_ranges.R' 'position_lineartrans.R' 'scale_facet.R' 'scale_listed.R' 'scale_manual.R' 'scale_multi.R' 'stat_difference.R' 'stat_funxy.R' 'stat_rle.R' 'stat_roll.R' 'stat_theodensity.R' 'strip_vanilla.R' 'strip_themed.R' 'strip_nested.R' 'strip_split.R' 'strip_tag.R' 'themes.R' 'utils.R' 'utils_grid.R' 'utils_gtable.R'",
+      "NeedsCompilation": "no",
+      "Author": "Teun van den Brand [aut, cre] (ORCID: <https://orcid.org/0000-0002-9335-7468>)",
+      "Maintainer": "Teun van den Brand <tahvdbrand@gmail.com>",
+      "Repository": "CRAN"
+    },
     "ggplot2": {
       "Package": "ggplot2",
       "Version": "3.5.2",
@@ -2625,6 +2709,50 @@
       "NeedsCompilation": "yes",
       "Author": "Henrik Bengtsson [aut, cre, cph] (ORCID: <https://orcid.org/0000-0002-7579-5165>), Mike Cheng [ctb]",
       "Maintainer": "Henrik Bengtsson <henrikb@braju.com>",
+      "Repository": "CRAN"
+    },
+    "patchwork": {
+      "Package": "patchwork",
+      "Version": "1.3.2",
+      "Source": "Repository",
+      "Type": "Package",
+      "Title": "The Composer of Plots",
+      "Authors@R": "person(given = \"Thomas Lin\", family = \"Pedersen\", role = c(\"cre\", \"aut\"), email = \"thomasp85@gmail.com\", comment = c(ORCID = \"0000-0002-5147-4711\"))",
+      "Maintainer": "Thomas Lin Pedersen <thomasp85@gmail.com>",
+      "Description": "The 'ggplot2' package provides a strong API for sequentially  building up a plot, but does not concern itself with composition of multiple plots. 'patchwork' is a package that expands the API to allow for  arbitrarily complex composition of plots by, among others, providing  mathematical operators for combining multiple plots. Other packages that try  to address this need (but with a different approach) are 'gridExtra' and  'cowplot'.",
+      "License": "MIT + file LICENSE",
+      "Encoding": "UTF-8",
+      "Imports": [
+        "ggplot2 (>= 3.0.0)",
+        "gtable (>= 0.3.6)",
+        "grid",
+        "stats",
+        "grDevices",
+        "utils",
+        "graphics",
+        "rlang (>= 1.0.0)",
+        "cli",
+        "farver"
+      ],
+      "RoxygenNote": "7.3.2",
+      "URL": "https://patchwork.data-imaginist.com, https://github.com/thomasp85/patchwork",
+      "BugReports": "https://github.com/thomasp85/patchwork/issues",
+      "Suggests": [
+        "knitr",
+        "rmarkdown",
+        "gridGraphics",
+        "gridExtra",
+        "ragg",
+        "testthat (>= 2.1.0)",
+        "vdiffr",
+        "covr",
+        "png",
+        "gt (>= 0.11.0)"
+      ],
+      "VignetteBuilder": "knitr",
+      "Config/Needs/website": "gifski",
+      "NeedsCompilation": "no",
+      "Author": "Thomas Lin Pedersen [cre, aut] (ORCID: <https://orcid.org/0000-0002-5147-4711>)",
       "Repository": "CRAN"
     },
     "pillar": {

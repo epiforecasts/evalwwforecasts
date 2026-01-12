@@ -14,12 +14,6 @@ A custom ggplot2 theme function using LSHTM branding colours and styling
 for consistent plot appearance across the package. The theme uses LSHTM's
 primary colour (#01454F) for borders, text, and strip backgrounds.
 }
-\examples{
-library(ggplot2)
-ggplot(mtcars, aes(x = wt, y = mpg)) +
-  geom_point() +
-  lshtm_theme()
-}
 \author{
 Ciara Judge (theme design)
 }
