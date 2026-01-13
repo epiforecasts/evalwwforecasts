@@ -54,8 +54,6 @@ lshtm_theme <- function() {
 #'   c("2024-07-01", "2024-12-09"))
 #' @param locations Character vector of location names. If NULL, three random
 #'   locations are selected from the first forecast date. Default is NULL.
-#' @param hosp_data_long Data.frame of observed hospital data with columns:
-#'   date, location, observed
 #' @param forecast_horizon_to_plot Integer indicating number of days of horizon
 #'   to plot. Default is 28.
 #' @param historical_data_to_plot Integer indicating number of days into the
