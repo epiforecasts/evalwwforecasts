@@ -46,7 +46,9 @@ Imports:
     future,
     future.callr,
     patchwork,
-    purrr
+    purrr,
+    ggh4x, 
+    gridExtra)
 Suggests:
     bookdown,
     targets,

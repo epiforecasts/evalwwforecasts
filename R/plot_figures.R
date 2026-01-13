@@ -86,12 +86,16 @@ plot_multilocation_comparison <- function(
     output_path,
     forecast_dates,
     locations = NULL,
-    hosp_data_long,
     forecast_horizon_to_plot = 28,
     historical_data_to_plot = 90,
     scale_selected = "natural",
     save_path = NULL,
     show_multiple_dates = TRUE) {
+  # Validate inputs
+if (length(forecast_dates) == 0) {
+          stop("forecast_dates must not be empty")
+        }
+  
   # If show_multiple_dates is FALSE, randomly select one forecast date
   if (!show_multiple_dates) {
     # Filter to 2024 dates if available

@@ -13,33 +13,46 @@ multilocation_plot_targets <- list(
   # (e.g., first, middle, and last forecast date)
   # Only select dates that actually have complete forecast data
   tar_target(
-    name = selected_forecast_dates_multiloc,
-    command = {
-      dates <- unique(scores$forecast_date)
-      dates <- sort(dates)
-
-      # Filter to only dates with complete data
-      valid_dates <- c()
-      test_loc <- available_locations_multiloc[1]
-      for (test_date in dates) {
-        date_str <- as.character(as.Date(test_date, origin = "1970-01-01"))
-        test_path <- file.path(
-          output_path_multiloc,
-          "individual_forecasts_all_runs",
-          date_str,
-          test_loc,
-          "data",
-          "hosp_quantiles_ww_TRUE.csv"
-        )
-        if (file.exists(test_path)) {
-          valid_dates <- c(valid_dates, date_str)
-        }
+      name = selected_forecast_dates_multiloc,
+      command = {
+        +      test_loc <- available_locations_multiloc[1]
+        dates <- unique(scores$forecast_date)
+        dates <- sort(dates)
+        
+        # Filter to only dates with complete data
+             valid_dates <- c()
+              test_loc <- available_locations_multiloc[1]
+              for (test_date in dates) {
+                  date_str <- as.character(as.Date(test_date, origin = "1970-01-01"))
+                test_path <- file.path(
+                     output_path_multiloc,
+                      "individual_forecasts_all_runs",
+                      date_str,
+                      test_loc,
+                      "data",
+                      "hosp_quantiles_ww_TRUE.csv"
+                    )
+                 if (file.exists(test_path)) {
+                      valid_dates <- c(valid_dates, date_str)
+                    }
+                }
+              date_strs <- as.character(as.Date(dates, origin = "1970-01-01"))
+              valid_dates <- date_strs[vapply(date_strs, function(date_str) {
+                  test_path <- file.path(
+                     output_path_multiloc,
+                     "individual_forecasts_all_runs",
+                      date_str,
+                      test_loc,
+                      "data",
+                      "hosp_quantiles_ww_TRUE.csv"
+                    )
+                  file.exists(test_path)
+                }, logical(1))]
+        
+        # Return every other valid date for clarity
+        valid_dates[seq(1, length(valid_dates), by = 2)]
       }
-
-      # Return every other valid date for clarity
-      valid_dates[seq(1, length(valid_dates), by = 2)]
-    }
-  ),
+    ),
   # Get available locations from scores
   tar_target(
     name = available_locations_multiloc,
