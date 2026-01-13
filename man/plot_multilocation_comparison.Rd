@@ -12,7 +12,8 @@ plot_multilocation_comparison(
   forecast_horizon_to_plot = 28,
   historical_data_to_plot = 90,
   scale_selected = "natural",
-  save_path = NULL
+  save_path = NULL,
+  show_multiple_dates = TRUE
 )
 }
 \arguments{
@@ -38,6 +39,10 @@ default is "natural"}
 
 \item{save_path}{Optional path to save the figure. If NULL, figure is not
 saved. Default is NULL.}
+
+\item{show_multiple_dates}{Logical indicating whether to show all forecast
+dates or just the first one. If FALSE, only the first forecast date will
+be plotted. Default is TRUE.}
 }
 \value{
 A combined ggplot object with hospital and wastewater plots

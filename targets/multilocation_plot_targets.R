@@ -133,5 +133,38 @@ multilocation_plot_targets <- list(
       save_path = file.path(multiloc_fig_path, "specific_locations")
     ),
     format = "rds"
+  ),
+  # Create single-date plots (only first forecast date)
+  tar_target(
+    name = multilocation_single_date_plots,
+    command = plot_multilocation_comparison(
+      output_path = output_path_multiloc,
+      forecast_dates = selected_forecast_dates_multiloc,
+      locations = NULL, # Randomly select 3 locations
+      hosp_data_long = hosp_data_all_locations,
+      forecast_horizon_to_plot = 28,
+      historical_data_to_plot = 90,
+      scale_selected = "natural",
+      save_path = file.path(multiloc_fig_path, "single_date"),
+      show_multiple_dates = FALSE
+    ),
+    format = "rds"
+  ),
+  tar_target(
+    name = multilocation_specific_single_date_plots,
+    command = plot_multilocation_comparison(
+      output_path = output_path_multiloc,
+      forecast_dates = selected_forecast_dates_multiloc,
+      locations = locations_of_interest,
+      hosp_data_long = hosp_data_all_locations,
+      forecast_horizon_to_plot = 28,
+      historical_data_to_plot = 90,
+      scale_selected = "natural",
+      save_path = file.path(
+        multiloc_fig_path, "specific_locations", "single_date"
+      ),
+      show_multiple_dates = FALSE
+    ),
+    format = "rds"
   )
 )

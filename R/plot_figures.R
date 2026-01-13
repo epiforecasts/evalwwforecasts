@@ -64,18 +64,24 @@ lshtm_theme <- function() {
 #'   default is "natural"
 #' @param save_path Optional path to save the figure. If NULL, figure is not
 #'   saved. Default is NULL.
+#' @param show_multiple_dates Logical indicating whether to show all forecast
+#'   dates or just the first one. If FALSE, only the first forecast date will
+#'   be plotted. Default is TRUE.
 #'
 #' @return A combined ggplot object with hospital and wastewater plots
 #' @importFrom readr read_csv
-#' @importFrom dplyr filter mutate bind_rows rename select
+#' @importFrom dplyr filter mutate bind_rows rename select distinct pull
 #' @importFrom tidyr pivot_wider
 #' @importFrom ggplot2 ggplot aes geom_line geom_ribbon geom_point facet_grid
-#'   facet_wrap ggtitle xlab ylab ggsave theme element_text vars
+#'   facet_wrap ggtitle xlab ylab ggsave theme element_text element_blank
+#'   element_rect element_line labs vars geom_vline
 #' @importFrom lubridate ymd days
 #' @importFrom glue glue
 #' @importFrom rlang .data
 #' @importFrom patchwork plot_layout wrap_plots plot_spacer plot_annotation
 #' @importFrom ggh4x facet_grid2
+#' @importFrom grid textGrob gpar
+#' @importFrom gridExtra arrangeGrob
 #' @export
 #' @autoglobal
 plot_multilocation_comparison <- function(
@@ -86,7 +92,19 @@ plot_multilocation_comparison <- function(
     forecast_horizon_to_plot = 28,
     historical_data_to_plot = 90,
     scale_selected = "natural",
-    save_path = NULL) {
+    save_path = NULL,
+    show_multiple_dates = TRUE) {
+  # If show_multiple_dates is FALSE, randomly select one forecast date
+  if (!show_multiple_dates) {
+    # Filter to 2024 dates if available
+    dates_2024 <- forecast_dates[grepl("^2024-", forecast_dates)]
+    if (length(dates_2024) > 0) {
+      forecast_dates <- sample(dates_2024, size = 1)
+    } else {
+      forecast_dates <- sample(forecast_dates, size = 1)
+    }
+  }
+
   # Get locations from first forecast date if not specified
   if (is.null(locations)) {
     first_forecast_path <- file.path(
@@ -154,6 +172,46 @@ plot_multilocation_comparison <- function(
     }
   }
 
+  # Load wastewater observations from 8 weeks after the forecast date
+  # to get observations that cover the full forecast horizon
+  ww_later_obs_list <- list()
+
+  # Find forecast date approximately 8 weeks (56 days) after current
+  all_forecast_dirs <- list.dirs(
+    file.path(output_path, "individual_forecasts_all_runs"),
+    full.names = FALSE,
+    recursive = FALSE
+  )
+  all_forecast_dates <- sort(all_forecast_dirs[grepl("^\\d{4}-\\d{2}-\\d{2}$", all_forecast_dirs)])
+
+  max_current_forecast <- max(forecast_dates)
+  target_date <- ymd(max_current_forecast) + days(56)
+
+  # Find the closest forecast date to 8 weeks later
+  all_forecast_dates_parsed <- ymd(all_forecast_dates)
+  later_dates <- all_forecast_dates_parsed[all_forecast_dates_parsed >= target_date]
+
+  if (length(later_dates) > 0) {
+    # Use the first available date at or after 8 weeks
+    later_forecast_date <- as.character(min(later_dates))
+
+    for (loc in locations) {
+      ww_path <- file.path(
+        output_path,
+        "individual_forecasts_all_runs",
+        later_forecast_date,
+        loc,
+        "data",
+        "ww_quantiles.csv"
+      )
+      if (file.exists(ww_path)) {
+        ww_later_data <- read_csv(ww_path, show_col_types = FALSE)
+        ww_later_data$location <- loc
+        ww_later_obs_list[[loc]] <- ww_later_data
+      }
+    }
+  }
+
   # Combine forecasts
   hosp_forecasts <- bind_rows(hosp_forecasts_list)
 
@@ -209,13 +267,21 @@ plot_multilocation_comparison <- function(
     hosp_forecasts$date_parsed >= min_date_filter &
       hosp_forecasts$date_parsed <= max_date_filter &
       !is.na(hosp_forecasts$observed),
-    c("date_parsed", "location", "observed")
+    c("date_parsed", "location", "observed", "forecast_date_parsed")
   ]
   # De-duplicate - observed value is same across all
   # quantiles/models for a given date
   hosp_obs <- hosp_obs[
     !duplicated(hosp_obs[, c("date_parsed", "location")]),
   ]
+
+  # Mark observations as historical (before forecast) or future (after forecast)
+  # Use the minimum forecast date as the cutoff
+  hosp_obs$obs_timing <- ifelse(
+    hosp_obs$date_parsed < min_forecast_date,
+    "historical",
+    "future"
+  )
 
   # Prepare hospital data - add faceting columns
   # facet_col is for the column dimension (Hospital, Site1, Site2, etc.)
@@ -265,21 +331,68 @@ plot_multilocation_comparison <- function(
     )
     ww_wide$data_type <- "forecast"
 
-    # Extract observed wastewater data from original (before
-    # filtering)
+    # Extract observed wastewater data - use forecast file observations
+    # for historical data, then supplement with next forecast date's
+    # observations to fill in the forecast horizon
     ww_obs_all <- ww_forecasts[
       ww_forecasts$date_parsed >= min_date_filter &
         ww_forecasts$date_parsed <= max_date_filter &
         !is.na(ww_forecasts$log_genome_copies_per_ml),
       c(
-        "date_parsed", "location", "lab_site_name",
+        "date_parsed", "location", "site", "lab", "lab_site_name",
         "log_genome_copies_per_ml"
       )
     ]
+    # Mark these as historical (available at forecast time)
+    ww_obs_all$obs_timing <- "historical"
+
+    # Supplement with observations from the next forecast date
+    if (length(ww_later_obs_list) > 0) {
+      ww_later_combined <- bind_rows(ww_later_obs_list)
+      ww_later_combined$date_parsed <- ymd(ww_later_combined$date)
+
+      # Extract observations from next forecast, filtering to forecast
+      # horizon of current forecasts
+      min_forecast <- min(forecasts_wide$forecast_date_parsed)
+      ww_later_obs <- ww_later_combined[
+        ww_later_combined$date_parsed >= min_forecast &
+          ww_later_combined$date_parsed <= max_date_filter &
+          !is.na(ww_later_combined$log_genome_copies_per_ml),
+        c(
+          "date_parsed", "location", "site",
+          "log_genome_copies_per_ml"
+        )
+      ]
+
+      # Map later observations to the lab_site_name from current forecasts
+      # by matching on site and location
+      site_mapping <- unique(ww_obs_all[, c("site", "location", "lab_site_name")])
+      ww_later_obs <- merge(
+        ww_later_obs,
+        site_mapping,
+        by = c("site", "location"),
+        all.x = TRUE
+      )
+
+      # Only keep later obs that match existing sites
+      ww_later_obs <- ww_later_obs[!is.na(ww_later_obs$lab_site_name), ]
+
+      # Mark these as future (not available at forecast time)
+      ww_later_obs$obs_timing <- "future"
+
+      # Combine, keeping forecast file obs when both exist
+      ww_obs_all <- bind_rows(ww_obs_all, ww_later_obs)
+      ww_obs_all <- ww_obs_all[
+        !duplicated(ww_obs_all[, c("date_parsed", "location", "site")]),
+      ]
+    }
+
     ww_obs_all$facet_col <- ww_obs_all$lab_site_name
     ww_obs_all$data_type <- "observed"
     ww_obs <- ww_obs_all[
-      !duplicated(ww_obs_all[, c("date_parsed", "location", "lab_site_name")]),
+      !duplicated(
+        ww_obs_all[, c("date_parsed", "location", "lab_site_name")]
+      ),
     ]
 
     combined_plot_data$ww <- ww_wide
@@ -319,9 +432,16 @@ plot_multilocation_comparison <- function(
       # Count how many WW sites this location has
       n_ww_sites_loc <- length(unique(loc_ww_forecast$facet_col))
 
-      # Build plot for this location with hospital +
-      # its wastewater sites
-      p_loc <- ggplot() +
+      # Create separate hospital plot (no faceting needed - just one panel)
+      # Add y-axis label only to the middle location (for vertical centering)
+      middle_loc_index <- ceiling(length(locations) / 2)
+      hosp_ylab <- if (which(locations == loc) == middle_loc_index) {
+        "7-day rolling sum of\nhospital admissions"
+      } else {
+        ""
+      }
+
+      p_hosp <- ggplot() +
         # Hospital forecasts (median)
         geom_line(
           data = loc_hosp_forecast,
@@ -355,18 +475,37 @@ plot_multilocation_comparison <- function(
           ),
           alpha = 0.3
         ) +
-        # Hospital observations
+        # Hospital observations - historical (before forecast date)
         geom_point(
-          data = loc_hosp_obs,
+          data = loc_hosp_obs[loc_hosp_obs$obs_timing == "historical", ],
           aes(x = date_parsed, y = observed),
           color = "black"
         ) +
+        # Hospital observations - future (during/after forecast date)
+        geom_point(
+          data = loc_hosp_obs[loc_hosp_obs$obs_timing == "future", ],
+          aes(x = date_parsed, y = observed),
+          color = "gray50"
+        ) +
         lshtm_theme() +
-        labs(color = "Model", fill = "Model")
+        labs(color = "Model", fill = "Model") +
+        ylab(hosp_ylab) +
+        ggtitle(loc) +
+        theme(
+          axis.title.x = element_blank(),
+          axis.title.y = element_text(hjust = 0.5)
+        )
 
-      # Add wastewater data if available for this location
+      # Create wastewater plot if data available
       if (nrow(loc_ww_forecast) > 0) {
-        p_loc <- p_loc +
+        # Add y-axis label only to the middle location (for vertical centering)
+        ww_ylab <- if (which(locations == loc) == middle_loc_index) {
+          "Log genome copies per ml"
+        } else {
+          ""
+        }
+
+        p_ww_base <- ggplot() +
           # Wastewater forecasts (median)
           geom_line(
             data = loc_ww_forecast,
@@ -385,24 +524,57 @@ plot_multilocation_comparison <- function(
             alpha = 0.3,
             fill = "#01454F"
           ) +
-          # Wastewater observations
+          # Wastewater observations - historical (available at forecast time)
           geom_point(
-            data = loc_ww_obs,
+            data = loc_ww_obs[loc_ww_obs$obs_timing == "historical", ],
             aes(x = date_parsed, y = log_genome_copies_per_ml),
             color = "black",
             size = 0.8
           ) +
-          # Facet by facet_col - only show panels for
-          # this location
+          # Wastewater observations - future (not available at forecast time)
+          geom_point(
+            data = loc_ww_obs[loc_ww_obs$obs_timing == "future", ],
+            aes(x = date_parsed, y = log_genome_copies_per_ml),
+            color = "gray50",
+            size = 0.8
+          ) +
           facet_wrap(~facet_col, scales = "free_y", nrow = 1) +
-          xlab("") +
-          ylab("7-day rolling sum / Log genome copies per ml") +
-          ggtitle(loc)
+          lshtm_theme() +
+          ylab(ww_ylab) +
+          ggtitle("") +
+          theme(
+            axis.title.x = element_blank(),
+            axis.title.y = element_text(hjust = 0.5),
+            legend.position = "none"
+          )
+
+        # Add spacers to wastewater plot to match max_ww_sites
+        n_spacers_needed <- max_ww_sites - n_ww_sites_loc
+
+        if (n_spacers_needed > 0) {
+          ww_elements <- list(p_ww_base)
+          for (j in 1:n_spacers_needed) {
+            ww_elements[[length(ww_elements) + 1]] <- patchwork::plot_spacer()
+          }
+          # Wastewater plot gets n_ww_sites_loc width, each spacer gets 1
+          ww_widths <- c(n_ww_sites_loc, rep(1, n_spacers_needed))
+          p_ww <- patchwork::wrap_plots(ww_elements, nrow = 1, widths = ww_widths)
+        } else {
+          p_ww <- p_ww_base
+        }
+
+        # Combine hospital and wastewater plots
+        # Hospital gets 1 unit, wastewater gets max_ww_sites units
+        row_elements <- list(p_hosp, p_ww)
+        widths <- c(1, max_ww_sites)
+        p_loc <- patchwork::wrap_plots(
+          row_elements,
+          nrow = 1,
+          widths = widths,
+          guides = "keep"
+        )
       } else {
-        p_loc <- p_loc +
-          xlab("") +
-          ylab("7-day rolling sum of hospital admissions") +
-          ggtitle(loc)
+        p_loc <- p_hosp
       }
 
       location_plots[[loc]] <- list(
@@ -411,48 +583,22 @@ plot_multilocation_comparison <- function(
       )
     }
 
-    # Calculate max panels across all locations to determine
-    # spacer sizes
-    max_panels <- max(sapply(location_plots, function(x) x$n_panels))
+    # Stack all location plots vertically
+    # Extract just the plot objects
+    plots_only <- lapply(location_plots, function(x) x$plot)
 
-    # Create rows with consistent widths using spacers
-    plot_rows <- list()
-    for (i in seq_along(locations)) {
-      loc <- locations[i]
-      plot_obj <- location_plots[[loc]]
-      n_panels <- plot_obj$n_panels
-      n_spacers_needed <- max_panels - n_panels
-
-      if (n_spacers_needed > 0) {
-        # Create a row with the plot + spacers
-        # Use wrap_plots to combine them horizontally
-        row_elements <- list(plot_obj$plot)
-        for (j in 1:n_spacers_needed) {
-          row_elements[[length(row_elements) + 1]] <-
-            patchwork::plot_spacer()
-        }
-        # Width ratio: give the plot n_panels units, each
-        # spacer 1 unit
-        widths <- c(n_panels, rep(1, n_spacers_needed))
-        plot_rows[[loc]] <- patchwork::wrap_plots(
-          row_elements,
-          nrow = 1, widths = widths
-        )
-      } else {
-        plot_rows[[loc]] <- plot_obj$plot
-      }
-    }
-
-    # Stack all rows vertically
     p_combined <- patchwork::wrap_plots(
-      plot_rows,
-      ncol = 1, guides = "collect"
+      plots_only,
+      ncol = 1,
+      guides = "collect"
     ) +
       patchwork::plot_annotation(
         title = glue(
           "Model Comparison ({length(forecast_dates)} forecast dates)"
-        )
-      )
+        ),
+        caption = "Date"
+      ) &
+      theme(plot.caption = element_text(hjust = 0.5, size = 11))
   } else {
     # Just hospital data - facet by location only
     p_combined <- ggplot() +
