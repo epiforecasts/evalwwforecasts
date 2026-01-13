@@ -2,10 +2,13 @@ CDCgov
 COVID
 COVIDHub
 DD
+EDA
 FluSight
 KITmetricslab
 LOD
 LOQ
+LSHTM
+LSHTM's
 Nowcast
 RKI
 YYYY
@@ -26,7 +29,5 @@ refs
 scoringutils
 th
 tibble
-timepoint
-timeseries
 ww
 wwinference
