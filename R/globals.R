@@ -110,8 +110,6 @@ utils::globalVariables(c(
   "loq", # <add_correct_lod>
   "mean_loq", # <add_correct_lod>
   "overall_mean", # <add_correct_lod>
-  "quantile_level", # <plot_multilocation_comparison>
-  "predicted", # <plot_multilocation_comparison>
   "date_parsed", # <plot_multilocation_comparison>
   "q_0.5", # <plot_multilocation_comparison>
   "forecast_date_model_ww", # <plot_multilocation_comparison>
@@ -121,8 +119,6 @@ utils::globalVariables(c(
   "q_0.05", # <plot_multilocation_comparison>
   "q_0.95", # <plot_multilocation_comparison>
   "observed", # <plot_multilocation_comparison>
-  "forecast_date_site", # <plot_multilocation_comparison>
-  "log_genome_copies_per_ml", # <plot_multilocation_comparison>
   "state", # <format_baseline_forecasts>
   "quantile_level", # <format_baseline_forecasts>
   "pred_value7dsum", # <format_baseline_forecasts>

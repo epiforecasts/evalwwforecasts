@@ -12,7 +12,8 @@ plot_multilocation_comparison(
   historical_data_to_plot = 90,
   scale_selected = "natural",
   save_path = NULL,
-  show_multiple_dates = TRUE
+  show_multiple_dates = TRUE,
+  single_date_index = 1
 )
 }
 \arguments{
@@ -37,8 +38,11 @@ default is "natural"}
 saved. Default is NULL.}
 
 \item{show_multiple_dates}{Logical indicating whether to show all forecast
-dates or just the first one. If FALSE, only the first forecast date will
-be plotted. Default is TRUE.}
+dates or just one. If FALSE, only uses single_date_index to select one
+date. Default is TRUE.}
+
+\item{single_date_index}{Integer index of which forecast date to use when
+show_multiple_dates is FALSE. Default is 1 (first date).}
 }
 \value{
 A combined ggplot object with hospital and wastewater plots

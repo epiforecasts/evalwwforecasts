@@ -15,7 +15,6 @@ multilocation_plot_targets <- list(
   tar_target(
     name = selected_forecast_dates_multiloc,
     command = {
-      +test_loc <- available_locations_multiloc[1]
       dates <- unique(scores$forecast_date)
       dates <- sort(dates)
 
@@ -117,7 +116,8 @@ multilocation_plot_targets <- list(
       save_path = file.path(
         multiloc_fig_path, "specific_locations", "single_date"
       ),
-      show_multiple_dates = FALSE
+      show_multiple_dates = FALSE,
+      single_date_index = 2 # Use 2024-07-15 (second date with complete data)
     ),
     format = "rds"
   )
