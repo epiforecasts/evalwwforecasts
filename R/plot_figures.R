@@ -92,10 +92,10 @@ plot_multilocation_comparison <- function(
     save_path = NULL,
     show_multiple_dates = TRUE) {
   # Validate inputs
-if (length(forecast_dates) == 0) {
-          stop("forecast_dates must not be empty")
-        }
-  
+  if (length(forecast_dates) == 0) {
+    stop("forecast_dates must not be empty")
+  }
+
   # If show_multiple_dates is FALSE, randomly select one forecast date
   if (!show_multiple_dates) {
     # Filter to 2024 dates if available
@@ -560,7 +560,7 @@ if (length(forecast_dates) == 0) {
           }
           # Wastewater plot gets n_ww_sites_loc width, each spacer gets 1
           ww_widths <- c(n_ww_sites_loc, rep(1, n_spacers_needed))
-          p_ww <- patchwork::wrap_plots(ww_elements, nrow = 1, widths = ww_widths)
+          p_ww <- wrap_plots(ww_elements, nrow = 1, widths = ww_widths)
         } else {
           p_ww <- p_ww_base
         }
@@ -569,7 +569,7 @@ if (length(forecast_dates) == 0) {
         # Hospital gets 1 unit, wastewater gets max_ww_sites units
         row_elements <- list(p_hosp, p_ww)
         widths <- c(1, max_ww_sites)
-        p_loc <- patchwork::wrap_plots(
+        p_loc <- wrap_plots(
           row_elements,
           nrow = 1,
           widths = widths,
@@ -589,12 +589,12 @@ if (length(forecast_dates) == 0) {
     # Extract just the plot objects
     plots_only <- lapply(location_plots, function(x) x$plot)
 
-    p_combined <- patchwork::wrap_plots(
+    p_combined <- wrap_plots(
       plots_only,
       ncol = 1,
       guides = "collect"
     ) +
-      patchwork::plot_annotation(
+      plot_annotation(
         title = glue(
           "Model Comparison ({length(forecast_dates)} forecast dates)"
         ),

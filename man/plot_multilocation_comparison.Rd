@@ -8,7 +8,6 @@ plot_multilocation_comparison(
   output_path,
   forecast_dates,
   locations = NULL,
-  hosp_data_long,
   forecast_horizon_to_plot = 28,
   historical_data_to_plot = 90,
   scale_selected = "natural",
@@ -24,9 +23,6 @@ c("2024-07-01", "2024-12-09"))}
 
 \item{locations}{Character vector of location names. If NULL, three random
 locations are selected from the first forecast date. Default is NULL.}
-
-\item{hosp_data_long}{Data.frame of observed hospital data with columns:
-date, location, observed}
 
 \item{forecast_horizon_to_plot}{Integer indicating number of days of horizon
 to plot. Default is 28.}
