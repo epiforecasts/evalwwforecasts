@@ -110,6 +110,21 @@ utils::globalVariables(c(
   "loq", # <add_correct_lod>
   "mean_loq", # <add_correct_lod>
   "overall_mean", # <add_correct_lod>
+  "date_parsed", # <create_hospital_plot>
+  "q_0.5", # <create_hospital_plot>
+  "forecast_date_model_ww", # <create_hospital_plot>
+  "model_ww", # <create_hospital_plot>
+  "q_0.25", # <create_hospital_plot>
+  "q_0.75", # <create_hospital_plot>
+  "q_0.05", # <create_hospital_plot>
+  "q_0.95", # <create_hospital_plot>
+  "observed", # <create_hospital_plot>
+  "date_parsed", # <create_ww_plot>
+  "q_0.5", # <create_ww_plot>
+  "forecast_date_site", # <create_ww_plot>
+  "q_0.25", # <create_ww_plot>
+  "q_0.75", # <create_ww_plot>
+  "log_genome_copies_per_ml", # <create_ww_plot>
   "date_parsed", # <plot_multilocation_comparison>
   "q_0.5", # <plot_multilocation_comparison>
   "forecast_date_model_ww", # <plot_multilocation_comparison>

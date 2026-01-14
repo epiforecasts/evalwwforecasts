@@ -137,14 +137,16 @@ load_later_ww_obs <- function(output_path, forecast_dates, locations) {
     recursive = FALSE
   )
   all_forecast_dates <- sort(
-    grep("^\\d{4}-\\d{2}-\\d{2}$", all_forecast_dirs, value = TRUE)
+    grep("^[0-9]{4}-[0-9]{2}-[0-9]{2}$", all_forecast_dirs, value = TRUE)
   )
 
   max_current_forecast <- max(forecast_dates)
   target_date <- ymd(max_current_forecast) + days(56)
 
   all_forecast_dates_parsed <- ymd(all_forecast_dates)
-  later_dates <- all_forecast_dates_parsed[all_forecast_dates_parsed >= target_date]
+  later_dates <- all_forecast_dates_parsed[
+    all_forecast_dates_parsed >= target_date
+  ]
 
   if (length(later_dates) > 0) {
     later_forecast_date <- as.character(min(later_dates))
@@ -356,8 +358,10 @@ process_ww_data <- function(ww_forecasts,
 #' @param locations All locations (for indexing)
 #' @param hosp_ylab Y-axis label
 #' @return ggplot object
-#' @importFrom ggplot2 ggplot aes geom_line geom_ribbon geom_point theme element_text element_blank labs ggtitle ylab
+#' @importFrom ggplot2 ggplot aes geom_line geom_ribbon geom_point theme
+#'   element_text element_blank labs ggtitle ylab
 #' @export
+#' @autoglobal
 create_hospital_plot <- function(loc_hosp_forecast,
                                  loc_hosp_obs,
                                  loc,
@@ -441,9 +445,11 @@ get_yaxis_labels <- function(loc, locations) {
 #' @param n_ww_sites_loc Number of WW sites for this location
 #' @param max_ww_sites Maximum WW sites across all locations
 #' @return ggplot or patchwork object
-#' @importFrom ggplot2 ggplot aes geom_line geom_ribbon geom_point facet_wrap theme element_text element_blank ggtitle ylab
+#' @importFrom ggplot2 ggplot aes geom_line geom_ribbon geom_point facet_wrap
+#'   theme element_text element_blank ggtitle ylab
 #' @importFrom patchwork plot_spacer wrap_plots
 #' @export
+#' @autoglobal
 create_ww_plot <- function(loc_ww_forecast,
                            loc_ww_obs,
                            ww_ylab,
@@ -707,14 +713,14 @@ plot_multilocation_comparison <- function(
 
     # Create plots for each location using helper function
     # nolint start: unnecessary_lambda_linter.
-    # Lambda is necessary here because create_location_plot() requires 7 arguments,
-    # but we're only iterating over locations (one argument). The other 6 arguments
-    # need to be captured from the enclosing scope.
+    # Lambda is necessary here because create_location_plot() requires
+    # 7 arguments, but we're only iterating over locations (one argument).
+    # The other 6 arguments need to be captured from the enclosing scope.
     location_plots <- lapply(locations, function(loc) {
-      create_location_plot(
+      return(create_location_plot(
         loc, forecasts_wide, hosp_obs,
         ww_wide, ww_obs, locations, max_ww_sites
-      )
+      ))
     })
     # nolint end
 
