@@ -441,7 +441,7 @@ create_wis_bar_chart <- function(scores_data,
 #' @importFrom dplyr filter arrange slice_head group_by summarise pull
 #' @export
 #' @autoglobal
-get_bar_chart_scores_by_location <- function(scores, n_locations = 3) {
+get_bar_chart_scores_by_loc <- function(scores, n_locations = 3) {
   # Aggregate scores using helper
 
   scores_agg <- aggregate_scores_for_plot(scores)
