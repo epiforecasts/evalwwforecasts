@@ -321,6 +321,115 @@ get_scatterplot_scores <- function(scores) {
   return(p)
 }
 
+# ============================================================================
+# Helper functions for WIS plotting
+# ============================================================================
+
+#' Get standard model color palette
+#'
+#' Returns a named vector of colors for consistent model styling across plots.
+#'
+#' @returns Named character vector of hex colors
+#' @keywords internal
+get_model_colors <- function() {
+  return(c(
+    "ARIMA baseline" = "#E57373",
+    "With wastewater data" = "#64B5F6",
+    "Without wastewater data" = "#81C784"
+  ))
+}
+
+#' Aggregate and label scores for plotting
+#'
+#' Aggregates scores by model, location, and forecast date, and adds
+#' human-readable model labels.
+#'
+#' @param scores Data.frame of scores
+#' @param locations Optional character vector of locations to filter to
+#' @param forecast_dates Optional character vector of forecast dates to filter to
+#'
+#' @returns Data.frame with aggregated scores and model_label column
+#' @importFrom dplyr filter group_by summarise mutate
+#' @importFrom lubridate ymd
+#' @keywords internal
+#' @autoglobal
+aggregate_scores_for_plot <- function(scores,
+                                      locations = NULL,
+                                      forecast_dates = NULL) {
+  scores_filtered <- scores
+
+  if (!is.null(locations)) {
+    scores_filtered <- filter(scores_filtered, location %in% locations)
+  }
+
+  if (!is.null(forecast_dates)) {
+    scores_filtered <- filter(scores_filtered, forecast_date %in% forecast_dates)
+  }
+
+  scores_filtered |>
+    group_by(model, include_ww, hosp_data_real_time, forecast_date, location) |>
+    summarise(wis = mean(wis, na.rm = TRUE), .groups = "drop") |>
+    mutate(
+      model_label = case_when(
+        model == "arima_baseline" ~ "ARIMA baseline",
+        model == "wwinference" & include_ww ~ "With wastewater data",
+        model == "wwinference" & !include_ww ~ "Without wastewater data",
+        TRUE ~ glue::glue("{model}-{include_ww}")
+      ),
+      forecast_date = ymd(forecast_date)
+    )
+}
+
+#' Create WIS bar chart for a single location
+#'
+#' Creates a bar chart showing WIS scores by forecast date for different models.
+#'
+#' @param scores_data Data.frame with columns: forecast_date, wis, model_label
+#' @param model_colors Named vector of colors for models
+#' @param show_legend Logical, whether to show legend. Default TRUE.
+#' @param title Optional title for the plot
+#'
+#' @returns ggplot object
+#' @importFrom ggplot2 ggplot aes geom_bar scale_fill_manual theme_bw labs theme
+#'   element_text
+#' @keywords internal
+#' @autoglobal
+create_wis_bar_chart <- function(scores_data,
+                                 model_colors = get_model_colors(),
+                                 show_legend = TRUE,
+                                 title = NULL) {
+  legend_position <- if (show_legend) "bottom" else "none"
+
+  p <- ggplot(scores_data) +
+    geom_bar(
+      aes(
+        x = forecast_date,
+        y = wis,
+        fill = model_label
+      ),
+      stat = "identity",
+      position = "dodge"
+    ) +
+    scale_fill_manual(values = model_colors) +
+    theme_bw() +
+    labs(
+      x = "Forecast Date",
+      y = "WIS",
+      fill = "Model",
+      title = title
+    ) +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      legend.position = legend_position
+    )
+
+  return(p)
+}
+
+# ============================================================================
+# Main WIS plotting functions
+# ============================================================================
+
 #' Get bar chart of WIS by location and forecast date
 #'
 #' @param scores Data.frame of scores from across locations and forecast dates
@@ -328,53 +437,38 @@ get_scatterplot_scores <- function(scores) {
 #'   3. If NULL, all locations are plotted.
 #'
 #' @returns ggplot object
-#' @importFrom scoringutils summarise_scores
-#' @importFrom ggplot2 ggplot aes geom_bar theme labs
-#' @importFrom dplyr filter arrange slice_head
+#' @importFrom ggplot2 ggplot aes geom_bar theme labs facet_wrap
+#' @importFrom dplyr filter arrange slice_head group_by summarise pull
 #' @export
 #' @autoglobal
-get_bar_chart_scores_by_loc <- function(scores, n_locations = 3) {
-  # Aggregate scores by location and forecast date
-  scores_by_loc <- scores |>
-    group_by(model, include_ww, hosp_data_real_time, forecast_date, location) |>
-    summarise(wis = mean(wis, na.rm = TRUE), .groups = "drop") |>
-    mutate(model_ww = glue::glue("{model}-{include_ww}-{hosp_data_real_time}"))
+get_bar_chart_scores_by_location <- function(scores, n_locations = 3) {
+  # Aggregate scores using helper
+
+  scores_agg <- aggregate_scores_for_plot(scores)
 
   # Select locations to plot
   if (!is.null(n_locations)) {
     # Get top n_locations by average WIS
-    top_locations <- scores_by_loc |>
+    top_locations <- scores_agg |>
       group_by(location) |>
       summarise(mean_wis = mean(wis, na.rm = TRUE)) |>
       arrange(mean_wis) |>
       slice_head(n = n_locations) |>
       pull(location)
 
-    scores_by_loc <- filter(scores_by_loc, location %in% top_locations)
+    scores_agg <- filter(scores_agg, location %in% top_locations)
   }
 
-  p <- ggplot(scores_by_loc) +
-    geom_bar(
-      aes(
-        x = forecast_date,
-        y = wis,
-        fill = model_ww
-      ),
-      stat = "identity",
-      position = "dodge"
-    ) +
-    facet_wrap(~location, scales = "free_y") +
-    theme_bw() +
-    theme(
-      axis.text.x = element_text(angle = 45, hjust = 1),
-      legend.position = "bottom"
-    ) +
-    labs(
-      x = "Forecast Date",
-      y = "WIS",
-      fill = "Model",
-      title = "WIS by Location and Forecast Date"
-    )
+  # Create bar chart using helper, then add faceting
+  model_colors <- get_model_colors()
+
+  p <- create_wis_bar_chart(
+    scores_agg,
+    model_colors = model_colors,
+    show_legend = TRUE,
+    title = "WIS by Location and Forecast Date"
+  ) +
+    facet_wrap(~location, scales = "free_y")
 
   return(p)
 }
@@ -519,30 +613,15 @@ get_combined_forecast_wis_plot <- function(
     )
   hosp_obs <- filter(hosp_obs, location %in% locations)
 
-  # Process scores - filter to locations and forecast dates with data
-  scores_filtered <- scores |>
-    filter(
-      location %in% locations,
-      forecast_date %in% forecast_dates_filtered
-    ) |>
-    group_by(model, include_ww, hosp_data_real_time, forecast_date, location) |>
-    summarise(wis = mean(wis, na.rm = TRUE), .groups = "drop") |>
-    mutate(
-      model_label = case_when(
-        model == "arima_baseline" ~ "ARIMA baseline",
-        model == "wwinference" & include_ww ~ "With wastewater data",
-        model == "wwinference" & !include_ww ~ "Without wastewater data",
-        TRUE ~ glue::glue("{model}-{include_ww}")
-      ),
-      forecast_date = ymd(forecast_date)
-    )
-
-  # Define color palette matching the original plots
-  model_colors <- c(
-    "ARIMA baseline" = "#E57373",
-    "With wastewater data" = "#64B5F6",
-    "Without wastewater data" = "#81C784"
+  # Process scores using helper function
+  scores_filtered <- aggregate_scores_for_plot(
+    scores,
+    locations = locations,
+    forecast_dates = forecast_dates_filtered
   )
+
+  # Get standard color palette
+  model_colors <- get_model_colors()
 
   # Create plots for each location
   plot_list <- list()
@@ -589,30 +668,13 @@ get_combined_forecast_wis_plot <- function(
         axis.title.x = element_blank()
       )
 
-    # WIS plot for this location
+    # WIS plot for this location using helper
     loc_scores <- filter(scores_filtered, location == loc)
-
-    p_wis <- ggplot(loc_scores) +
-      geom_bar(
-        aes(
-          x = forecast_date,
-          y = wis,
-          fill = model_label
-        ),
-        stat = "identity",
-        position = "dodge"
-      ) +
-      scale_fill_manual(values = model_colors) +
-      theme_bw() +
-      labs(
-        x = "Forecast Date",
-        y = "WIS",
-        fill = "Model"
-      ) +
-      theme(
-        axis.text.x = element_text(angle = 45, hjust = 1),
-        legend.position = "bottom"
-      )
+    p_wis <- create_wis_bar_chart(
+      loc_scores,
+      model_colors = model_colors,
+      show_legend = TRUE
+    )
 
     # Combine forecast and WIS plots vertically
     combined_loc <- wrap_plots(
