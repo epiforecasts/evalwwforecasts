@@ -41,6 +41,27 @@ utils::globalVariables(c(
   "FALSE", # <get_scatterplot_scores>
   "hosp_only", # <get_scatterplot_scores>
   "ww_plus_hosp", # <get_scatterplot_scores>
+  "model", # <get_bar_chart_scores_by_loc>
+  "include_ww", # <get_bar_chart_scores_by_loc>
+  "hosp_data_real_time", # <get_bar_chart_scores_by_loc>
+  "forecast_date", # <get_bar_chart_scores_by_loc>
+  "location", # <get_bar_chart_scores_by_loc>
+  "wis", # <get_bar_chart_scores_by_loc>
+  "mean_wis", # <get_bar_chart_scores_by_loc>
+  "model_ww", # <get_bar_chart_scores_by_loc>
+  "location", # <get_combined_forecast_wis_plot>
+  "forecast_date", # <get_combined_forecast_wis_plot>
+  "model", # <get_combined_forecast_wis_plot>
+  "include_ww", # <get_combined_forecast_wis_plot>
+  "hosp_data_real_time", # <get_combined_forecast_wis_plot>
+  "wis", # <get_combined_forecast_wis_plot>
+  "date_parsed", # <get_combined_forecast_wis_plot>
+  "q_0.5", # <get_combined_forecast_wis_plot>
+  "forecast_date_model_ww", # <get_combined_forecast_wis_plot>
+  "model_label", # <get_combined_forecast_wis_plot>
+  "q_0.25", # <get_combined_forecast_wis_plot>
+  "q_0.75", # <get_combined_forecast_wis_plot>
+  "observed", # <get_combined_forecast_wis_plot>
   "site", # <fit_wwinference_wrapper>
   "lab", # <fit_wwinference_wrapper>
   "log_genome_copies_per_ml", # <fit_wwinference_wrapper>

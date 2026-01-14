@@ -320,3 +320,333 @@ get_scatterplot_scores <- function(scores) {
     geom_line(aes(x = hosp_only, y = hosp_only), linetype = "dashed")
   return(p)
 }
+
+#' Get bar chart of WIS by location and forecast date
+#'
+#' @param scores Data.frame of scores from across locations and forecast dates
+#' @param n_locations Integer indicating number of locations to plot. Default is
+#'   3. If NULL, all locations are plotted.
+#'
+#' @returns ggplot object
+#' @importFrom scoringutils summarise_scores
+#' @importFrom ggplot2 ggplot aes geom_bar theme labs
+#' @importFrom dplyr filter arrange slice_head
+#' @export
+#' @autoglobal
+get_bar_chart_scores_by_loc <- function(scores, n_locations = 3) {
+  # Aggregate scores by location and forecast date
+  scores_by_loc <- scores |>
+    group_by(model, include_ww, hosp_data_real_time, forecast_date, location) |>
+    summarise(wis = mean(wis, na.rm = TRUE), .groups = "drop") |>
+    mutate(model_ww = glue::glue("{model}-{include_ww}-{hosp_data_real_time}"))
+
+  # Select locations to plot
+  if (!is.null(n_locations)) {
+    # Get top n_locations by average WIS
+    top_locations <- scores_by_loc |>
+      group_by(location) |>
+      summarise(mean_wis = mean(wis, na.rm = TRUE)) |>
+      arrange(mean_wis) |>
+      slice_head(n = n_locations) |>
+      pull(location)
+
+    scores_by_loc <- filter(scores_by_loc, location %in% top_locations)
+  }
+
+  p <- ggplot(scores_by_loc) +
+    geom_bar(
+      aes(
+        x = forecast_date,
+        y = wis,
+        fill = model_ww
+      ),
+      stat = "identity",
+      position = "dodge"
+    ) +
+    facet_wrap(~location, scales = "free_y") +
+    theme_bw() +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1),
+      legend.position = "bottom"
+    ) +
+    labs(
+      x = "Forecast Date",
+      y = "WIS",
+      fill = "Model",
+      title = "WIS by Location and Forecast Date"
+    )
+
+  return(p)
+}
+
+#' Create combined forecast and WIS plot by location
+#'
+#' Creates a two-row plot for each location: top row shows forecast time series
+#' (hospital admissions with/without wastewater), bottom row shows WIS over time
+#' (including ARIMA baseline). Locations are arranged in columns.
+#'
+#' The function filters to every other forecast date for readability. It only
+#' includes WIS for forecast dates that have corresponding forecast data files,
+#' ensuring the time axes align correctly between the forecast and WIS plots.
+#'
+#' @param output_path Path to the output folder containing forecast data
+#' @param forecast_dates Character vector of forecast dates
+#' @param scores Data.frame of scores from across locations and forecast dates
+#' @param locations Character vector of location names. If NULL, three locations
+#'   are selected. Default is NULL.
+#' @param forecast_horizon_to_plot Integer indicating number of days of horizon
+#'   to plot. Default is 28.
+#' @param historical_data_to_plot Integer indicating number of days into the
+#'   past to plot. Default is 90.
+#' @param scale_selected Character string indicating which scale to plot,
+#'   default is "natural"
+#' @param save_path Optional path to save the figure. If NULL, figure is not
+#'   saved. Default is NULL.
+#' @param n_forecast_dates Integer indicating number of forecast dates to show
+#'   in the WIS bar charts. Dates are selected spread across the time range.
+#'   Default is 3.
+#'
+#' @returns A combined patchwork plot
+#' @importFrom scoringutils summarise_scores
+#' @importFrom ggplot2 ggplot aes geom_line geom_ribbon geom_point geom_bar
+#'   theme_bw theme element_text labs scale_color_manual scale_fill_manual
+#' @importFrom dplyr filter mutate bind_rows group_by summarise arrange
+#' @importFrom tidyr pivot_wider
+#' @importFrom lubridate ymd
+#' @importFrom patchwork wrap_plots plot_layout
+#' @export
+#' @autoglobal
+get_combined_forecast_wis_plot <- function(
+    output_path,
+    forecast_dates,
+    scores,
+    locations = NULL,
+    forecast_horizon_to_plot = 28,
+    historical_data_to_plot = 90,
+    scale_selected = "natural",
+    save_path = NULL,
+    n_forecast_dates = 3) {
+  # Get available forecast dates from the directory that have actual data
+
+  forecasts_dir <- file.path(output_path, "individual_forecasts_all_runs")
+  available_forecast_dates <- list.dirs(
+    forecasts_dir,
+    full.names = FALSE,
+    recursive = FALSE
+  )
+
+  # Filter to dates that have location subdirectories with actual forecast data
+  dates_with_data <- sapply(available_forecast_dates, function(d) {
+    date_path <- file.path(forecasts_dir, d)
+    subdirs <- list.dirs(date_path, full.names = FALSE, recursive = FALSE)
+    # Check if there are actual location subdirectories (German state names)
+    # by looking for subdirs that don't match date patterns or error files
+    return(any(grepl("^[A-Z]", subdirs) & !grepl("Error|^[0-9]{4}", subdirs)))
+  })
+  available_forecast_dates <- available_forecast_dates[dates_with_data]
+
+  # Filter to dates that exist in both the input and directory
+  forecast_dates_available <-
+    forecast_dates[forecast_dates %in% available_forecast_dates]
+
+  if (length(forecast_dates_available) == 0) {
+    stop("No matching forecast dates found in directory", call. = FALSE)
+  }
+
+  # Select n_forecast_dates spread across the time range for readability
+  if (length(forecast_dates_available) > n_forecast_dates) {
+    indices <- round(seq(1, length(forecast_dates_available),
+      length.out = n_forecast_dates
+    ))
+    forecast_dates_filtered <- forecast_dates_available[indices]
+  } else {
+    forecast_dates_filtered <- forecast_dates_available
+  }
+
+  # Determine locations first if not specified
+  if (is.null(locations)) {
+    # Get available locations from the first forecast date
+    first_forecast_path <- file.path(
+      output_path,
+      "individual_forecasts_all_runs",
+      forecast_dates_filtered[1]
+    )
+    if (!dir.exists(first_forecast_path)) {
+      stop("Forecast directory not found", call. = FALSE)
+    }
+    available_locations <- list.dirs(
+      first_forecast_path,
+      full.names = FALSE,
+      recursive = FALSE
+    )
+    locations <- sample(
+      available_locations,
+      size = min(3, length(available_locations))
+    )
+  }
+
+  # Load hospital forecasts using helper function
+  hosp_forecasts_list <- load_hospital_forecasts(
+    output_path, forecast_dates_filtered, locations
+  )
+
+  if (length(hosp_forecasts_list) == 0) {
+    stop("No hospital forecast data found", call. = FALSE)
+  }
+
+  hosp_forecasts <- bind_rows(hosp_forecasts_list)
+
+  # Process hospital data using helper function
+  hosp_processed <- process_hospital_data(
+    hosp_forecasts,
+    forecast_horizon_to_plot,
+    historical_data_to_plot,
+    scale_selected
+  )
+
+  forecasts_wide <- hosp_processed$forecasts
+  hosp_obs <- hosp_processed$observations
+
+  # Filter to selected locations and add model labels
+  forecasts_wide <- forecasts_wide |>
+    filter(location %in% locations) |>
+    mutate(
+      model_label = case_when(
+        model_ww == "wwinference-TRUE" ~ "With wastewater data",
+        model_ww == "wwinference-FALSE" ~ "Without wastewater data",
+        TRUE ~ model_ww
+      )
+    )
+  hosp_obs <- filter(hosp_obs, location %in% locations)
+
+  # Process scores - filter to locations and forecast dates with data
+  scores_filtered <- scores |>
+    filter(
+      location %in% locations,
+      forecast_date %in% forecast_dates_filtered
+    ) |>
+    group_by(model, include_ww, hosp_data_real_time, forecast_date, location) |>
+    summarise(wis = mean(wis, na.rm = TRUE), .groups = "drop") |>
+    mutate(
+      model_label = case_when(
+        model == "arima_baseline" ~ "ARIMA baseline",
+        model == "wwinference" & include_ww ~ "With wastewater data",
+        model == "wwinference" & !include_ww ~ "Without wastewater data",
+        TRUE ~ glue::glue("{model}-{include_ww}")
+      ),
+      forecast_date = ymd(forecast_date)
+    )
+
+  # Define color palette matching the original plots
+  model_colors <- c(
+    "ARIMA baseline" = "#E57373",
+    "With wastewater data" = "#64B5F6",
+    "Without wastewater data" = "#81C784"
+  )
+
+  # Create plots for each location
+  plot_list <- list()
+
+  for (loc in locations) {
+    # Forecast plot for this location
+    loc_forecasts <- filter(forecasts_wide, location == loc)
+    loc_obs <- filter(hosp_obs, location == loc)
+
+    p_forecast <- ggplot() +
+      geom_line(
+        data = loc_forecasts,
+        aes(
+          x = date_parsed,
+          y = q_0.5,
+          group = forecast_date_model_ww,
+          color = model_label
+        )
+      ) +
+      geom_ribbon(
+        data = loc_forecasts,
+        aes(
+          x = date_parsed,
+          ymin = q_0.25,
+          ymax = q_0.75,
+          group = forecast_date_model_ww,
+          fill = model_label
+        ),
+        alpha = 0.3
+      ) +
+      geom_point(
+        data = loc_obs,
+        aes(x = date_parsed, y = observed),
+        color = "black"
+      ) +
+      scale_color_manual(values = model_colors, guide = "none") +
+      scale_fill_manual(values = model_colors, guide = "none") +
+      theme_bw() +
+      labs(
+        y = "7-day hospital admissions",
+        title = loc
+      ) +
+      theme(
+        axis.title.x = element_blank()
+      )
+
+    # WIS plot for this location
+    loc_scores <- filter(scores_filtered, location == loc)
+
+    p_wis <- ggplot(loc_scores) +
+      geom_bar(
+        aes(
+          x = forecast_date,
+          y = wis,
+          fill = model_label
+        ),
+        stat = "identity",
+        position = "dodge"
+      ) +
+      scale_fill_manual(values = model_colors) +
+      theme_bw() +
+      labs(
+        x = "Forecast Date",
+        y = "WIS",
+        fill = "Model"
+      ) +
+      theme(
+        axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "bottom"
+      )
+
+    # Combine forecast and WIS plots vertically
+    combined_loc <- wrap_plots(
+      p_forecast,
+      p_wis,
+      ncol = 1,
+      heights = c(2, 1)
+    )
+
+    plot_list[[loc]] <- combined_loc
+  }
+
+  # Combine all location plots horizontally
+  p_combined <- wrap_plots(
+    plot_list,
+    ncol = length(locations),
+    guides = "collect"
+  ) &
+    theme(legend.position = "bottom")
+
+  # Save if path provided
+  if (!is.null(save_path)) {
+    dir.create(save_path, recursive = TRUE, showWarnings = FALSE)
+    date_range <- glue::glue("{min(forecast_dates)}_to_{max(forecast_dates)}")
+    ggsave(
+      filename = file.path(
+        save_path,
+        glue::glue("combined_forecast_wis_{date_range}.png")
+      ),
+      plot = p_combined,
+      width = 4 * length(locations),
+      height = 10
+    )
+  }
+
+  return(p_combined)
+}
