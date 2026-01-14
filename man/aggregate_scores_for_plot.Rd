@@ -11,7 +11,8 @@ aggregate_scores_for_plot(scores, locations = NULL, forecast_dates = NULL)
 
 \item{locations}{Optional character vector of locations to filter to}
 
-\item{forecast_dates}{Optional character vector of forecast dates to filter to}
+\item{forecast_dates}{Optional character vector of forecast dates
+to filter to}
 }
 \value{
 Data.frame with aggregated scores and model_label column

@@ -369,7 +369,7 @@ aggregate_scores_for_plot <- function(scores,
     )
   }
 
-  return(scores_filtered |>
+  scores_agg <- scores_filtered |>
     group_by(model, include_ww, hosp_data_real_time, forecast_date, location) |>
     summarise(wis = mean(wis, na.rm = TRUE), .groups = "drop") |>
     mutate(
@@ -380,7 +380,8 @@ aggregate_scores_for_plot <- function(scores,
         TRUE ~ glue::glue("{model}-{include_ww}")
       ),
       forecast_date = ymd(forecast_date)
-    ))
+    )
+  return(scores_agg)
 }
 
 #' Create WIS bar chart for a single location
