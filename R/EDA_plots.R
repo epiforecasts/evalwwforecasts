@@ -325,11 +325,11 @@ get_scatterplot_scores <- function(scores) {
 # Helper functions for WIS plotting
 # ============================================================================
 
-#' Get standard model color palette
+#' Get standard model colour palette
 #'
-#' Returns a named vector of colors for consistent model styling across plots.
+#' Returns a named vector of colours for consistent model styling across plots.
 #'
-#' @returns Named character vector of hex colors
+#' @returns Named character vector of hex colours
 #' @keywords internal
 get_model_colors <- function() {
   return(c(
@@ -346,8 +346,8 @@ get_model_colors <- function() {
 #'
 #' @param scores Data.frame of scores
 #' @param locations Optional character vector of locations to filter to
-#' @param forecast_dates Optional character vector of forecast dates to filter to
-#'
+#' @param forecast_dates Optional character vector of forecast dates
+#' to filter to
 #' @returns Data.frame with aggregated scores and model_label column
 #' @importFrom dplyr filter group_by summarise mutate
 #' @importFrom lubridate ymd
@@ -363,7 +363,10 @@ aggregate_scores_for_plot <- function(scores,
   }
 
   if (!is.null(forecast_dates)) {
-    scores_filtered <- filter(scores_filtered, forecast_date %in% forecast_dates)
+    scores_filtered <- filter(
+      scores_filtered,
+      forecast_date %in% forecast_dates
+    )
   }
 
   scores_filtered |>
@@ -385,7 +388,7 @@ aggregate_scores_for_plot <- function(scores,
 #' Creates a bar chart showing WIS scores by forecast date for different models.
 #'
 #' @param scores_data Data.frame with columns: forecast_date, wis, model_label
-#' @param model_colors Named vector of colors for models
+#' @param model_colors Named vector of colours for models
 #' @param show_legend Logical, whether to show legend. Default TRUE.
 #' @param title Optional title for the plot
 #'

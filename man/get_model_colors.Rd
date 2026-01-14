@@ -2,14 +2,14 @@
 % Please edit documentation in R/EDA_plots.R
 \name{get_model_colors}
 \alias{get_model_colors}
-\title{Get standard model color palette}
+\title{Get standard model colour palette}
 \usage{
 get_model_colors()
 }
 \value{
-Named character vector of hex colors
+Named character vector of hex colours
 }
 \description{
-Returns a named vector of colors for consistent model styling across plots.
+Returns a named vector of colours for consistent model styling across plots.
 }
 \keyword{internal}

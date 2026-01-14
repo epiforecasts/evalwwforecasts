@@ -14,7 +14,7 @@ create_wis_bar_chart(
 \arguments{
 \item{scores_data}{Data.frame with columns: forecast_date, wis, model_label}
 
-\item{model_colors}{Named vector of colors for models}
+\item{model_colors}{Named vector of colours for models}
 
 \item{show_legend}{Logical, whether to show legend. Default TRUE.}
 
