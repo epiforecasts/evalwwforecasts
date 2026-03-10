@@ -1,6 +1,7 @@
 CDCgov
 COVID
 COVIDHub
+CRPS
 DD
 EDA
 FluSight
@@ -26,11 +27,14 @@ github
 githubusercontent
 nolint
 nowcast
+overprediction
 quantiled
+rWIS
 refs
 scoringutils
 th
 tibble
+underprediction
 wis
 ww
 wwinference
