@@ -993,8 +993,7 @@ plot_score_comparison <- function(scores,
     geom_bar(stat = "identity", position = "stack") +
     coord_flip() +
     labs(x = NULL, y = "CRPS", fill = "Component", tag = "A") +
-    lshtm_theme() +
-    theme(legend.position = "bottom")
+    lshtm_theme()
 
   # --- Panel B: Relative WIS by horizon ---
   scores_by_horizon <- scores_labelled |>
@@ -1015,11 +1014,8 @@ plot_score_comparison <- function(scores,
     geom_line(linewidth = 0.8) +
     geom_point(size = 1.5) +
     geom_hline(yintercept = 1, linetype = "dashed", color = "grey40") +
-    scale_color_manual(values = model_colors) +
-    labs(
-      x = "Horizon (days)", y = "Relative WIS",
-      color = "Model", tag = "B"
-    ) +
+    scale_color_manual(values = model_colors, guide = "none") +
+    labs(x = "Horizon (days)", y = "Relative WIS", tag = "B") +
     lshtm_theme()
 
   # --- Panel C: PIT calibration curve ---
@@ -1063,9 +1059,12 @@ plot_score_comparison <- function(scores,
       xmin = 0.25, xmax = 0.75, ymin = 0.25, ymax = 0.75,
       fill = "#C8E6C9", alpha = 0.4
     ) +
-    geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey40") +
+    geom_abline(
+      slope = 1, intercept = 0,
+      linetype = "dashed", color = "grey40"
+    ) +
     geom_line(linewidth = 0.8) +
-    scale_color_manual(values = model_colors) +
+    scale_color_manual(values = model_colors, guide = "none") +
     scale_x_continuous(
       labels = function(x) paste0(x * 100, "%"),
       breaks = seq(0, 1, 0.25)
@@ -1077,10 +1076,9 @@ plot_score_comparison <- function(scores,
     coord_equal() +
     labs(
       x = "Quantile level", y = "Obs < level",
-      color = "Model", tag = "C"
+      tag = "C"
     ) +
-    lshtm_theme() +
-    theme(legend.position = "none")
+    lshtm_theme()
 
   # --- Panel D: CRPS by location ---
   scores_by_loc <- scores_labelled |>
@@ -1097,12 +1095,11 @@ plot_score_comparison <- function(scores,
     x = location, y = wis, fill = model_label
   )) +
     geom_bar(stat = "identity", position = "dodge") +
-    scale_fill_manual(values = model_colors) +
-    labs(x = "Location", y = "CRPS", fill = "Model", tag = "D") +
+    scale_fill_manual(values = model_colors, name = "Model") +
+    labs(x = "Location", y = "CRPS", tag = "D") +
     lshtm_theme() +
     theme(
-      axis.text.x = element_text(angle = 45, hjust = 1, size = 7),
-      legend.position = "none"
+      axis.text.x = element_text(angle = 45, hjust = 1, size = 7)
     )
 
   # --- Panel E: CRPS by forecast date ---
@@ -1114,12 +1111,11 @@ plot_score_comparison <- function(scores,
     x = forecast_date, y = wis, fill = model_label
   )) +
     geom_bar(stat = "identity", position = "dodge") +
-    scale_fill_manual(values = model_colors) +
-    labs(x = "Forecast date", y = "CRPS", fill = "Model", tag = "E") +
+    scale_fill_manual(values = model_colors, name = "Model") +
+    labs(x = "Forecast date", y = "CRPS", tag = "E") +
     lshtm_theme() +
     theme(
-      axis.text.x = element_text(angle = 45, hjust = 1, size = 7),
-      legend.position = "none"
+      axis.text.x = element_text(angle = 45, hjust = 1, size = 7)
     )
 
   # --- Panel F: National hospital admissions time series ---
