@@ -508,6 +508,7 @@ get_bar_chart_scores_by_loc <- function(scores, n_locations = 3) {
 #' @importFrom scoringutils summarise_scores
 #' @importFrom ggplot2 ggplot aes geom_line geom_ribbon geom_point geom_bar
 #'   theme_bw theme element_text labs scale_color_manual scale_fill_manual
+#'   scale_x_date
 #' @importFrom dplyr filter mutate bind_rows group_by summarise arrange
 #' @importFrom tidyr pivot_wider
 #' @importFrom lubridate ymd

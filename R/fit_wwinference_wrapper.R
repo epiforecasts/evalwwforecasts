@@ -21,7 +21,7 @@
 #' @autoglobal
 #' @importFrom wwinference wwinference get_draws get_plot_forecasted_counts
 #'   get_plot_ww_conc
-#' @importFrom ggplot2 ggsave
+#' @importFrom ggplot2 ggsave ggtitle
 #' @importFrom fs dir_create
 #' @importFrom readr write_csv
 #' @importFrom glue glue
