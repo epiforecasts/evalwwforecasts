@@ -130,6 +130,17 @@ utils::globalVariables(c(
   "loq", # <add_correct_lod>
   "mean_loq", # <add_correct_lod>
   "overall_mean", # <add_correct_lod>
+  "state", # <save_baseline_quantiles>
+  "quantile_level", # <save_baseline_quantiles>
+  "predicted", # <save_baseline_quantiles>
+  "updated_hosp_7d_count", # <save_baseline_quantiles>
+  "observed", # <save_baseline_quantiles>
+  "model", # <save_baseline_quantiles>
+  "include_ww", # <save_baseline_quantiles>
+  "hosp_data_real_time", # <save_baseline_quantiles>
+  "location", # <save_baseline_quantiles>
+  "forecast_date", # <save_baseline_quantiles>
+  "flag_missing_ww", # <save_baseline_quantiles>
   "date_parsed", # <create_hospital_plot>
   "q_0.5", # <create_hospital_plot>
   "forecast_date_model_ww", # <create_hospital_plot>
@@ -154,6 +165,19 @@ utils::globalVariables(c(
   "q_0.05", # <plot_multilocation_comparison>
   "q_0.95", # <plot_multilocation_comparison>
   "observed", # <plot_multilocation_comparison>
+  "model_label", # <plot_score_comparison>
+  "value", # <plot_score_comparison>
+  "component", # <plot_score_comparison>
+  "forecast_date", # <plot_score_comparison>
+  "horizon_days", # <plot_score_comparison>
+  "wis", # <plot_score_comparison>
+  "wis_ref", # <plot_score_comparison>
+  "rwis", # <plot_score_comparison>
+  "location", # <plot_score_comparison>
+  "quantile_level", # <plot_score_comparison>
+  "observed", # <plot_score_comparison>
+  "predicted", # <plot_score_comparison>
+  "observed_below", # <plot_score_comparison>
   "state", # <format_baseline_forecasts>
   "quantile_level", # <format_baseline_forecasts>
   "pred_value7dsum", # <format_baseline_forecasts>

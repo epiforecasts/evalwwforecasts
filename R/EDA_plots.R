@@ -576,9 +576,9 @@ get_combined_forecast_wis_plot <- function(
         # Find closest available date that respects min_gap from all selected
         candidates <- setdiff(seq_along(available_parsed), selected_idx)
         valid <- vapply(candidates, function(ci) {
-          all(abs(as.numeric(
+          return(all(abs(as.numeric(
             available_parsed[ci] - used_dates
-          )) >= min_gap)
+          )) >= min_gap))
         }, logical(1))
         if (any(valid)) {
           valid_candidates <- candidates[valid]

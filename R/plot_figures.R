@@ -40,6 +40,30 @@ lshtm_theme <- function() {
   return(lshtm_theme)
 }
 
+#' Add human-readable model labels
+#'
+#' Converts `model` and `include_ww` columns into a single `model_label`
+#' column with descriptive names used in figures.
+#'
+#' @param df Data.frame with columns `model` and `include_ww`
+#' @return The input data.frame with an additional `model_label` column
+#' @importFrom dplyr mutate case_when
+#' @importFrom glue glue
+#' @export
+#' @autoglobal
+add_model_labels <- function(df) {
+  result <- df |>
+    mutate(
+      model_label = case_when(
+        model == "arima_baseline" ~ "ARIMA baseline",
+        model == "wwinference" & include_ww ~ "With wastewater data",
+        model == "wwinference" & !include_ww ~ "Without wastewater data",
+        TRUE ~ glue("{model}-{include_ww}")
+      )
+    )
+  return(result)
+}
+
 #' Save ARIMA baseline quantiles in the same format as wwinference quantiles
 #'
 #' Converts wide-format ARIMA baseline forecasts to long-format and saves
@@ -82,18 +106,18 @@ save_baseline_quantiles <- function(baseline_forecasts, output_path) {
   # Save per location and forecast date
   for (fd in unique(as.character(bl_long$forecast_date))) {
     for (loc in unique(bl_long$location)) {
-      subset <- bl_long[
+      bl_subset <- bl_long[
         as.character(bl_long$forecast_date) == fd &
           bl_long$location == loc,
       ]
-      if (nrow(subset) == 0) next
+      if (nrow(bl_subset) == 0) next
       full_fp <- file.path(
         output_path, "individual_forecasts_all_runs",
         fd, loc, "data"
       )
       dir_create(full_fp, recurse = TRUE)
       write_csv(
-        subset,
+        bl_subset,
         file.path(full_fp, "hosp_quantiles_arima.csv")
       )
     }
@@ -116,25 +140,34 @@ save_baseline_quantiles <- function(baseline_forecasts, output_path) {
 #' @autoglobal
 load_all_quantiles <- function(output_path) {
   base_path <- file.path(output_path, "individual_forecasts_all_runs")
-  forecast_dates <- list.dirs(base_path, recursive = FALSE, full.names = FALSE)
+  all_files <- list.files(
+    base_path,
+    pattern = "hosp_quantiles_ww_(TRUE|FALSE)\\.csv$",
+    recursive = TRUE,
+    full.names = TRUE
+  )
+  return(bind_rows(lapply(all_files, read_csv, show_col_types = FALSE)))
+}
 
-  all_files <- c()
-  for (fd in forecast_dates) {
-    pattern <- "hosp_quantiles_ww_(TRUE|FALSE)\\.csv$"
-    files <- list.files(
-      file.path(base_path, fd),
-      pattern = pattern,
-      recursive = TRUE,
-      full.names = TRUE
-    )
-    all_files <- c(all_files, files)
+#' Resolve the forecast path for a given date
+#'
+#' Some forecast dates use a flat structure (date/location/) while others
+#' have a double-nested structure (date/date/location/). This helper
+#' resolves to the correct path.
+#'
+#' @param output_path Path to the output folder
+#' @param forecast_date Character string forecast date
+#' @return Resolved path to the directory containing location folders
+#' @keywords internal
+resolve_forecast_path <- function(output_path, forecast_date) {
+  base_path <- file.path(
+    output_path, "individual_forecasts_all_runs", forecast_date
+  )
+  nested_path <- file.path(base_path, forecast_date)
+  if (dir.exists(nested_path)) {
+    return(nested_path)
   }
-
-  quantiles_list <- lapply(all_files, function(f) {
-    read_csv(f, show_col_types = FALSE)
-  })
-
-  bind_rows(quantiles_list)
+  return(base_path)
 }
 
 #' Load hospital forecast data for multiple dates and locations
@@ -148,50 +181,23 @@ load_all_quantiles <- function(output_path) {
 load_hospital_forecasts <- function(output_path, forecast_dates, locations) {
   hosp_forecasts_list <- list()
   for (forecast_date in forecast_dates) {
-    forecast_path <- file.path(
-      output_path,
-      "individual_forecasts_all_runs",
-      forecast_date
-    )
+    forecast_path <- resolve_forecast_path(output_path, forecast_date)
 
     for (loc in locations) {
-      # Read hospital forecasts with WW
-      hosp_ww_path <- file.path(
-        forecast_path, loc, "data",
-        "hosp_quantiles_ww_TRUE.csv"
+      data_dir <- file.path(forecast_path, loc, "data")
+      file_specs <- list(
+        list(file = "hosp_quantiles_ww_TRUE.csv", suffix = "_ww_TRUE"),
+        list(file = "hosp_quantiles_ww_FALSE.csv", suffix = "_ww_FALSE"),
+        list(file = "hosp_quantiles_arima.csv", suffix = "_arima")
       )
-      if (file.exists(hosp_ww_path)) {
-        temp_data <- read_csv(hosp_ww_path, show_col_types = FALSE)
-        temp_data$forecast_date_chr <- forecast_date
-        hosp_forecasts_list[[paste0(
-          forecast_date, "_", loc, "_ww_TRUE"
-        )]] <- temp_data
-      }
-
-      # Read hospital forecasts without WW
-      hosp_no_ww_path <- file.path(
-        forecast_path, loc, "data",
-        "hosp_quantiles_ww_FALSE.csv"
-      )
-      if (file.exists(hosp_no_ww_path)) {
-        temp_data <- read_csv(hosp_no_ww_path, show_col_types = FALSE)
-        temp_data$forecast_date_chr <- forecast_date
-        hosp_forecasts_list[[paste0(
-          forecast_date, "_", loc, "_ww_FALSE"
-        )]] <- temp_data
-      }
-
-      # Read ARIMA baseline forecasts
-      arima_path <- file.path(
-        forecast_path, loc, "data",
-        "hosp_quantiles_arima.csv"
-      )
-      if (file.exists(arima_path)) {
-        temp_data <- read_csv(arima_path, show_col_types = FALSE)
-        temp_data$forecast_date_chr <- forecast_date
-        hosp_forecasts_list[[paste0(
-          forecast_date, "_", loc, "_arima"
-        )]] <- temp_data
+      for (spec in file_specs) {
+        fpath <- file.path(data_dir, spec$file)
+        if (file.exists(fpath)) {
+          temp_data <- read_csv(fpath, show_col_types = FALSE)
+          temp_data$forecast_date_chr <- forecast_date
+          key <- paste0(forecast_date, "_", loc, spec$suffix)
+          hosp_forecasts_list[[key]] <- temp_data
+        }
       }
     }
   }
@@ -209,14 +215,10 @@ load_hospital_forecasts <- function(output_path, forecast_dates, locations) {
 load_ww_forecasts <- function(output_path, forecast_dates, locations) {
   ww_forecasts_list <- list()
   for (forecast_date in forecast_dates) {
+    forecast_path <- resolve_forecast_path(output_path, forecast_date)
     for (loc in locations) {
       ww_path <- file.path(
-        output_path,
-        "individual_forecasts_all_runs",
-        forecast_date,
-        loc,
-        "data",
-        "ww_quantiles.csv"
+        forecast_path, loc, "data", "ww_quantiles.csv"
       )
       if (file.exists(ww_path)) {
         ww_data <- read_csv(ww_path, show_col_types = FALSE)
@@ -261,15 +263,9 @@ load_later_ww_obs <- function(output_path, forecast_dates, locations) {
   if (length(later_dates) > 0) {
     later_forecast_date <- as.character(min(later_dates))
 
+    later_path <- resolve_forecast_path(output_path, later_forecast_date)
     for (loc in locations) {
-      ww_path <- file.path(
-        output_path,
-        "individual_forecasts_all_runs",
-        later_forecast_date,
-        loc,
-        "data",
-        "ww_quantiles.csv"
-      )
+      ww_path <- file.path(later_path, loc, "data", "ww_quantiles.csv")
       if (file.exists(ww_path)) {
         ww_later_data <- read_csv(ww_path, show_col_types = FALSE)
         ww_later_data$location <- loc
@@ -308,14 +304,10 @@ process_hospital_data <- function(hosp_forecasts,
       hosp_forecasts$scale == scale_selected,
   ]
 
-  forecasts_filtered$model_ww <- ifelse(
-    forecasts_filtered$model == "arima_baseline",
-    "arima_baseline",
-    ifelse(
-      forecasts_filtered$include_ww,
-      "wwinference-TRUE",
-      "wwinference-FALSE"
-    )
+  forecasts_filtered$model_ww <- dplyr::case_when(
+    forecasts_filtered$model == "arima_baseline" ~ "arima_baseline",
+    forecasts_filtered$include_ww ~ "wwinference-TRUE",
+    TRUE ~ "wwinference-FALSE"
   )
   forecasts_filtered$forecast_date_model_ww <- paste0(
     forecasts_filtered$forecast_date_chr, "-", forecasts_filtered$model_ww
@@ -844,7 +836,9 @@ plot_multilocation_comparison <- function(
     ) +
       patchwork::plot_annotation(
         title = glue(
-          "Model Comparison ({length(forecast_dates)} forecast date{if (length(forecast_dates) != 1) 's'})"
+          "Model Comparison ({length(forecast_dates)} ",
+          "forecast date",
+          "{if (length(forecast_dates) != 1) 's'}"
         ),
         caption = "Date"
       ) &
@@ -977,8 +971,7 @@ plot_score_comparison <- function(scores,
     )
 
   # --- Panel A: CRPS by model with decomposition ---
-  scores_overall <- scores_labelled |>
-    summarise_scores(by = c("model_label"))
+  scores_overall <- summarise_scores(scores_labelled, by = "model_label")
 
   scores_decomp <- scores_overall |>
     pivot_longer(
