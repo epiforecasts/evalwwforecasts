@@ -551,12 +551,52 @@ get_combined_forecast_wis_plot <- function(
     stop("No matching forecast dates found in directory", call. = FALSE)
   }
 
-  # Select n_forecast_dates spread across the time range for readability
+  # Select n_forecast_dates evenly spaced in calendar time,
+  # enforcing a minimum gap between selected dates
   if (length(forecast_dates_available) > n_forecast_dates) {
-    indices <- round(seq(1, length(forecast_dates_available),
-      length.out = n_forecast_dates
-    ))
-    forecast_dates_filtered <- forecast_dates_available[indices]
+    available_parsed <- ymd(forecast_dates_available)
+    total_span <- as.numeric(
+      max(available_parsed) - min(available_parsed)
+    )
+    min_gap <- floor(total_span / n_forecast_dates) * 0.6
+
+    # Always include first and last, then greedily fill between
+    selected_idx <- c(1L, length(available_parsed))
+    remaining_n <- n_forecast_dates - 2
+    if (remaining_n > 0) {
+      target_dates <- seq(
+        min(available_parsed), max(available_parsed),
+        length.out = n_forecast_dates
+      )
+      # Drop first and last targets (already selected)
+      target_dates <- target_dates[-c(1, length(target_dates))]
+      used_dates <- available_parsed[selected_idx]
+      for (td in target_dates) {
+        # Find closest available date that respects min_gap from all selected
+        candidates <- setdiff(seq_along(available_parsed), selected_idx)
+        valid <- vapply(candidates, function(ci) {
+          all(abs(as.numeric(
+            available_parsed[ci] - used_dates
+          )) >= min_gap)
+        }, logical(1))
+        if (any(valid)) {
+          valid_candidates <- candidates[valid]
+          dists <- abs(as.numeric(
+            available_parsed[valid_candidates] - td
+          ))
+          best <- valid_candidates[which.min(dists)]
+        } else {
+          # Fallback: pick closest regardless
+          dists <- abs(as.numeric(available_parsed[candidates] - td))
+          best <- candidates[which.min(dists)]
+        }
+        selected_idx <- c(selected_idx, best)
+        used_dates <- c(used_dates, available_parsed[best])
+      }
+    }
+    forecast_dates_filtered <- sort(
+      forecast_dates_available[unique(selected_idx)]
+    )
   } else {
     forecast_dates_filtered <- forecast_dates_available
   }
@@ -627,6 +667,11 @@ get_combined_forecast_wis_plot <- function(
   # Get standard color palette
   model_colors <- get_model_colors()
 
+  # Compute shared x-axis limits across forecast and WIS plots
+  x_min <- min(hosp_obs$date_parsed, forecasts_wide$date_parsed, na.rm = TRUE)
+  x_max <- max(hosp_obs$date_parsed, forecasts_wide$date_parsed, na.rm = TRUE)
+  shared_xlim <- c(x_min, x_max)
+
   # Create plots for each location
   plot_list <- list()
 
@@ -663,6 +708,7 @@ get_combined_forecast_wis_plot <- function(
       ) +
       scale_color_manual(values = model_colors, guide = "none") +
       scale_fill_manual(values = model_colors, guide = "none") +
+      scale_x_date(limits = shared_xlim) +
       theme_bw() +
       labs(
         y = "7-day hospital admissions",
@@ -672,13 +718,14 @@ get_combined_forecast_wis_plot <- function(
         axis.title.x = element_blank()
       )
 
-    # WIS plot for this location using helper
+    # WIS plot for this location with aligned x-axis
     loc_scores <- filter(scores_filtered, location == loc)
     p_wis <- create_wis_bar_chart(
       loc_scores,
       model_colors = model_colors,
       show_legend = TRUE
-    )
+    ) +
+      scale_x_date(limits = shared_xlim)
 
     # Combine forecast and WIS plots vertically
     combined_loc <- patchwork::wrap_plots(

@@ -40,6 +40,68 @@ lshtm_theme <- function() {
   return(lshtm_theme)
 }
 
+#' Save ARIMA baseline quantiles in the same format as wwinference quantiles
+#'
+#' Converts wide-format ARIMA baseline forecasts to long-format and saves
+#' them alongside the wwinference output so that plotting functions can
+#' load them.
+#'
+#' @param baseline_forecasts Data.frame of baseline forecasts (wide format
+#'   with q_* columns)
+#' @param output_path Path to the output folder (e.g. "output")
+#' @return The input data frame (invisibly), called for side effect of saving
+#' @importFrom tidyr pivot_longer starts_with
+#' @importFrom readr write_csv
+#' @importFrom fs dir_create
+#' @importFrom dplyr rename mutate select
+#' @export
+#' @autoglobal
+save_baseline_quantiles <- function(baseline_forecasts, output_path) {
+  bl_long <- baseline_forecasts |>
+    rename(location = state) |>
+    pivot_longer(
+      cols = starts_with("q_"),
+      names_prefix = "q_",
+      names_to = "quantile_level",
+      values_to = "predicted"
+    ) |>
+    mutate(
+      quantile_level = as.numeric(quantile_level),
+      predicted = pmax(predicted, 0),
+      scale = "natural",
+      include_ww = FALSE,
+      observed = updated_hosp_7d_count,
+      flag_missing_ww = FALSE
+    ) |>
+    select(
+      observed, model, include_ww, hosp_data_real_time,
+      location, forecast_date, date, scale,
+      quantile_level, predicted, flag_missing_ww
+    )
+
+  # Save per location and forecast date
+  for (fd in unique(as.character(bl_long$forecast_date))) {
+    for (loc in unique(bl_long$location)) {
+      subset <- bl_long[
+        as.character(bl_long$forecast_date) == fd &
+          bl_long$location == loc,
+      ]
+      if (nrow(subset) == 0) next
+      full_fp <- file.path(
+        output_path, "individual_forecasts_all_runs",
+        fd, loc, "data"
+      )
+      dir_create(full_fp, recurse = TRUE)
+      write_csv(
+        subset,
+        file.path(full_fp, "hosp_quantiles_arima.csv")
+      )
+    }
+  }
+
+  return(invisible(baseline_forecasts))
+}
+
 #' Load hospital forecast data for multiple dates and locations
 #'
 #' @param output_path Path to the output folder
@@ -81,6 +143,19 @@ load_hospital_forecasts <- function(output_path, forecast_dates, locations) {
         temp_data$forecast_date_chr <- forecast_date
         hosp_forecasts_list[[paste0(
           forecast_date, "_", loc, "_ww_FALSE"
+        )]] <- temp_data
+      }
+
+      # Read ARIMA baseline forecasts
+      arima_path <- file.path(
+        forecast_path, loc, "data",
+        "hosp_quantiles_arima.csv"
+      )
+      if (file.exists(arima_path)) {
+        temp_data <- read_csv(arima_path, show_col_types = FALSE)
+        temp_data$forecast_date_chr <- forecast_date
+        hosp_forecasts_list[[paste0(
+          forecast_date, "_", loc, "_arima"
         )]] <- temp_data
       }
     }
@@ -195,14 +270,17 @@ process_hospital_data <- function(hosp_forecasts,
         hosp_forecasts$forecast_date_parsed +
           days(forecast_horizon_to_plot - 1)
       ) &
-      hosp_forecasts$scale == scale_selected &
-      hosp_forecasts$model == "wwinference",
+      hosp_forecasts$scale == scale_selected,
   ]
 
   forecasts_filtered$model_ww <- ifelse(
-    forecasts_filtered$include_ww,
-    "wwinference-TRUE",
-    "wwinference-FALSE"
+    forecasts_filtered$model == "arima_baseline",
+    "arima_baseline",
+    ifelse(
+      forecasts_filtered$include_ww,
+      "wwinference-TRUE",
+      "wwinference-FALSE"
+    )
   )
   forecasts_filtered$forecast_date_model_ww <- paste0(
     forecasts_filtered$forecast_date_chr, "-", forecasts_filtered$model_ww
@@ -731,7 +809,7 @@ plot_multilocation_comparison <- function(
     ) +
       patchwork::plot_annotation(
         title = glue(
-          "Model Comparison ({length(forecast_dates)} forecast dates)"
+          "Model Comparison ({length(forecast_dates)} forecast date{if (length(forecast_dates) != 1) 's'})"
         ),
         caption = "Date"
       ) &

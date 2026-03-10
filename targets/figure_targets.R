@@ -59,11 +59,7 @@ figure_targets <- list(
   # ===========================================================================
   tar_target(
     name = fig2_forecast_dates,
-    command = {
-      dates <- sort(as.character(unique(scores$forecast_date)))
-      # Select dates spread across the time range
-      dates[seq(1, length(dates), by = 2)]
-    }
+    command = sort(as.character(unique(scores$forecast_date)))
   ),
   tar_target(
     name = fig2,
@@ -76,7 +72,24 @@ figure_targets <- list(
       historical_data_to_plot = 90,
       scale_selected = "natural",
       save_path = file.path(fig_output_path, "fig2"),
-      n_forecast_dates = 5
+      n_forecast_dates = 10
+    ),
+    format = "rds"
+  ),
+
+  # Fig 2b: Same as fig2 but using all available dates to show gaps
+  tar_target(
+    name = fig2b,
+    command = get_combined_forecast_wis_plot(
+      output_path = output_path_multiloc,
+      forecast_dates = fig2_forecast_dates,
+      scores = scores,
+      locations = fig1_locations,
+      forecast_horizon_to_plot = 28,
+      historical_data_to_plot = 90,
+      scale_selected = "natural",
+      save_path = file.path(fig_output_path, "fig2b"),
+      n_forecast_dates = Inf
     ),
     format = "rds"
   ),
