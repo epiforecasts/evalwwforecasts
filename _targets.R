@@ -88,6 +88,8 @@ get_metadata <- list(
 
 # Secondary outputs
 secondary_outputs <- list(
+  # pairwise comparisons of scores between models
+  pairwise_comparisons_targets,
   # GAM meta-model on scores ()
   run_gam_targets
   # compute coverage metrics (?)
