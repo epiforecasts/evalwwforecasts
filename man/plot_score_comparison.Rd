@@ -4,7 +4,7 @@
 \alias{plot_score_comparison}
 \title{Create comprehensive score comparison figure (Fig 3)}
 \usage{
-plot_score_comparison(scores, quantiles_df, hosp_data = NULL, save_path = NULL)
+plot_score_comparison(scores, quantiles_df, save_path = NULL)
 }
 \arguments{
 \item{scores}{A scoringutils scores object}
@@ -12,10 +12,6 @@ plot_score_comparison(scores, quantiles_df, hosp_data = NULL, save_path = NULL)
 \item{quantiles_df}{Data.frame of quantile forecasts with columns
 \code{quantile_level}, \code{predicted}, \code{observed}, \code{model}, and \code{include_ww}.
 Used for the PIT calibration curve (panel C).}
-
-\item{hosp_data}{Optional data.frame of national hospital admissions with
-columns \code{date} and \code{value} (7-day rolling sum). If NULL, panel F is a
-spacer.}
 
 \item{save_path}{Optional path to save the figure. If NULL, figure is not
 saved.}
@@ -25,11 +21,11 @@ A patchwork plot combining all panels
 }
 \description{
 Creates a multi-panel figure comparing forecast performance across models:
-A. CRPS by model (bar chart with underprediction/overprediction/dispersion)
+A. WIS by model (bar chart with underprediction/overprediction/dispersion)
 B. Relative WIS by horizon
 C. PIT calibration curve
-D. CRPS by location
-E. CRPS by forecast date
-F. National hospital admissions time series
+D. rWIS distribution by model (raincloud plot)
+E. WIS by location
+F. WIS by forecast date
 G. Heatmap of rWIS by forecast date and location
 }

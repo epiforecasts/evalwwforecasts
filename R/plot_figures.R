@@ -514,8 +514,33 @@ create_hospital_plot <- function(loc_hosp_forecast,
       aes(x = date_parsed, y = observed),
       color = "gray50"
     ) +
+    scale_color_manual(
+      values = c(
+        "arima_baseline" = "#D55E00",
+        "wwinference-TRUE" = "#0072B2",
+        "wwinference-FALSE" = "#009E73"
+      ),
+      labels = c(
+        "arima_baseline" = "ARIMA baseline",
+        "wwinference-TRUE" = "With wastewater data",
+        "wwinference-FALSE" = "Without wastewater data"
+      ),
+      name = "Model"
+    ) +
+    scale_fill_manual(
+      values = c(
+        "arima_baseline" = "#D55E00",
+        "wwinference-TRUE" = "#0072B2",
+        "wwinference-FALSE" = "#009E73"
+      ),
+      labels = c(
+        "arima_baseline" = "ARIMA baseline",
+        "wwinference-TRUE" = "With wastewater data",
+        "wwinference-FALSE" = "Without wastewater data"
+      ),
+      name = "Model"
+    ) +
     lshtm_theme() +
-    labs(color = "Model", fill = "Model") +
     ylab(hosp_ylab) +
     ggtitle(loc) +
     theme(
@@ -883,6 +908,32 @@ plot_multilocation_comparison <- function(
         color = "black"
       ) +
       facet_wrap(~location, ncol = 1, scales = "free_y") +
+      scale_color_manual(
+        values = c(
+          "arima_baseline" = "#D55E00",
+          "wwinference-TRUE" = "#0072B2",
+          "wwinference-FALSE" = "#009E73"
+        ),
+        labels = c(
+          "arima_baseline" = "ARIMA baseline",
+          "wwinference-TRUE" = "With wastewater data",
+          "wwinference-FALSE" = "Without wastewater data"
+        ),
+        name = "Model"
+      ) +
+      scale_fill_manual(
+        values = c(
+          "arima_baseline" = "#D55E00",
+          "wwinference-TRUE" = "#0072B2",
+          "wwinference-FALSE" = "#009E73"
+        ),
+        labels = c(
+          "arima_baseline" = "ARIMA baseline",
+          "wwinference-TRUE" = "With wastewater data",
+          "wwinference-FALSE" = "Without wastewater data"
+        ),
+        name = "Model"
+      ) +
       lshtm_theme() +
       xlab("") +
       ylab("7-day rolling sum of hospital admissions") +
@@ -890,8 +941,7 @@ plot_multilocation_comparison <- function(
         glue(
           "Hospital Forecast Comparison ({length(forecast_dates)} forecast dates)" # nolint
         )
-      ) +
-      labs(color = "Model", fill = "Model")
+      )
   }
 
   # Save plot if path provided
@@ -925,18 +975,15 @@ plot_multilocation_comparison <- function(
 #' A. WIS by model (bar chart with underprediction/overprediction/dispersion)
 #' B. Relative WIS by horizon
 #' C. PIT calibration curve
-#' D. WIS by location
-#' E. WIS by forecast date
-#' F. National hospital admissions time series
+#' D. rWIS distribution by model (raincloud plot)
+#' E. WIS by location
+#' F. WIS by forecast date
 #' G. Heatmap of rWIS by forecast date and location
 #'
 #' @param scores A scoringutils scores object
 #' @param quantiles_df Data.frame of quantile forecasts with columns
 #'   `quantile_level`, `predicted`, `observed`, `model`, and `include_ww`.
 #'   Used for the PIT calibration curve (panel C).
-#' @param hosp_data Optional data.frame of national hospital admissions with
-#'   columns `date` and `value` (7-day rolling sum). If NULL, panel F is a
-#'   spacer.
 #' @param save_path Optional path to save the figure. If NULL, figure is not
 #'   saved.
 #' @return A patchwork plot combining all panels
@@ -945,9 +992,11 @@ plot_multilocation_comparison <- function(
 #'   semi_join distinct case_when ungroup select pull
 #' @importFrom tidyr pivot_longer pivot_wider
 #' @importFrom ggplot2 ggplot aes geom_bar geom_line geom_point geom_tile
-#'   geom_abline geom_hline annotate coord_flip coord_equal facet_wrap labs
-#'   theme element_text element_blank scale_fill_manual scale_fill_gradient2
-#'   scale_color_manual scale_x_continuous scale_y_continuous ggsave
+#'   geom_jitter geom_abline geom_hline annotate coord_flip coord_equal
+#'   facet_wrap labs theme element_text element_blank scale_fill_manual
+#'   scale_fill_gradient2 scale_color_manual scale_x_continuous
+#'   scale_y_continuous scale_y_log10 stat_summary ggsave
+#' @importFrom ggdist stat_halfeye
 #' @importFrom patchwork wrap_plots plot_annotation plot_layout plot_spacer
 #' @importFrom lubridate ymd
 #' @importFrom glue glue
@@ -955,9 +1004,13 @@ plot_multilocation_comparison <- function(
 #' @autoglobal
 plot_score_comparison <- function(scores,
                                   quantiles_df,
-                                  hosp_data = NULL,
                                   save_path = NULL) {
   model_colors <- get_model_colors()
+  component_colors <- c(
+    "underprediction" = "#F0E442",
+    "overprediction" = "#CC79A7",
+    "dispersion" = "#56B4E9"
+  )
 
   # Add model labels
   scores_labelled <- scores |>
@@ -985,7 +1038,8 @@ plot_score_comparison <- function(scores,
   )) +
     geom_bar(stat = "identity", position = "stack") +
     coord_flip() +
-    labs(x = NULL, y = "WIS", fill = "Component", tag = "A") +
+    scale_fill_manual(values = component_colors, name = "Component") +
+    labs(x = NULL, y = "WIS", tag = "A") +
     lshtm_theme()
 
   # --- Panel B: Relative WIS by horizon ---
@@ -1073,7 +1127,43 @@ plot_score_comparison <- function(scores,
     ) +
     lshtm_theme()
 
-  # --- Panel D: WIS by location ---
+  # --- Panel D: rWIS distribution by model (raincloud plot) ---
+  # Compute rWIS for all models relative to "Without wastewater data"
+  scores_by_date_loc <- scores_labelled |>
+    summarise_scores(by = c("model_label", "forecast_date", "location"))
+
+  hosp_only_ref <- scores_by_date_loc |>
+    filter(model_label == "Without wastewater data") |>
+    select(forecast_date, location, wis_ref = wis)
+
+  all_rwis <- scores_by_date_loc |>
+    left_join(hosp_only_ref, by = c("forecast_date", "location")) |>
+    mutate(rwis = wis / wis_ref)
+
+  p_d <- ggplot(all_rwis, aes(
+    x = model_label, y = rwis, fill = model_label
+  )) +
+    ggdist::stat_halfeye(
+      adjust = 0.5, width = 0.6, justification = -0.2,
+      .width = 0, point_colour = NA
+    ) +
+    geom_jitter(
+      aes(color = model_label),
+      width = 0.1, alpha = 0.3, size = 0.8
+    ) +
+    stat_summary(
+      fun = median, geom = "point",
+      size = 3, color = "black"
+    ) +
+    geom_hline(yintercept = 1, linetype = "dashed", color = "grey40") +
+    scale_fill_manual(values = model_colors, guide = "none") +
+    scale_color_manual(values = model_colors, guide = "none") +
+    scale_y_log10() +
+    coord_flip() +
+    labs(x = NULL, y = "rWIS", tag = "D") +
+    lshtm_theme()
+
+  # --- Panel E: WIS by location ---
   scores_by_loc <- scores_labelled |>
     summarise_scores(by = c("model_label", "location"))
 
@@ -1084,58 +1174,37 @@ plot_score_comparison <- function(scores,
 
   scores_by_loc$location <- factor(scores_by_loc$location, levels = loc_order)
 
-  p_d <- ggplot(scores_by_loc, aes(
+  p_e <- ggplot(scores_by_loc, aes(
     x = location, y = wis, fill = model_label
   )) +
     geom_bar(stat = "identity", position = "dodge") +
     scale_fill_manual(values = model_colors, name = "Model") +
-    labs(x = "Location", y = "WIS", tag = "D") +
+    labs(x = "Location", y = "WIS", tag = "E") +
     lshtm_theme() +
     theme(
       axis.text.x = element_text(angle = 45, hjust = 1, size = 7)
     )
 
-  # --- Panel E: WIS by forecast date ---
+  # --- Panel F: WIS by forecast date ---
   scores_by_date <- scores_labelled |>
     mutate(forecast_date = ymd(forecast_date)) |>
     summarise_scores(by = c("model_label", "forecast_date"))
 
-  p_e <- ggplot(scores_by_date, aes(
+  p_f <- ggplot(scores_by_date, aes(
     x = forecast_date, y = wis, fill = model_label
   )) +
     geom_bar(stat = "identity", position = "dodge") +
     scale_fill_manual(values = model_colors, name = "Model") +
-    labs(x = "Forecast date", y = "WIS", tag = "E") +
+    labs(x = "Forecast date", y = "WIS", tag = "F") +
     lshtm_theme() +
     theme(
       axis.text.x = element_text(angle = 45, hjust = 1, size = 7)
     )
 
-  # --- Panel F: National hospital admissions time series ---
-  if (!is.null(hosp_data)) {
-    p_f <- ggplot(hosp_data, aes(x = date, y = value)) +
-      geom_line(color = "#01454F", linewidth = 0.8) +
-      labs(x = "Date", y = "7-day hospital\nadmissions", tag = "F") +
-      lshtm_theme()
-  } else {
-    p_f <- patchwork::plot_spacer()
-  }
-
   # --- Panel G: Heatmap of rWIS by date and location ---
-  scores_by_date_loc <- scores_labelled |>
-    summarise_scores(by = c("model_label", "forecast_date", "location"))
-
-  hosp_only_ref <- scores_by_date_loc |>
-    filter(model_label == "Without wastewater data") |>
-    select(forecast_date, location, wis_ref = wis)
-
-  ww_rwis <- scores_by_date_loc |>
+  ww_rwis <- all_rwis |>
     filter(model_label == "With wastewater data") |>
-    left_join(hosp_only_ref, by = c("forecast_date", "location")) |>
-    mutate(
-      rwis = wis / wis_ref,
-      forecast_date = ymd(forecast_date)
-    )
+    mutate(forecast_date = ymd(forecast_date))
 
   p_g <- ggplot(ww_rwis, aes(
     x = forecast_date, y = location, fill = rwis
@@ -1153,12 +1222,15 @@ plot_score_comparison <- function(scores,
     )
 
   # --- Combine all panels ---
-  # Layout: row 1 = A, B, C; row 2 = D, E, F; row 3 = G (full width)
+  # Layout: row 1 = A, B, C; row 2 = D, E; row 3 = F (full width);
+  # row 4 = G (full width)
   p_combined <- patchwork::wrap_plots(
     p_a, p_b, p_c,
-    p_d, p_e, p_f,
+    p_d, p_e,
+    p_f,
     p_g,
-    ncol = 3,
+    design = "AABBCC\nDDDEEE\nFFFFFF\nGGGGGG",
+    heights = c(1, 1, 1.5, 1.5),
     guides = "collect"
   ) +
     patchwork::plot_annotation(

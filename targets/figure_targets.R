@@ -107,7 +107,6 @@ figure_targets <- list(
     command = plot_score_comparison(
       scores = scores,
       quantiles_df = all_quantiles,
-      hosp_data = NULL,
       save_path = file.path(fig_output_path, "fig3")
     ),
     format = "rds"

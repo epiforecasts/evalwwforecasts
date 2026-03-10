@@ -332,10 +332,11 @@ get_scatterplot_scores <- function(scores) {
 #' @returns Named character vector of hex colours
 #' @keywords internal
 get_model_colors <- function() {
+  # Okabe-Ito palette (colorblind-safe)
   return(c(
-    "ARIMA baseline" = "#E57373",
-    "With wastewater data" = "#64B5F6",
-    "Without wastewater data" = "#81C784"
+    "ARIMA baseline" = "#D55E00",
+    "With wastewater data" = "#0072B2",
+    "Without wastewater data" = "#009E73"
   ))
 }
 

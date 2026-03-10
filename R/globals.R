@@ -178,6 +178,7 @@ utils::globalVariables(c(
   "observed", # <plot_score_comparison>
   "predicted", # <plot_score_comparison>
   "observed_below", # <plot_score_comparison>
+  "median", # <plot_score_comparison>
   "state", # <format_baseline_forecasts>
   "quantile_level", # <format_baseline_forecasts>
   "pred_value7dsum", # <format_baseline_forecasts>
