@@ -99,9 +99,14 @@ figure_targets <- list(
   # Uses plot_score_comparison()
   # ===========================================================================
   tar_target(
+    name = all_quantiles,
+    command = load_all_quantiles(output_path = file.path("output"))
+  ),
+  tar_target(
     name = fig3,
     command = plot_score_comparison(
       scores = scores,
+      quantiles_df = all_quantiles,
       hosp_data = NULL,
       save_path = file.path(fig_output_path, "fig3")
     ),

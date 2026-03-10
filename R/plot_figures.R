@@ -102,6 +102,41 @@ save_baseline_quantiles <- function(baseline_forecasts, output_path) {
   return(invisible(baseline_forecasts))
 }
 
+#' Load all hospital quantile forecasts as a single data frame
+#'
+#' Reads all `hosp_quantiles_ww_TRUE.csv` and `hosp_quantiles_ww_FALSE.csv`
+#' files from the output directory and binds them into a single data frame.
+#' Used for computing PIT calibration curves.
+#'
+#' @param output_path Path to the output folder
+#' @return Data.frame with columns from the quantile CSV files
+#' @importFrom readr read_csv
+#' @importFrom dplyr bind_rows filter
+#' @export
+#' @autoglobal
+load_all_quantiles <- function(output_path) {
+  base_path <- file.path(output_path, "individual_forecasts_all_runs")
+  forecast_dates <- list.dirs(base_path, recursive = FALSE, full.names = FALSE)
+
+  all_files <- c()
+  for (fd in forecast_dates) {
+    pattern <- "hosp_quantiles_ww_(TRUE|FALSE)\\.csv$"
+    files <- list.files(
+      file.path(base_path, fd),
+      pattern = pattern,
+      recursive = TRUE,
+      full.names = TRUE
+    )
+    all_files <- c(all_files, files)
+  }
+
+  quantiles_list <- lapply(all_files, function(f) {
+    read_csv(f, show_col_types = FALSE)
+  })
+
+  bind_rows(quantiles_list)
+}
+
 #' Load hospital forecast data for multiple dates and locations
 #'
 #' @param output_path Path to the output folder
@@ -895,13 +930,16 @@ plot_multilocation_comparison <- function(
 #' Creates a multi-panel figure comparing forecast performance across models:
 #' A. CRPS by model (bar chart with underprediction/overprediction/dispersion)
 #' B. Relative WIS by horizon
-#' C. Interval coverage (50% and 90%)
+#' C. PIT calibration curve
 #' D. CRPS by location
 #' E. CRPS by forecast date
 #' F. National hospital admissions time series
 #' G. Heatmap of rWIS by forecast date and location
 #'
 #' @param scores A scoringutils scores object
+#' @param quantiles_df Data.frame of quantile forecasts with columns
+#'   `quantile_level`, `predicted`, `observed`, `model`, and `include_ww`.
+#'   Used for the PIT calibration curve (panel C).
 #' @param hosp_data Optional data.frame of national hospital admissions with
 #'   columns `date` and `value` (7-day rolling sum). If NULL, panel F is a
 #'   spacer.
@@ -910,18 +948,19 @@ plot_multilocation_comparison <- function(
 #' @return A patchwork plot combining all panels
 #' @importFrom scoringutils summarise_scores
 #' @importFrom dplyr filter mutate group_by summarise arrange left_join
-#'   case_when ungroup select pull
+#'   semi_join distinct case_when ungroup select pull
 #' @importFrom tidyr pivot_longer pivot_wider
 #' @importFrom ggplot2 ggplot aes geom_bar geom_line geom_point geom_tile
-#'   geom_hline coord_flip facet_wrap labs theme element_text element_blank
-#'   scale_fill_manual scale_fill_gradient2 scale_color_manual
-#'   scale_y_continuous ggsave
+#'   geom_abline geom_hline annotate coord_flip coord_equal facet_wrap labs
+#'   theme element_text element_blank scale_fill_manual scale_fill_gradient2
+#'   scale_color_manual scale_x_continuous scale_y_continuous ggsave
 #' @importFrom patchwork wrap_plots plot_annotation plot_layout plot_spacer
 #' @importFrom lubridate ymd
 #' @importFrom glue glue
 #' @export
 #' @autoglobal
 plot_score_comparison <- function(scores,
+                                  quantiles_df,
                                   hosp_data = NULL,
                                   save_path = NULL) {
   model_colors <- get_model_colors()
@@ -983,38 +1022,63 @@ plot_score_comparison <- function(scores,
     ) +
     lshtm_theme()
 
-  # --- Panel C: Interval coverage ---
-  coverage_long <- scores_overall |>
-    select(model_label, interval_coverage_50, interval_coverage_90) |>
-    pivot_longer(
-      cols = c("interval_coverage_50", "interval_coverage_90"),
-      names_to = "interval",
-      values_to = "coverage"
+  # --- Panel C: PIT calibration curve ---
+  # For each quantile level and model, compute the proportion of observations
+  # that fall below the predicted quantile value
+  # Filter quantiles to match the same location-forecast_date combos as scores
+  valid_combos <- scores_labelled |>
+    select(location, forecast_date) |>
+    distinct()
+
+  quantiles_labelled <- quantiles_df |>
+    filter(
+      date >= forecast_date,
+      scale == "natural"
     ) |>
+    semi_join(valid_combos, by = c("location", "forecast_date")) |>
     mutate(
-      interval = ifelse(
-        interval == "interval_coverage_50", "50% PI", "90% PI"
+      model_label = case_when(
+        model == "arima_baseline" ~ "ARIMA baseline",
+        model == "wwinference" & include_ww ~ "With wastewater data",
+        model == "wwinference" & !include_ww ~ "Without wastewater data",
+        TRUE ~ glue("{model}-{include_ww}")
       )
     )
 
-  nominal_targets <- data.frame(
-    interval = c("50% PI", "90% PI"),
-    target = c(0.5, 0.9)
-  )
+  pit_data <- quantiles_labelled |>
+    group_by(model_label, quantile_level) |>
+    summarise(
+      observed_below = mean(observed <= predicted, na.rm = TRUE),
+      .groups = "drop"
+    )
 
-  p_c <- ggplot(coverage_long, aes(
-    x = model_label, y = coverage, fill = model_label
+  p_c <- ggplot(pit_data, aes(
+    x = quantile_level, y = observed_below, color = model_label
   )) +
-    geom_bar(stat = "identity", position = "dodge") +
-    facet_wrap(~interval) +
-    geom_hline(
-      data = nominal_targets,
-      aes(yintercept = target),
-      linetype = "dashed", color = "grey40"
+    annotate("rect",
+      xmin = 0.05, xmax = 0.95, ymin = 0.05, ymax = 0.95,
+      fill = "#E8F5E9", alpha = 0.4
     ) +
-    coord_flip() +
-    scale_fill_manual(values = model_colors) +
-    labs(x = NULL, y = "Coverage", fill = "Model", tag = "C") +
+    annotate("rect",
+      xmin = 0.25, xmax = 0.75, ymin = 0.25, ymax = 0.75,
+      fill = "#C8E6C9", alpha = 0.4
+    ) +
+    geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey40") +
+    geom_line(linewidth = 0.8) +
+    scale_color_manual(values = model_colors) +
+    scale_x_continuous(
+      labels = function(x) paste0(x * 100, "%"),
+      breaks = seq(0, 1, 0.25)
+    ) +
+    scale_y_continuous(
+      labels = function(x) paste0(x * 100, "%"),
+      breaks = seq(0, 1, 0.25)
+    ) +
+    coord_equal() +
+    labs(
+      x = "Quantile level", y = "Obs < level",
+      color = "Model", tag = "C"
+    ) +
     lshtm_theme() +
     theme(legend.position = "none")
 
