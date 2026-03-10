@@ -922,11 +922,11 @@ plot_multilocation_comparison <- function(
 #' Create comprehensive score comparison figure (Fig 3)
 #'
 #' Creates a multi-panel figure comparing forecast performance across models:
-#' A. CRPS by model (bar chart with underprediction/overprediction/dispersion)
+#' A. WIS by model (bar chart with underprediction/overprediction/dispersion)
 #' B. Relative WIS by horizon
 #' C. PIT calibration curve
-#' D. CRPS by location
-#' E. CRPS by forecast date
+#' D. WIS by location
+#' E. WIS by forecast date
 #' F. National hospital admissions time series
 #' G. Heatmap of rWIS by forecast date and location
 #'
@@ -970,7 +970,7 @@ plot_score_comparison <- function(scores,
       )
     )
 
-  # --- Panel A: CRPS by model with decomposition ---
+  # --- Panel A: WIS by model with decomposition ---
   scores_overall <- summarise_scores(scores_labelled, by = "model_label")
 
   scores_decomp <- scores_overall |>
@@ -985,7 +985,7 @@ plot_score_comparison <- function(scores,
   )) +
     geom_bar(stat = "identity", position = "stack") +
     coord_flip() +
-    labs(x = NULL, y = "CRPS", fill = "Component", tag = "A") +
+    labs(x = NULL, y = "WIS", fill = "Component", tag = "A") +
     lshtm_theme()
 
   # --- Panel B: Relative WIS by horizon ---
@@ -1073,7 +1073,7 @@ plot_score_comparison <- function(scores,
     ) +
     lshtm_theme()
 
-  # --- Panel D: CRPS by location ---
+  # --- Panel D: WIS by location ---
   scores_by_loc <- scores_labelled |>
     summarise_scores(by = c("model_label", "location"))
 
@@ -1089,13 +1089,13 @@ plot_score_comparison <- function(scores,
   )) +
     geom_bar(stat = "identity", position = "dodge") +
     scale_fill_manual(values = model_colors, name = "Model") +
-    labs(x = "Location", y = "CRPS", tag = "D") +
+    labs(x = "Location", y = "WIS", tag = "D") +
     lshtm_theme() +
     theme(
       axis.text.x = element_text(angle = 45, hjust = 1, size = 7)
     )
 
-  # --- Panel E: CRPS by forecast date ---
+  # --- Panel E: WIS by forecast date ---
   scores_by_date <- scores_labelled |>
     mutate(forecast_date = ymd(forecast_date)) |>
     summarise_scores(by = c("model_label", "forecast_date"))
@@ -1105,7 +1105,7 @@ plot_score_comparison <- function(scores,
   )) +
     geom_bar(stat = "identity", position = "dodge") +
     scale_fill_manual(values = model_colors, name = "Model") +
-    labs(x = "Forecast date", y = "CRPS", tag = "E") +
+    labs(x = "Forecast date", y = "WIS", tag = "E") +
     lshtm_theme() +
     theme(
       axis.text.x = element_text(angle = 45, hjust = 1, size = 7)

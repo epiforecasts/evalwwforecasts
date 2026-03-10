@@ -11,20 +11,27 @@ repos:
         args: ['--load_package']
         additional_dependencies:
           # From DESCRIPTION / Imports
+          - arrow
           - cli
           - dplyr
-          - rlang
-          - readr
-          - ggplot2
-          - lubridate
+          - forecast
           - fs
-          - purrr
+          - future
+          - future.callr
+          - ggh4x
+          - ggplot2
           - glue
-          - scoringutils
-          - zoo
-          - stringr
-          # GitHub remote for wwinference
+          - gridExtra
+          - httr
+          - lubridate
           - patchwork
+          - purrr
+          - readr
+          - rlang
+          - scoringutils
+          - stringr
+          - zoo
+          # GitHub remote for wwinference
           - github::CDCgov/ww-inference-model
           # Only if you use these linters
           - cyclocomp
