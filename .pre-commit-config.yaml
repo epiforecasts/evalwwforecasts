@@ -23,6 +23,7 @@ repos:
           - zoo
           - stringr
           # GitHub remote for wwinference
+          - patchwork
           - github::CDCgov/ww-inference-model
           # Only if you use these linters
           - cyclocomp

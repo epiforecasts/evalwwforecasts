@@ -681,7 +681,7 @@ get_combined_forecast_wis_plot <- function(
     )
 
     # Combine forecast and WIS plots vertically
-    combined_loc <- wrap_plots(
+    combined_loc <- patchwork::wrap_plots(
       p_forecast,
       p_wis,
       ncol = 1,
@@ -692,7 +692,7 @@ get_combined_forecast_wis_plot <- function(
   }
 
   # Combine all location plots horizontally
-  p_combined <- wrap_plots(
+  p_combined <- patchwork::wrap_plots(
     plot_list,
     ncol = length(locations),
     guides = "collect"

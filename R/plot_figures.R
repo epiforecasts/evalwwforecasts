@@ -811,3 +811,239 @@ plot_multilocation_comparison <- function(
 
   return(p_combined)
 }
+
+#' Create comprehensive score comparison figure (Fig 3)
+#'
+#' Creates a multi-panel figure comparing forecast performance across models:
+#' A. CRPS by model (bar chart with underprediction/overprediction/dispersion)
+#' B. Relative WIS by horizon
+#' C. Interval coverage (50% and 90%)
+#' D. CRPS by location
+#' E. CRPS by forecast date
+#' F. National hospital admissions time series
+#' G. Heatmap of rWIS by forecast date and location
+#'
+#' @param scores A scoringutils scores object
+#' @param hosp_data Optional data.frame of national hospital admissions with
+#'   columns `date` and `value` (7-day rolling sum). If NULL, panel F is a
+#'   spacer.
+#' @param save_path Optional path to save the figure. If NULL, figure is not
+#'   saved.
+#' @return A patchwork plot combining all panels
+#' @importFrom scoringutils summarise_scores
+#' @importFrom dplyr filter mutate group_by summarise arrange left_join
+#'   case_when ungroup select pull
+#' @importFrom tidyr pivot_longer pivot_wider
+#' @importFrom ggplot2 ggplot aes geom_bar geom_line geom_point geom_tile
+#'   geom_hline coord_flip facet_wrap labs theme element_text element_blank
+#'   scale_fill_manual scale_fill_gradient2 scale_color_manual
+#'   scale_y_continuous ggsave
+#' @importFrom patchwork wrap_plots plot_annotation plot_layout plot_spacer
+#' @importFrom lubridate ymd
+#' @importFrom glue glue
+#' @export
+#' @autoglobal
+plot_score_comparison <- function(scores,
+                                  hosp_data = NULL,
+                                  save_path = NULL) {
+  model_colors <- get_model_colors()
+
+  # Add model labels
+  scores_labelled <- scores |>
+    mutate(
+      model_label = case_when(
+        model == "arima_baseline" ~ "ARIMA baseline",
+        model == "wwinference" & include_ww ~ "With wastewater data",
+        model == "wwinference" & !include_ww ~ "Without wastewater data",
+        TRUE ~ glue("{model}-{include_ww}")
+      )
+    )
+
+  # --- Panel A: CRPS by model with decomposition ---
+  scores_overall <- scores_labelled |>
+    summarise_scores(by = c("model_label"))
+
+  scores_decomp <- scores_overall |>
+    pivot_longer(
+      cols = c("underprediction", "overprediction", "dispersion"),
+      names_to = "component",
+      values_to = "value"
+    )
+
+  p_a <- ggplot(scores_decomp, aes(
+    x = model_label, y = value, fill = component
+  )) +
+    geom_bar(stat = "identity", position = "stack") +
+    coord_flip() +
+    labs(x = NULL, y = "CRPS", fill = "Component", tag = "A") +
+    lshtm_theme() +
+    theme(legend.position = "bottom")
+
+  # --- Panel B: Relative WIS by horizon ---
+  scores_by_horizon <- scores_labelled |>
+    mutate(horizon_days = as.numeric(ymd(date) - ymd(forecast_date))) |>
+    summarise_scores(by = c("model_label", "horizon_days"))
+
+  hosp_only_wis <- scores_by_horizon |>
+    filter(model_label == "Without wastewater data") |>
+    select(horizon_days, wis_ref = wis)
+
+  scores_rwis <- scores_by_horizon |>
+    left_join(hosp_only_wis, by = "horizon_days") |>
+    mutate(rwis = wis / wis_ref)
+
+  p_b <- ggplot(scores_rwis, aes(
+    x = horizon_days, y = rwis, color = model_label
+  )) +
+    geom_line(linewidth = 0.8) +
+    geom_point(size = 1.5) +
+    geom_hline(yintercept = 1, linetype = "dashed", color = "grey40") +
+    scale_color_manual(values = model_colors) +
+    labs(
+      x = "Horizon (days)", y = "Relative WIS",
+      color = "Model", tag = "B"
+    ) +
+    lshtm_theme()
+
+  # --- Panel C: Interval coverage ---
+  coverage_long <- scores_overall |>
+    select(model_label, interval_coverage_50, interval_coverage_90) |>
+    pivot_longer(
+      cols = c("interval_coverage_50", "interval_coverage_90"),
+      names_to = "interval",
+      values_to = "coverage"
+    ) |>
+    mutate(
+      interval = ifelse(
+        interval == "interval_coverage_50", "50% PI", "90% PI"
+      )
+    )
+
+  nominal_targets <- data.frame(
+    interval = c("50% PI", "90% PI"),
+    target = c(0.5, 0.9)
+  )
+
+  p_c <- ggplot(coverage_long, aes(
+    x = model_label, y = coverage, fill = model_label
+  )) +
+    geom_bar(stat = "identity", position = "dodge") +
+    facet_wrap(~interval) +
+    geom_hline(
+      data = nominal_targets,
+      aes(yintercept = target),
+      linetype = "dashed", color = "grey40"
+    ) +
+    coord_flip() +
+    scale_fill_manual(values = model_colors) +
+    labs(x = NULL, y = "Coverage", fill = "Model", tag = "C") +
+    lshtm_theme() +
+    theme(legend.position = "none")
+
+  # --- Panel D: CRPS by location ---
+  scores_by_loc <- scores_labelled |>
+    summarise_scores(by = c("model_label", "location"))
+
+  loc_order <- scores_by_loc |>
+    filter(model_label == "Without wastewater data") |>
+    arrange(wis) |>
+    pull(location)
+
+  scores_by_loc$location <- factor(scores_by_loc$location, levels = loc_order)
+
+  p_d <- ggplot(scores_by_loc, aes(
+    x = location, y = wis, fill = model_label
+  )) +
+    geom_bar(stat = "identity", position = "dodge") +
+    scale_fill_manual(values = model_colors) +
+    labs(x = "Location", y = "CRPS", fill = "Model", tag = "D") +
+    lshtm_theme() +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1, size = 7),
+      legend.position = "none"
+    )
+
+  # --- Panel E: CRPS by forecast date ---
+  scores_by_date <- scores_labelled |>
+    mutate(forecast_date = ymd(forecast_date)) |>
+    summarise_scores(by = c("model_label", "forecast_date"))
+
+  p_e <- ggplot(scores_by_date, aes(
+    x = forecast_date, y = wis, fill = model_label
+  )) +
+    geom_bar(stat = "identity", position = "dodge") +
+    scale_fill_manual(values = model_colors) +
+    labs(x = "Forecast date", y = "CRPS", fill = "Model", tag = "E") +
+    lshtm_theme() +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1, size = 7),
+      legend.position = "none"
+    )
+
+  # --- Panel F: National hospital admissions time series ---
+  if (!is.null(hosp_data)) {
+    p_f <- ggplot(hosp_data, aes(x = date, y = value)) +
+      geom_line(color = "#01454F", linewidth = 0.8) +
+      labs(x = "Date", y = "7-day hospital\nadmissions", tag = "F") +
+      lshtm_theme()
+  } else {
+    p_f <- patchwork::plot_spacer()
+  }
+
+  # --- Panel G: Heatmap of rWIS by date and location ---
+  scores_by_date_loc <- scores_labelled |>
+    summarise_scores(by = c("model_label", "forecast_date", "location"))
+
+  hosp_only_ref <- scores_by_date_loc |>
+    filter(model_label == "Without wastewater data") |>
+    select(forecast_date, location, wis_ref = wis)
+
+  ww_rwis <- scores_by_date_loc |>
+    filter(model_label == "With wastewater data") |>
+    left_join(hosp_only_ref, by = c("forecast_date", "location")) |>
+    mutate(
+      rwis = wis / wis_ref,
+      forecast_date = ymd(forecast_date)
+    )
+
+  p_g <- ggplot(ww_rwis, aes(
+    x = forecast_date, y = location, fill = rwis
+  )) +
+    geom_tile() +
+    scale_fill_gradient2(
+      low = "#2166AC", mid = "white", high = "#B2182B",
+      midpoint = 1, name = "rWIS"
+    ) +
+    labs(x = "Forecast date", y = "Location", tag = "G") +
+    lshtm_theme() +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1, size = 7),
+      axis.text.y = element_text(size = 7)
+    )
+
+  # --- Combine all panels ---
+  # Layout: row 1 = A, B, C; row 2 = D, E, F; row 3 = G (full width)
+  p_combined <- patchwork::wrap_plots(
+    p_a, p_b, p_c,
+    p_d, p_e, p_f,
+    p_g,
+    ncol = 3,
+    guides = "collect"
+  ) +
+    patchwork::plot_annotation(
+      title = "Forecast score comparison across models"
+    ) &
+    theme(legend.position = "bottom")
+
+  if (!is.null(save_path)) {
+    dir.create(save_path, recursive = TRUE, showWarnings = FALSE)
+    ggsave(
+      filename = file.path(save_path, "fig3_score_comparison.png"),
+      plot = p_combined,
+      width = 18,
+      height = 14
+    )
+  }
+
+  return(p_combined)
+}
