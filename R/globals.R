@@ -10,8 +10,6 @@ utils::globalVariables(c(
   "q_0.05", # <plot_forecast_comparison>
   "q_0.95", # <plot_forecast_comparison>
   "forecast_date", # <get_plot_model_comparison>
-  "quantile_level", # <get_plot_model_comparison>
-  "predicted", # <get_plot_model_comparison>
   "location", # <get_plot_model_comparison>
   "q_0.5", # <get_plot_model_comparison>
   "forecast_date_model_ww", # <get_plot_model_comparison>
@@ -131,13 +129,6 @@ utils::globalVariables(c(
   "mean_loq", # <add_correct_lod>
   "overall_mean", # <add_correct_lod>
   "date_parsed", # <create_hospital_plot>
-  "q_0.5", # <create_hospital_plot>
-  "forecast_date_model_ww", # <create_hospital_plot>
-  "model_ww", # <create_hospital_plot>
-  "q_0.25", # <create_hospital_plot>
-  "q_0.75", # <create_hospital_plot>
-  "q_0.05", # <create_hospital_plot>
-  "q_0.95", # <create_hospital_plot>
   "observed", # <create_hospital_plot>
   "date_parsed", # <create_ww_plot>
   "q_0.5", # <create_ww_plot>
@@ -146,14 +137,17 @@ utils::globalVariables(c(
   "q_0.75", # <create_ww_plot>
   "log_genome_copies_per_ml", # <create_ww_plot>
   "date_parsed", # <plot_multilocation_comparison>
-  "q_0.5", # <plot_multilocation_comparison>
-  "forecast_date_model_ww", # <plot_multilocation_comparison>
-  "model_ww", # <plot_multilocation_comparison>
-  "q_0.25", # <plot_multilocation_comparison>
-  "q_0.75", # <plot_multilocation_comparison>
-  "q_0.05", # <plot_multilocation_comparison>
-  "q_0.95", # <plot_multilocation_comparison>
   "observed", # <plot_multilocation_comparison>
+  "date_parsed", # <forecast_ribbon_layers>
+  "q_0.5", # <forecast_ribbon_layers>
+  "forecast_date_model_ww", # <forecast_ribbon_layers>
+  "model_ww", # <forecast_ribbon_layers>
+  "q_0.25", # <forecast_ribbon_layers>
+  "q_0.75", # <forecast_ribbon_layers>
+  "q_0.05", # <forecast_ribbon_layers>
+  "q_0.95", # <forecast_ribbon_layers>
+  "quantile_level", # <pivot_quantiles>
+  "predicted", # <pivot_quantiles>
   "model_label", # <plot_score_comparison>
   "value", # <plot_score_comparison>
   "component", # <plot_score_comparison>

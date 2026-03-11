@@ -102,11 +102,7 @@ get_plot_model_comparison <- function(
         "{forecast_date}-{model}-{include_ww}"
       )
     ) |>
-    pivot_wider(
-      names_from = quantile_level,
-      values_from = predicted,
-      names_prefix = "q_"
-    )
+    pivot_quantiles()
   min_forecast_date <- min(forecasts_i$forecast_date)
   max_forecast_date <- max(forecasts_i$forecast_date)
   hosp_data <- filter(
@@ -373,15 +369,8 @@ aggregate_scores_for_plot <- function(scores,
   scores_agg <- scores_filtered |>
     group_by(model, include_ww, hosp_data_real_time, forecast_date, location) |>
     summarise(wis = mean(wis, na.rm = TRUE), .groups = "drop") |>
-    mutate(
-      model_label = case_when(
-        model == "arima_baseline" ~ "ARIMA baseline",
-        model == "wwinference" & include_ww ~ "With wastewater data",
-        model == "wwinference" & !include_ww ~ "Without wastewater data",
-        TRUE ~ glue::glue("{model}-{include_ww}")
-      ),
-      forecast_date = ymd(forecast_date)
-    )
+    add_model_labels() |>
+    mutate(forecast_date = ymd(forecast_date))
   return(scores_agg)
 }
 
