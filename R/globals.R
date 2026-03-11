@@ -130,17 +130,6 @@ utils::globalVariables(c(
   "loq", # <add_correct_lod>
   "mean_loq", # <add_correct_lod>
   "overall_mean", # <add_correct_lod>
-  "state", # <save_baseline_quantiles>
-  "quantile_level", # <save_baseline_quantiles>
-  "predicted", # <save_baseline_quantiles>
-  "updated_hosp_7d_count", # <save_baseline_quantiles>
-  "observed", # <save_baseline_quantiles>
-  "model", # <save_baseline_quantiles>
-  "include_ww", # <save_baseline_quantiles>
-  "hosp_data_real_time", # <save_baseline_quantiles>
-  "location", # <save_baseline_quantiles>
-  "forecast_date", # <save_baseline_quantiles>
-  "flag_missing_ww", # <save_baseline_quantiles>
   "date_parsed", # <create_hospital_plot>
   "q_0.5", # <create_hospital_plot>
   "forecast_date_model_ww", # <create_hospital_plot>

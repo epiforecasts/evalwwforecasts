@@ -720,14 +720,13 @@ get_combined_forecast_wis_plot <- function(
         axis.title.x = element_blank()
       )
 
-    # WIS plot for this location with aligned x-axis
+    # WIS plot for this location
     loc_scores <- filter(scores_filtered, location == loc)
     p_wis <- create_wis_bar_chart(
       loc_scores,
       model_colors = model_colors,
       show_legend = TRUE
-    ) +
-      scale_x_date(limits = shared_xlim)
+    )
 
     # Combine forecast and WIS plots vertically
     combined_loc <- patchwork::wrap_plots(

@@ -64,68 +64,6 @@ add_model_labels <- function(df) {
   return(result)
 }
 
-#' Save ARIMA baseline quantiles in the same format as wwinference quantiles
-#'
-#' Converts wide-format ARIMA baseline forecasts to long-format and saves
-#' them alongside the wwinference output so that plotting functions can
-#' load them.
-#'
-#' @param baseline_forecasts Data.frame of baseline forecasts (wide format
-#'   with q_* columns)
-#' @param output_path Path to the output folder (e.g. "output")
-#' @return The input data frame (invisibly), called for side effect of saving
-#' @importFrom tidyr pivot_longer starts_with
-#' @importFrom readr write_csv
-#' @importFrom fs dir_create
-#' @importFrom dplyr rename mutate select
-#' @export
-#' @autoglobal
-save_baseline_quantiles <- function(baseline_forecasts, output_path) {
-  bl_long <- baseline_forecasts |>
-    rename(location = state) |>
-    pivot_longer(
-      cols = starts_with("q_"),
-      names_prefix = "q_",
-      names_to = "quantile_level",
-      values_to = "predicted"
-    ) |>
-    mutate(
-      quantile_level = as.numeric(quantile_level),
-      predicted = pmax(predicted, 0),
-      scale = "natural",
-      include_ww = FALSE,
-      observed = updated_hosp_7d_count,
-      flag_missing_ww = FALSE
-    ) |>
-    select(
-      observed, model, include_ww, hosp_data_real_time,
-      location, forecast_date, date, scale,
-      quantile_level, predicted, flag_missing_ww
-    )
-
-  # Save per location and forecast date
-  for (fd in unique(as.character(bl_long$forecast_date))) {
-    for (loc in unique(bl_long$location)) {
-      bl_subset <- bl_long[
-        as.character(bl_long$forecast_date) == fd &
-          bl_long$location == loc,
-      ]
-      if (nrow(bl_subset) == 0) next
-      full_fp <- file.path(
-        output_path, "individual_forecasts_all_runs",
-        fd, loc, "data"
-      )
-      dir_create(full_fp, recurse = TRUE)
-      write_csv(
-        bl_subset,
-        file.path(full_fp, "hosp_quantiles_arima.csv")
-      )
-    }
-  }
-
-  return(invisible(baseline_forecasts))
-}
-
 #' Load all hospital quantile forecasts as a single data frame
 #'
 #' Reads all `hosp_quantiles_ww_TRUE.csv` and `hosp_quantiles_ww_FALSE.csv`

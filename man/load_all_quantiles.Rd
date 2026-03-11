@@ -14,6 +14,8 @@ Data.frame with columns from the quantile CSV files
 }
 \description{
 Reads all \code{hosp_quantiles_ww_TRUE.csv} and \code{hosp_quantiles_ww_FALSE.csv}
-files from the output directory and binds them into a single data frame.
+files found recursively under the \code{individual_forecasts_all_runs}
+subdirectory of \code{output_path} and binds them into a single data frame.
+Only that subdirectory is scanned, not the entire output directory.
 Used for computing PIT calibration curves.
 }

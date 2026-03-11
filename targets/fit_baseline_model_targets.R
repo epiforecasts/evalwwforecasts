@@ -48,16 +48,5 @@ fit_baseline_model_targets <- list(
     ),
     iteration = "list",
     format = "rds"
-  ),
-  # Save baseline quantiles in same format as wwinference for figure plotting
-  tar_target(
-    name = saved_baseline_quantiles,
-    command = save_baseline_quantiles(
-      baseline_forecasts,
-      output_path = file.path("output")
-    ),
-    pattern = map(baseline_forecasts)
   )
-  # format for scoring the same as the output from the wwinference model
-  # wrapper
 )
