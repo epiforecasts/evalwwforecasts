@@ -1,7 +1,6 @@
 CDCgov
 COVID
 COVIDHub
-CRPS
 DD
 EDA
 FluSight
@@ -30,6 +29,7 @@ nowcast
 overprediction
 quantiled
 rWIS
+raincloud
 refs
 scoringutils
 th
