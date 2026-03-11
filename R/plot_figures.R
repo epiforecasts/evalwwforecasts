@@ -80,7 +80,7 @@ load_all_quantiles <- function(output_path) {
   base_path <- file.path(output_path, "individual_forecasts_all_runs")
   all_files <- list.files(
     base_path,
-    pattern = "hosp_quantiles_ww_(TRUE|FALSE)\\.csv$",
+    pattern = "hosp_quantiles_(ww_(TRUE|FALSE)|arima)\\.csv$",
     recursive = TRUE,
     full.names = TRUE
   )
@@ -89,25 +89,6 @@ load_all_quantiles <- function(output_path) {
 
 #' Resolve the forecast path for a given date
 #'
-#' Some forecast dates use a flat structure (date/location/) while others
-#' have a double-nested structure (date/date/location/). This helper
-#' resolves to the correct path.
-#'
-#' @param output_path Path to the output folder
-#' @param forecast_date Character string forecast date
-#' @return Resolved path to the directory containing location folders
-#' @keywords internal
-resolve_forecast_path <- function(output_path, forecast_date) {
-  base_path <- file.path(
-    output_path, "individual_forecasts_all_runs", forecast_date
-  )
-  nested_path <- file.path(base_path, forecast_date)
-  if (dir.exists(nested_path)) {
-    return(nested_path)
-  }
-  return(base_path)
-}
-
 #' Load hospital forecast data for multiple dates and locations
 #'
 #' @param output_path Path to the output folder
@@ -119,7 +100,9 @@ resolve_forecast_path <- function(output_path, forecast_date) {
 load_hospital_forecasts <- function(output_path, forecast_dates, locations) {
   hosp_forecasts_list <- list()
   for (forecast_date in forecast_dates) {
-    forecast_path <- resolve_forecast_path(output_path, forecast_date)
+    forecast_path <- file.path(
+      output_path, "individual_forecasts_all_runs", forecast_date
+    )
 
     for (loc in locations) {
       data_dir <- file.path(forecast_path, loc, "data")
@@ -153,7 +136,9 @@ load_hospital_forecasts <- function(output_path, forecast_dates, locations) {
 load_ww_forecasts <- function(output_path, forecast_dates, locations) {
   ww_forecasts_list <- list()
   for (forecast_date in forecast_dates) {
-    forecast_path <- resolve_forecast_path(output_path, forecast_date)
+    forecast_path <- file.path(
+      output_path, "individual_forecasts_all_runs", forecast_date
+    )
     for (loc in locations) {
       ww_path <- file.path(
         forecast_path, loc, "data", "ww_quantiles.csv"
@@ -201,7 +186,9 @@ load_later_ww_obs <- function(output_path, forecast_dates, locations) {
   if (length(later_dates) > 0) {
     later_forecast_date <- as.character(min(later_dates))
 
-    later_path <- resolve_forecast_path(output_path, later_forecast_date)
+    later_path <- file.path(
+      output_path, "individual_forecasts_all_runs", later_forecast_date
+    )
     for (loc in locations) {
       ww_path <- file.path(later_path, loc, "data", "ww_quantiles.csv")
       if (file.exists(ww_path)) {
