@@ -516,12 +516,12 @@ create_hospital_plot <- function(loc_hosp_forecast,
     ) +
     scale_color_manual(
       values = c(
-        "arima_baseline" = "#D55E00",
+        arima_baseline = "#D55E00",
         "wwinference-TRUE" = "#0072B2",
         "wwinference-FALSE" = "#009E73"
       ),
       labels = c(
-        "arima_baseline" = "ARIMA baseline",
+        arima_baseline = "ARIMA baseline",
         "wwinference-TRUE" = "With wastewater data",
         "wwinference-FALSE" = "Without wastewater data"
       ),
@@ -529,12 +529,12 @@ create_hospital_plot <- function(loc_hosp_forecast,
     ) +
     scale_fill_manual(
       values = c(
-        "arima_baseline" = "#D55E00",
+        arima_baseline = "#D55E00",
         "wwinference-TRUE" = "#0072B2",
         "wwinference-FALSE" = "#009E73"
       ),
       labels = c(
-        "arima_baseline" = "ARIMA baseline",
+        arima_baseline = "ARIMA baseline",
         "wwinference-TRUE" = "With wastewater data",
         "wwinference-FALSE" = "Without wastewater data"
       ),
@@ -910,12 +910,12 @@ plot_multilocation_comparison <- function(
       facet_wrap(~location, ncol = 1, scales = "free_y") +
       scale_color_manual(
         values = c(
-          "arima_baseline" = "#D55E00",
+          arima_baseline = "#D55E00",
           "wwinference-TRUE" = "#0072B2",
           "wwinference-FALSE" = "#009E73"
         ),
         labels = c(
-          "arima_baseline" = "ARIMA baseline",
+          arima_baseline = "ARIMA baseline",
           "wwinference-TRUE" = "With wastewater data",
           "wwinference-FALSE" = "Without wastewater data"
         ),
@@ -923,12 +923,12 @@ plot_multilocation_comparison <- function(
       ) +
       scale_fill_manual(
         values = c(
-          "arima_baseline" = "#D55E00",
+          arima_baseline = "#D55E00",
           "wwinference-TRUE" = "#0072B2",
           "wwinference-FALSE" = "#009E73"
         ),
         labels = c(
-          "arima_baseline" = "ARIMA baseline",
+          arima_baseline = "ARIMA baseline",
           "wwinference-TRUE" = "With wastewater data",
           "wwinference-FALSE" = "Without wastewater data"
         ),
@@ -1007,9 +1007,9 @@ plot_score_comparison <- function(scores,
                                   save_path = NULL) {
   model_colors <- get_model_colors()
   component_colors <- c(
-    "underprediction" = "#F0E442",
-    "overprediction" = "#CC79A7",
-    "dispersion" = "#56B4E9"
+    underprediction = "#F0E442",
+    overprediction = "#CC79A7",
+    dispersion = "#56B4E9"
   )
 
   # Add model labels
@@ -1198,7 +1198,9 @@ plot_score_comparison <- function(scores,
     labs(x = "Forecast date", y = "WIS", tag = "F") +
     lshtm_theme() +
     theme(
-      axis.text.x = element_text(angle = 45, hjust = 1, size = 7)
+      axis.text.x = element_text(angle = 45, hjust = 1, size = 7),
+      panel.grid.major = element_line(linewidth = 0.2),
+      panel.grid.minor = element_line(linewidth = 0.2)
     )
 
   # --- Panel G: Heatmap of rWIS by date and location ---
@@ -1211,14 +1213,16 @@ plot_score_comparison <- function(scores,
   )) +
     geom_tile() +
     scale_fill_gradient2(
-      low = "#2166AC", mid = "white", high = "#B2182B",
-      midpoint = 1, name = "rWIS"
+      low = "blue", mid = "white", high = "red",
+      trans = "log10", name = "rWIS"
     ) +
     labs(x = "Forecast date", y = "Location", tag = "G") +
     lshtm_theme() +
     theme(
       axis.text.x = element_text(angle = 45, hjust = 1, size = 7),
-      axis.text.y = element_text(size = 7)
+      axis.text.y = element_text(size = 7),
+      panel.grid.major = element_line(linewidth = 0.2),
+      panel.grid.minor = element_line(linewidth = 0.2)
     )
 
   # --- Combine all panels ---
