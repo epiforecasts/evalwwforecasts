@@ -130,12 +130,16 @@ utils::globalVariables(c(
   "overall_mean", # <add_correct_lod>
   "date_parsed", # <create_hospital_plot>
   "observed", # <create_hospital_plot>
+  "obs_timing", # <create_hospital_plot>
   "date_parsed", # <create_ww_plot>
   "q_0.5", # <create_ww_plot>
   "forecast_date_site", # <create_ww_plot>
   "q_0.25", # <create_ww_plot>
   "q_0.75", # <create_ww_plot>
+  "q_0.025", # <create_ww_plot>
+  "q_0.975", # <create_ww_plot>
   "log_genome_copies_per_ml", # <create_ww_plot>
+  "obs_timing", # <create_ww_plot>
   "date_parsed", # <plot_multilocation_comparison>
   "observed", # <plot_multilocation_comparison>
   "date_parsed", # <forecast_ribbon_layers>

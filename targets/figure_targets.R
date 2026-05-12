@@ -14,7 +14,7 @@ figure_targets <- list(
   # ===========================================================================
   tar_target(
     name = fig1_locations,
-    command = c("Bremen", "Hamburg", "Berlin")
+    command = c("Nordrhein-Westfalen", "Bayern", "Berlin")
   ),
   # Pick a single date index where all locations have WW data
   # (index 1 may be too early for some locations)
@@ -41,14 +41,14 @@ figure_targets <- list(
     name = fig1,
     command = plot_multilocation_comparison(
       output_path = output_path_multiloc,
-      forecast_dates = selected_forecast_dates_multiloc,
+      forecast_dates = "2024-11-04",
       locations = fig1_locations,
       forecast_horizon_to_plot = 28,
       historical_data_to_plot = 90,
       scale_selected = "natural",
       save_path = file.path(fig_output_path, "fig1"),
       show_multiple_dates = FALSE,
-      single_date_index = fig1_date_index
+      single_date_index = 1 # fig1_date_index
     ),
     format = "rds"
   ),

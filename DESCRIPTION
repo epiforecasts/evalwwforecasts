@@ -26,6 +26,7 @@ Imports:
     future.callr,
     ggh4x,
     ggdist,
+    ggnewscale,
     ggplot2,
     glue,
     gridExtra,

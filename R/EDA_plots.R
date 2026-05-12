@@ -330,9 +330,9 @@ get_scatterplot_scores <- function(scores) {
 get_model_colors <- function() {
   # Okabe-Ito palette (colorblind-safe)
   return(c(
-    "ARIMA baseline" = "#D55E00",
+    "ARIMA baseline" = "gray",
     "With wastewater data" = "#0072B2",
-    "Without wastewater data" = "#009E73"
+    "Without wastewater data" = "#D55E00"
   ))
 }
 

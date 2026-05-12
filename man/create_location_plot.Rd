@@ -7,8 +7,10 @@
 create_location_plot(
   loc,
   forecasts_wide,
+  fits_wide,
   hosp_obs,
   ww_wide,
+  ww_fits_wide,
   ww_obs,
   locations,
   max_ww_sites
@@ -19,9 +21,13 @@ create_location_plot(
 
 \item{forecasts_wide}{Hospital forecast data}
 
+\item{fits_wide}{Hospital fit data}
+
 \item{hosp_obs}{Hospital observations}
 
 \item{ww_wide}{Wastewater forecast data (can be NULL)}
+
+\item{ww_fits_wide}{Wastewater fit data (can be NULL)}
 
 \item{ww_obs}{Wastewater observations (can be NULL)}
 

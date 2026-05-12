@@ -6,6 +6,7 @@
 \usage{
 create_hospital_plot(
   loc_hosp_forecast,
+  loc_hosp_fit,
   loc_hosp_obs,
   loc,
   locations,
@@ -14,6 +15,8 @@ create_hospital_plot(
 }
 \arguments{
 \item{loc_hosp_forecast}{Hospital forecast data for location}
+
+\item{loc_hosp_fit}{Hospital fit data for location}
 
 \item{loc_hosp_obs}{Hospital observations for location}
 
