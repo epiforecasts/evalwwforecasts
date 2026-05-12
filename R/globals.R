@@ -21,7 +21,6 @@ utils::globalVariables(c(
   "q_0.75", # <get_plot_model_comparison>
   "q_0.05", # <get_plot_model_comparison>
   "q_0.95", # <get_plot_model_comparison>
-  "draw", # <get_plot_draws_w_calib_data>
   "pred_value7dsum", # <get_plot_draws_w_calib_data>
   "calib_data_7dsum", # <get_plot_draws_w_calib_data>
   "updated_hosp_7d_count", # <get_plot_draws_w_calib_data>
@@ -41,6 +40,17 @@ utils::globalVariables(c(
   "FALSE", # <get_scatterplot_scores>
   "hosp_only", # <get_scatterplot_scores>
   "ww_plus_hosp", # <get_scatterplot_scores>
+  "wis_wwinference_TRUE", # <prep_scores_to_model>
+  "wis_wwinference_FALSE", # <prep_scores_to_model>
+  "wis_arima_baseline_FALSE", # <prep_scores_to_model>
+  "wis_ww", # <prep_scores_to_model>
+  "wis_hosp", # <prep_scores_to_model>
+  "n_sites", # <prep_scores_to_model>
+  "pop_coverage", # <prep_scores_to_model>
+  "avg_sampling_freq", # <prep_scores_to_model>
+  "avg_latency", # <prep_scores_to_model>
+  "min_latency", # <prep_scores_to_model>
+  "avg_data_variability", # <prep_scores_to_model>
   "site", # <fit_wwinference_wrapper>
   "lab", # <fit_wwinference_wrapper>
   "log_genome_copies_per_ml", # <fit_wwinference_wrapper>
@@ -87,7 +97,6 @@ utils::globalVariables(c(
   "below_LOD", # <calculate_ww_metadata_table>
   "total_site_pop", # <calculate_ww_metadata_table>
   "state_pop", # <calculate_ww_metadata_table>
-  "draw", # <get_model_draws_w_data>
   "pred_value", # <get_model_draws_w_data>
   "observed_value", # <get_model_draws_w_data>
   "pred_value7dsum", # <get_model_draws_w_data>

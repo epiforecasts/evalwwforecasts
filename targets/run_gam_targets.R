@@ -13,5 +13,22 @@ run_gam_targets <- list(
       scores_long = scores,
       ww_metadata = ww_metadata
     )
+  ),
+  tar_target(
+    name = gam_results,
+    command = fit_gam(
+      scores_to_model = scores_to_model
+    )
+  ),
+  tar_target(
+    name = plot_partial_effects,
+    command = partial_plot(gam_results)
+  ),
+  tar_target(
+    name = plot_scores_fit,
+    command = plot_scores_fit_gam(
+      gam_results,
+      scores_to_model
+    )
   )
 )
