@@ -6,6 +6,7 @@
 \usage{
 create_ww_plot(
   loc_ww_forecast,
+  loc_ww_fit,
   loc_ww_obs,
   ww_ylab,
   n_ww_sites_loc,
@@ -14,6 +15,8 @@ create_ww_plot(
 }
 \arguments{
 \item{loc_ww_forecast}{Wastewater forecast data for location}
+
+\item{loc_ww_fit}{Wastewater fit data for location}
 
 \item{loc_ww_obs}{Wastewater observations for location}
 

@@ -71,13 +71,13 @@ add_model_labels <- function(df) {
 #' the Okabe-Ito palette and human-readable labels.
 #'
 #' @return A list of two ggplot2 scale objects
-#' @importFrom ggplot2 scale_color_manual scale_fill_manual
+#' @importFrom ggplot2 scale_color_manual scale_fill_manual guide_legend
 #' @keywords internal
 model_ww_color_scales <- function() {
   vals <- c(
-    arima_baseline = "#D55E00",
+    arima_baseline = "gray",
     "wwinference-TRUE" = "#0072B2",
-    "wwinference-FALSE" = "#009E73"
+    "wwinference-FALSE" = "#D55E00"
   )
   lbls <- c(
     arima_baseline = "ARIMA baseline",
@@ -85,8 +85,18 @@ model_ww_color_scales <- function() {
     "wwinference-FALSE" = "Without wastewater data"
   )
   list(
-    scale_color_manual(values = vals, labels = lbls, name = "Model"),
-    scale_fill_manual(values = vals, labels = lbls, name = "Model")
+    scale_color_manual(
+      values = vals,
+      labels = lbls,
+      name = "Model",
+      guide = guide_legend(order = 1)
+    ),
+    scale_fill_manual(
+      values = vals,
+      labels = lbls,
+      name = "Model",
+      guide = guide_legend(order = 1)
+    )
   )
 }
 
@@ -117,7 +127,7 @@ forecast_ribbon_layers <- function(forecast_data) {
         x = date_parsed, ymin = q_0.25, ymax = q_0.75,
         group = forecast_date_model_ww, fill = model_ww
       ),
-      alpha = 0.3
+      alpha = 0.4
     ),
     geom_ribbon(
       data = forecast_data,

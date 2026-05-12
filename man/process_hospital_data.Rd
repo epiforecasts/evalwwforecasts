@@ -21,7 +21,7 @@ process_hospital_data(
 \item{scale_selected}{Scale to use}
 }
 \value{
-List with processed hospital forecasts and observations
+List with processed hospital forecasts, fits, and observations
 }
 \description{
 Process hospital forecast data

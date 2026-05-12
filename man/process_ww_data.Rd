@@ -27,7 +27,7 @@ process_ww_data(
 \item{min_forecast_date}{Minimum forecast date}
 }
 \value{
-List with processed wastewater forecasts and observations
+List with processed wastewater forecasts, fits, and observations
 }
 \description{
 Process wastewater forecast data

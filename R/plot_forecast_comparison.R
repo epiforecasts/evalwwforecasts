@@ -117,7 +117,7 @@ load_later_ww_obs <- function(output_path, forecast_dates, locations) {
 #' @param forecast_horizon_to_plot Forecast horizon in days
 #' @param historical_data_to_plot Historical data period in days
 #' @param scale_selected Scale to use
-#' @return List with processed hospital forecasts and observations
+#' @return List with processed hospital forecasts, fits, and observations
 #' @importFrom dplyr filter mutate select
 #' @importFrom tidyr pivot_wider
 #' @importFrom lubridate ymd days
@@ -129,6 +129,7 @@ process_hospital_data <- function(hosp_forecasts,
   hosp_forecasts$date_parsed <- ymd(hosp_forecasts$date)
   hosp_forecasts$forecast_date_parsed <- ymd(hosp_forecasts$forecast_date_chr)
 
+  # Filter for forecasts (dates >= forecast_date)
   forecasts_filtered <- hosp_forecasts[
     hosp_forecasts$date_parsed >= hosp_forecasts$forecast_date_parsed &
       hosp_forecasts$date_parsed <= (
@@ -154,6 +155,24 @@ process_hospital_data <- function(hosp_forecasts,
   min_date_filter <- min_forecast_date - days(historical_data_to_plot)
   max_date_filter <- max_forecast_date + days(forecast_horizon_to_plot - 1)
 
+  # Filter for historical fits (dates < forecast_date)
+  fits_filtered <- hosp_forecasts[
+    hosp_forecasts$date_parsed < hosp_forecasts$forecast_date_parsed &
+      hosp_forecasts$date_parsed >= min_date_filter &
+      hosp_forecasts$scale == scale_selected,
+  ]
+
+  fits_filtered$model_ww <- dplyr::case_when(
+    fits_filtered$model == "arima_baseline" ~ "arima_baseline",
+    fits_filtered$include_ww ~ "wwinference-TRUE",
+    TRUE ~ "wwinference-FALSE"
+  )
+  fits_filtered$forecast_date_model_ww <- paste0(
+    fits_filtered$forecast_date_chr, "-", fits_filtered$model_ww
+  )
+
+  fits_wide <- pivot_quantiles(fits_filtered)
+
   hosp_obs <- hosp_forecasts[
     hosp_forecasts$date_parsed >= min_date_filter &
       hosp_forecasts$date_parsed <= max_date_filter &
@@ -173,11 +192,14 @@ process_hospital_data <- function(hosp_forecasts,
 
   forecasts_wide$facet_col <- "Hospital Admissions"
   forecasts_wide$data_type <- "forecast"
+  fits_wide$facet_col <- "Hospital Admissions"
+  fits_wide$data_type <- "fit"
   hosp_obs$facet_col <- "Hospital Admissions"
   hosp_obs$data_type <- "observed"
 
   return(list(
     forecasts = forecasts_wide,
+    fits = fits_wide,
     observations = hosp_obs,
     min_forecast_date = min_forecast_date,
     min_date_filter = min_date_filter,
@@ -193,7 +215,7 @@ process_hospital_data <- function(hosp_forecasts,
 #' @param min_date_filter Minimum date for filtering
 #' @param max_date_filter Maximum date for filtering
 #' @param min_forecast_date Minimum forecast date
-#' @return List with processed wastewater forecasts and observations
+#' @return List with processed wastewater forecasts, fits, and observations
 #' @importFrom dplyr filter bind_rows mutate rename select
 #' @importFrom tidyr pivot_wider
 #' @importFrom lubridate ymd days
@@ -207,6 +229,7 @@ process_ww_data <- function(ww_forecasts,
   ww_forecasts$date_parsed <- ymd(ww_forecasts$date)
   ww_forecasts$forecast_date_parsed <- ymd(ww_forecasts$forecast_date_chr)
 
+  # Filter for forecasts (dates >= forecast_date)
   ww_filtered <- ww_forecasts[
     ww_forecasts$date_parsed >= ww_forecasts$forecast_date_parsed &
       ww_forecasts$date_parsed <= (
@@ -223,6 +246,21 @@ process_ww_data <- function(ww_forecasts,
   )
   ww_wide$data_type <- "forecast"
 
+  # Filter for historical fits (dates < forecast_date)
+  ww_fits_filtered <- ww_forecasts[
+    ww_forecasts$date_parsed < ww_forecasts$forecast_date_parsed &
+      ww_forecasts$date_parsed >= min_date_filter,
+  ]
+
+  ww_fits_wide <- pivot_quantiles(ww_fits_filtered)
+
+  ww_fits_wide$facet_col <- ww_fits_wide$lab_site_name
+  ww_fits_wide$forecast_date_site <- paste0(
+    ww_fits_wide$forecast_date_chr, "-", ww_fits_wide$lab_site_name
+  )
+  ww_fits_wide$data_type <- "fit"
+
+  # Get observations that were available at forecast time - these are always historical
   ww_obs_all <- ww_forecasts[
     ww_forecasts$date_parsed >= min_date_filter &
       ww_forecasts$date_parsed <= max_date_filter &
@@ -235,6 +273,8 @@ process_ww_data <- function(ww_forecasts,
   ww_obs_all$obs_timing <- "historical"
 
   if (length(ww_later_obs_list) > 0) {
+    # Get observations from later dataset to identify additional observations
+    # (either truly future or retrospectively available)
     ww_later_combined <- bind_rows(ww_later_obs_list)
     ww_later_combined$date_parsed <- ymd(ww_later_combined$date)
 
@@ -259,6 +299,7 @@ process_ww_data <- function(ww_forecasts,
     ww_later_obs <- ww_later_obs[!is.na(ww_later_obs$lab_site_name), ]
     ww_later_obs$obs_timing <- "future"
 
+    # Add the future observations to the existing historical ones
     ww_obs_all <- bind_rows(ww_obs_all, ww_later_obs)
     ww_obs_all <- ww_obs_all[
       !duplicated(ww_obs_all[, c("date_parsed", "location", "site")]),
@@ -275,6 +316,7 @@ process_ww_data <- function(ww_forecasts,
 
   return(list(
     forecasts = ww_wide,
+    fits = ww_fits_wide,
     observations = ww_obs
   ))
 }
@@ -282,33 +324,62 @@ process_ww_data <- function(ww_forecasts,
 #' Create hospital plot for a single location
 #'
 #' @param loc_hosp_forecast Hospital forecast data for location
+#' @param loc_hosp_fit Hospital fit data for location
 #' @param loc_hosp_obs Hospital observations for location
 #' @param loc Location name
 #' @param locations All locations (for indexing)
 #' @param hosp_ylab Y-axis label
 #' @return ggplot object
-#' @importFrom ggplot2 ggplot aes geom_line geom_ribbon geom_point theme
-#'   element_text element_blank labs ggtitle ylab
+#' @importFrom ggplot2 ggplot aes geom_line geom_ribbon geom_point geom_vline
+#'   theme element_text element_blank labs ggtitle ylab scale_shape_manual
+#'   scale_fill_manual scale_alpha_manual guide_legend unit
+#' @importFrom ggnewscale new_scale_fill
 #' @export
 #' @autoglobal
 create_hospital_plot <- function(loc_hosp_forecast,
+                                 loc_hosp_fit,
                                  loc_hosp_obs,
                                  loc,
                                  locations,
                                  hosp_ylab) {
+  # Get unique forecast dates for vertical lines
+  forecast_dates <- unique(loc_hosp_forecast$forecast_date_parsed)
+
   p_hosp <- ggplot() +
+    forecast_ribbon_layers(loc_hosp_fit) +
     forecast_ribbon_layers(loc_hosp_forecast) +
-    geom_point(
-      data = loc_hosp_obs[loc_hosp_obs$obs_timing == "historical", ],
-      aes(x = date_parsed, y = observed),
-      color = "black"
-    ) +
-    geom_point(
-      data = loc_hosp_obs[loc_hosp_obs$obs_timing == "future", ],
-      aes(x = date_parsed, y = observed),
-      color = "gray50"
+    geom_vline(
+      xintercept = forecast_dates,
+      linetype = "dashed",
+      color = "gray40",
+      linewidth = 0.5
     ) +
     model_ww_color_scales() +
+    new_scale_fill() +
+    geom_point(
+      data = loc_hosp_obs,
+      aes(x = date_parsed, y = observed, shape = obs_timing, fill = obs_timing),
+      color = "black",
+      size = 2
+    ) +
+    scale_shape_manual(
+      name = "Observations",
+      values = c("historical" = 21, "future" = 21),
+      labels = c(
+        "historical" = "Available at forecast date",
+        "future" = "Available retrospectively"
+      ),
+      guide = guide_legend(order = 2)
+    ) +
+    scale_fill_manual(
+      name = "Observations",
+      values = c("historical" = "black", "future" = "white"),
+      labels = c(
+        "historical" = "Available at forecast date",
+        "future" = "Available retrospectively"
+      ),
+      guide = guide_legend(order = 2)
+    ) +
     lshtm_theme() +
     ylab(hosp_ylab) +
     ggtitle(loc) +
@@ -332,56 +403,120 @@ get_yaxis_labels <- function(loc, locations) {
 
   return(list(
     hosp = if (is_middle) "7-day rolling sum of\nhospital admissions" else "",
-    ww = if (is_middle) "Log genome copies per ml" else ""
+    ww = if (is_middle) "Log genome copies per mL" else ""
   ))
 }
 
 #' Create wastewater plot for a single location
 #'
 #' @param loc_ww_forecast Wastewater forecast data for location
+#' @param loc_ww_fit Wastewater fit data for location
 #' @param loc_ww_obs Wastewater observations for location
 #' @param ww_ylab Y-axis label
 #' @param n_ww_sites_loc Number of WW sites for this location
 #' @param max_ww_sites Maximum WW sites across all locations
 #' @return ggplot or patchwork object
-#' @importFrom ggplot2 ggplot aes geom_line geom_ribbon geom_point facet_wrap
-#'   theme element_text element_blank ggtitle ylab
+#' @importFrom ggplot2 ggplot aes geom_line geom_ribbon geom_point geom_vline
+#'   facet_wrap theme element_text element_blank ggtitle ylab scale_shape_manual
+#'   scale_fill_manual guide_legend
 #' @importFrom patchwork plot_spacer wrap_plots
 #' @export
 #' @autoglobal
 create_ww_plot <- function(loc_ww_forecast,
+                           loc_ww_fit,
                            loc_ww_obs,
                            ww_ylab,
                            n_ww_sites_loc,
                            max_ww_sites) {
-  p_ww_base <- ggplot() +
+  # Select sites with the most observations
+  site_counts <- table(loc_ww_obs$facet_col)
+  top_sites <- names(sort(site_counts, decreasing = TRUE))
+  top_facet_cols <- head(top_sites, n_ww_sites_loc)
+
+  # Get unique forecast dates for vertical lines
+  forecast_dates <- unique(loc_ww_forecast$forecast_date_parsed)
+
+  # Filter observations for top facets
+  loc_ww_obs_filtered <- loc_ww_obs[loc_ww_obs$facet_col %in% top_facet_cols, ]
+
+  p_ww <- ggplot() +
     geom_line(
-      data = loc_ww_forecast,
+      data = loc_ww_fit[loc_ww_fit$facet_col %in% top_facet_cols, ],
       aes(x = date_parsed, y = q_0.5, group = forecast_date_site),
       color = "#01454F"
     ) +
     geom_ribbon(
-      data = loc_ww_forecast,
+      data = loc_ww_fit[loc_ww_fit$facet_col %in% top_facet_cols, ],
       aes(
         x = date_parsed,
         ymin = q_0.25,
         ymax = q_0.75,
         group = forecast_date_site
       ),
+      alpha = 0.4,
+      fill = "#01454F"
+    ) +
+    geom_ribbon(
+      data = loc_ww_fit[loc_ww_fit$facet_col %in% top_facet_cols, ],
+      aes(
+        x = date_parsed,
+        ymin = q_0.025,
+        ymax = q_0.975,
+        group = forecast_date_site
+      ),
       alpha = 0.3,
       fill = "#01454F"
     ) +
-    geom_point(
-      data = loc_ww_obs[loc_ww_obs$obs_timing == "historical", ],
-      aes(x = date_parsed, y = log_genome_copies_per_ml),
-      color = "black",
-      size = 0.8
+    geom_line(
+      data = loc_ww_forecast[loc_ww_forecast$facet_col %in% top_facet_cols, ],
+      aes(x = date_parsed, y = q_0.5, group = forecast_date_site),
+      color = "#01454F"
+    ) +
+    geom_ribbon(
+      data = loc_ww_forecast[loc_ww_forecast$facet_col %in% top_facet_cols, ],
+      aes(
+        x = date_parsed,
+        ymin = q_0.25,
+        ymax = q_0.75,
+        group = forecast_date_site
+      ),
+      alpha = 0.4,
+      fill = "#01454F"
+    ) +
+    geom_ribbon(
+      data = loc_ww_forecast[loc_ww_forecast$facet_col %in% top_facet_cols, ],
+      aes(
+        x = date_parsed,
+        ymin = q_0.025,
+        ymax = q_0.975,
+        group = forecast_date_site
+      ),
+      alpha = 0.3,
+      fill = "#01454F"
+    ) +
+    geom_vline(
+      xintercept = forecast_dates,
+      linetype = "dashed",
+      color = "gray40",
+      linewidth = 0.5
     ) +
     geom_point(
-      data = loc_ww_obs[loc_ww_obs$obs_timing == "future", ],
-      aes(x = date_parsed, y = log_genome_copies_per_ml),
-      color = "gray50",
-      size = 0.8
+      data = loc_ww_obs_filtered,
+      aes(
+        x = date_parsed, y = log_genome_copies_per_ml,
+        shape = obs_timing, fill = obs_timing
+      ),
+      color = "black",
+      size = 1.5,
+      show.legend = FALSE
+    ) +
+    scale_shape_manual(
+      values = c("historical" = 21, "future" = 21),
+      guide = "none"
+    ) +
+    scale_fill_manual(
+      values = c("historical" = "black", "future" = "white"),
+      guide = "none"
     ) +
     facet_wrap(~facet_col, scales = "free_y", nrow = 1) +
     lshtm_theme() +
@@ -389,22 +524,9 @@ create_ww_plot <- function(loc_ww_forecast,
     ggtitle("") +
     theme(
       axis.title.x = element_blank(),
-      axis.title.y = element_text(hjust = 0.5),
-      legend.position = "none"
+      axis.title.y = element_text(hjust = 0.5)
     )
 
-  n_spacers_needed <- max_ww_sites - n_ww_sites_loc
-
-  if (n_spacers_needed > 0) {
-    ww_elements <- list(p_ww_base)
-    for (j in seq_len(n_spacers_needed)) {
-      ww_elements[[length(ww_elements) + 1]] <- patchwork::plot_spacer()
-    }
-    ww_widths <- c(n_ww_sites_loc, rep(1, n_spacers_needed))
-    p_ww <- patchwork::wrap_plots(ww_elements, nrow = 1, widths = ww_widths)
-  } else {
-    p_ww <- p_ww_base
-  }
 
   return(p_ww)
 }
@@ -413,17 +535,20 @@ create_ww_plot <- function(loc_ww_forecast,
 #'
 #' @param loc Location name
 #' @param forecasts_wide Hospital forecast data
+#' @param fits_wide Hospital fit data
 #' @param hosp_obs Hospital observations
 #' @param ww_wide Wastewater forecast data (can be NULL)
+#' @param ww_fits_wide Wastewater fit data (can be NULL)
 #' @param ww_obs Wastewater observations (can be NULL)
 #' @param locations Vector of all location names
 #' @param max_ww_sites Maximum WW sites across all locations
 #' @return A combined plot for the location
 #' @keywords internal
-create_location_plot <- function(loc, forecasts_wide, hosp_obs,
-                                 ww_wide, ww_obs, locations, max_ww_sites) {
+create_location_plot <- function(loc, forecasts_wide, fits_wide, hosp_obs,
+                                 ww_wide, ww_fits_wide, ww_obs, locations, max_ww_sites) {
   # Filter data for this location
   loc_hosp_forecast <- forecasts_wide[forecasts_wide$location == loc, ]
+  loc_hosp_fit <- fits_wide[fits_wide$location == loc, ]
   loc_hosp_obs <- hosp_obs[hosp_obs$location == loc, ]
 
   # Get y-axis labels
@@ -431,19 +556,21 @@ create_location_plot <- function(loc, forecasts_wide, hosp_obs,
 
   # Create hospital plot
   p_hosp <- create_hospital_plot(
-    loc_hosp_forecast, loc_hosp_obs, loc, locations, ylabs$hosp
+    loc_hosp_forecast, loc_hosp_fit, loc_hosp_obs, loc, locations, ylabs$hosp
   )
 
   # Create wastewater plot if data available
   if (!is.null(ww_wide)) {
     loc_ww_forecast <- ww_wide[ww_wide$location == loc, ]
+    loc_ww_fit <- ww_fits_wide[ww_fits_wide$location == loc, ]
     loc_ww_obs <- ww_obs[ww_obs$location == loc, ]
 
     if (nrow(loc_ww_forecast) > 0) {
-      n_ww_sites_loc <- length(unique(loc_ww_forecast$facet_col))
+      n_ww_sites_loc <- min(3, length(unique(loc_ww_forecast$facet_col)))
 
       p_ww <- create_ww_plot(
         loc_ww_forecast,
+        loc_ww_fit,
         loc_ww_obs,
         ylabs$ww,
         n_ww_sites_loc,
@@ -451,11 +578,12 @@ create_location_plot <- function(loc, forecasts_wide, hosp_obs,
       )
 
       # Combine hospital and wastewater plots
+      # Give hospital plots more space relative to wastewater
       return(patchwork::wrap_plots(
         list(p_hosp, p_ww),
         nrow = 1,
-        widths = c(1, max_ww_sites),
-        guides = "keep"
+        widths = c(0.7 * max_ww_sites, max_ww_sites),
+        guides = "collect"
       ))
     }
   }
@@ -577,6 +705,7 @@ plot_multilocation_comparison <- function(
   )
 
   forecasts_wide <- hosp_processed$forecasts
+  fits_wide <- hosp_processed$fits
   hosp_obs <- hosp_processed$observations
   min_forecast_date <- hosp_processed$min_forecast_date
   min_date_filter <- hosp_processed$min_date_filter
@@ -584,6 +713,7 @@ plot_multilocation_comparison <- function(
 
   # Process wastewater data if available
   ww_wide <- NULL
+  ww_fits_wide <- NULL
   ww_obs <- NULL
   if (length(ww_forecasts_list) > 0) {
     ww_forecasts <- bind_rows(ww_forecasts_list)
@@ -596,6 +726,7 @@ plot_multilocation_comparison <- function(
       min_forecast_date
     )
     ww_wide <- ww_processed$forecasts
+    ww_fits_wide <- ww_processed$fits
     ww_obs <- ww_processed$observations
   }
 
@@ -613,12 +744,12 @@ plot_multilocation_comparison <- function(
     # Create plots for each location using helper function
     # nolint start: unnecessary_lambda_linter.
     # Lambda is necessary here because create_location_plot() requires
-    # 7 arguments, but we're only iterating over locations (one argument).
-    # The other 6 arguments need to be captured from the enclosing scope.
+    # 9 arguments, but we're only iterating over locations (one argument).
+    # The other 8 arguments need to be captured from the enclosing scope.
     location_plots <- lapply(locations, function(loc) {
       return(create_location_plot(
-        loc, forecasts_wide, hosp_obs,
-        ww_wide, ww_obs, locations, max_ww_sites
+        loc, forecasts_wide, fits_wide, hosp_obs,
+        ww_wide, ww_fits_wide, ww_obs, locations, max_ww_sites
       ))
     })
     # nolint end
@@ -633,10 +764,17 @@ plot_multilocation_comparison <- function(
           "Model Comparison ({length(forecast_dates)} ",
           "forecast date",
           "{if (length(forecast_dates) != 1) 's'}"
-        ),
-        caption = "Date"
+        )
       ) &
-      theme(plot.caption = element_text(hjust = 0.5, size = 11))
+      theme(
+        legend.position = "bottom",
+        legend.box = "horizontal",
+        legend.justification = "center",
+        legend.box.just = "center",
+        legend.text = element_text(size = 9),
+        legend.title = element_text(size = 10),
+        legend.spacing.x = unit(0.5, "cm")
+      )
   } else {
     # Just hospital data - facet by location only
     p_combined <- ggplot() +
@@ -663,11 +801,19 @@ plot_multilocation_comparison <- function(
     dir.create(save_path, recursive = TRUE, showWarnings = FALSE)
     date_range <- glue("{min(forecast_dates)}_to_{max(forecast_dates)}")
 
-    # Adjust width based on number of facets (cap at 40 inches)
-    n_facet_cols <- 1 + ifelse(!is.null(ww_wide),
-      length(unique(ww_wide$facet_col)), 0
-    )
-    plot_width <- min(8 + (n_facet_cols * 3), 40)
+    # Calculate dimensions based on number of locations and facets
+    n_locations <- length(locations)
+    # Height: 3 inches per location row + 1.5 for title/legend
+    plot_height <- (n_locations * 3) + 1.5
+
+    # Width: If we have wastewater data, make wider to accommodate panels
+    if (!is.null(ww_wide)) {
+      # Generous width for hospital + wastewater panels
+      plot_width <- 16
+    } else {
+      # Just hospital data - narrower plot is fine
+      plot_width <- 10
+    }
 
     ggsave(
       filename = file.path(
@@ -676,7 +822,7 @@ plot_multilocation_comparison <- function(
       ),
       plot = p_combined,
       width = plot_width,
-      height = 8
+      height = plot_height
     )
   }
 

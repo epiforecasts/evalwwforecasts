@@ -29,6 +29,7 @@ library(rlang)
 library(scoringutils)
 library(forecast)
 library(future)
+library(ggnewscale)
 library(future.callr)
 
 # load functions
