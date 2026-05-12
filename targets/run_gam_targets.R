@@ -30,5 +30,11 @@ run_gam_targets <- list(
       gam_results,
       scores_to_model
     )
+  ),
+  tar_target(
+    name = glm_results,
+    command = fit_glm(
+      scores_to_model = scores_to_model
+    )
   )
 )

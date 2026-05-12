@@ -47,7 +47,7 @@ prep_scores_to_model <- function(scores_long,
 #' @returns GAM object
 fit_gam <- function(scores_to_model) {
   gam_fit <- gam(
-    wis_ww ~ wis_hosp +
+    wis_ww ~ offset(log(wis_hosp)) +
       s(n_sites, k = 5) +
       s(pop_coverage, k = 5) +
       s(avg_sampling_freq, k = 5) +
@@ -60,6 +60,36 @@ fit_gam <- function(scores_to_model) {
   )
 
   return(gam_fit)
+}
+
+#' Fit the GLM model
+#'
+#' @param scores_to_model wide table of scores with wastewater metadata
+#' @importFrom stats glm
+#' @returns GLM object
+fit_glm <- function(scores_to_model) {
+  glm_fit <- glm(
+    wis_ww ~ offset(log(wis_hosp)) +
+      n_sites +
+      pop_coverage +
+      avg_sampling_freq +
+      avg_latency +
+      min_latency +
+      avg_data_variability,
+    data = scores_to_model,
+    family = Gamma(link = "log")
+  )
+
+  broom::tidy(glm_fit, conf.int = TRUE) |>
+    mutate(across(c(estimate, conf.low, conf.high), exp, .names = "exp_{.col}")) |>
+    select(term, exp_estimate, exp_conf.low, exp_conf.high, p.value) |>
+    gt() |>
+    fmt_number(decimals = 3) |>
+    tab_header(
+      title = "GLM coefficients (exponentiated)",
+      subtitle = "exp(estimate) < 1: covariate associated with lower WIS_ww (better forecast)"
+    )
+  return(glm_fit)
 }
 
 #' Make a plot of the partial effects
