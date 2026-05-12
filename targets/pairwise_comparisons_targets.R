@@ -14,7 +14,10 @@ pairwise_comparisons_targets <- list(
   tar_target(
     name = pairwise_comparisons_filtered,
     command = pairwise_comparisons |>
-      filter(compare_against == "wwinference-FALSE")
+      filter(
+        compare_against == "wwinference-FALSE",
+        model != compare_against
+      )
   ),
   tar_target(
     name = pairwise_comparisons_loc,
@@ -26,7 +29,10 @@ pairwise_comparisons_targets <- list(
   tar_target(
     name = pairwise_comparisons_loc_filtered,
     command = pairwise_comparisons_loc |>
-      filter(compare_against == "wwinference-FALSE")
+      filter(
+        compare_against == "wwinference-FALSE",
+        model != compare_against
+      )
   ),
   tar_target(
     name = pairwise_comparisons_forecast_dates,
@@ -38,25 +44,28 @@ pairwise_comparisons_targets <- list(
   tar_target(
     name = pairwise_comparisons_fd_filtered,
     command = pairwise_comparisons_forecast_dates |>
-      filter(compare_against == "wwinference-FALSE")
+      filter(
+        compare_against == "wwinference-FALSE",
+        model != compare_against
+      )
   ),
   tar_target(
     name = plot_pwc,
     command = plot_pairwise_comparisons(pairwise_comparisons,
-                                        type = "mean_scores_ratio"
+      type = "mean_scores_ratio"
     )
   ),
   tar_target(
     name = plot_pwc_locs,
     command = plot_pairwise_comparisons(pairwise_comparisons_loc,
-                                        type = "mean_scores_ratio"
+      type = "mean_scores_ratio"
     ) +
       facet_wrap(~location)
   ),
   tar_target(
     name = plot_pwc_fds,
     command = plot_pairwise_comparisons(pairwise_comparisons_forecast_dates,
-                                        type = "mean_scores_ratio"
+      type = "mean_scores_ratio"
     ) +
       facet_wrap(~forecast_date)
   )
