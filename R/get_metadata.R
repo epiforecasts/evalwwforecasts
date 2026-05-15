@@ -64,6 +64,9 @@ calculate_ww_metadata_table <- function(ww_data,
       ),
       # Sampling frequency (observations per day over the window)
       sampling_freq = n_obs / pmax(n_days_in_window, 1),
+      sampling_freq_overall = n_obs / as.numeric(
+        max_date - min_date
+      ),
       # Latency (days from last observation to forecast date)
       latency = as.numeric(ymd(first(forecast_date)) - max_date),
       # Number of lab changes (distinct labs - 1)
@@ -82,6 +85,11 @@ calculate_ww_metadata_table <- function(ww_data,
 
   # Aggregate to forecast_date and location level
   metadata_table <- site_metrics |>
+    # Replace Infs with NAs so they aren't included in mean/max
+    mutate(sampling_freq_overall = ifelse(is.infinite(sampling_freq_overall),
+      NA,
+      sampling_freq_overall
+    )) |>
     group_by(forecast_date, location_abbr, location_name) |>
     summarise(
       # 1. Site count
@@ -91,12 +99,12 @@ calculate_ww_metadata_table <- function(ww_data,
       total_site_pop = sum(site_pop, na.rm = TRUE),
 
       # 3. Average sampling frequency across sites
-      avg_sampling_freq = mean(sampling_freq, na.rm = TRUE),
+      avg_sampling_freq = mean(sampling_freq_overall, na.rm = TRUE),
 
-      # 4. Maximum sampling frequency
-      max_sampling_freq = max(sampling_freq, na.rm = TRUE),
+      # 4. Maximum sampling frequency overall
+      max_sampling_freq = max(sampling_freq_overall, na.rm = TRUE),
 
-      # 5. Average latency
+      # 5. Average latency across sites
       avg_latency = mean(latency, na.rm = TRUE),
 
       # 6. Minimum latency
@@ -141,7 +149,7 @@ calculate_ww_metadata_table <- function(ww_data,
   if (!is.null(state_pop_data)) {
     metadata_table <- metadata_table |>
       left_join(state_pop_data, by = "location_name") |>
-      mutate(pop_coverage = total_site_pop / state_pop)
+      mutate(pop_coverage = min((total_site_pop / state_pop), 1))
   } else {
     # Otherwise, report as total site population
     metadata_table <- rename(metadata_table,

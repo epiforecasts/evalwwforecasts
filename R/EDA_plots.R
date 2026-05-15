@@ -320,3 +320,280 @@ get_scatterplot_scores <- function(scores) {
     geom_line(aes(x = hosp_only, y = hosp_only), linetype = "dashed")
   return(p)
 }
+
+get_scatterplot_wis_vs_horizon <- function(scores_to_model) {
+  scores_to_model <- scores_to_model |>
+    mutate(rWIS = wis_ww / wis_hosp)
+
+  ggplot(scores_to_model, aes(x = rWIS, y = factor(horizon), fill = factor(horizon))) +
+    geom_density_ridges(alpha = 0.7, scale = 0.9) +
+    geom_vline(aes(xintercept = 1), linetype = "dashed") +
+    scale_x_continuous(trans = "log10", limits = c(1 / 6.5, 6.5)) +
+    scale_fill_viridis_d(guide = "none") +
+    labs(x = "rWIS", y = "Horizon (days)") +
+    theme_bw()
+
+  # Distributions of ww metadata aross Germany
+  ggplot(ww_metadata) +
+    geom_histogram(aes(x = n_sites))
+
+  ggplot(ww_metadata) +
+    geom_histogram(aes(x = min_latency))
+
+  ggplot(ww_metadata) +
+    geom_histogram(aes(x = avg_latency))
+
+  ggplot(ww_metadata) +
+    geom_histogram(aes(max_sampling_freq))
+
+  ggplot(ww_metadata) +
+    geom_histogram(aes(avg_sampling_freq))
+
+  ggplot(ww_metadata) +
+    geom_histogram(aes(pop_coverage))
+
+  ggplot(ww_metadata) +
+    geom_histogram(aes(prop_below_LOD))
+}
+
+#' Explortory plots of rWIS vs wastewater characteristics
+#'
+#' @param scores dataframe of scores by location, forecast date, model, and
+#'   target date
+#' @param ww_metadata Dataframe of wastewater metadata
+#' @param plot_type Whether you want wastewater characteristics to be
+#'   "continuous" or discrete, default is continuous which plots a smooth
+#' @param fig_file_name Name of figure to save, default is NULL
+#' @param fig_file_dir FP to save figure
+#' @importFrom patchwork plot_annotation plot_layout
+#' @returns patchwork object
+#' @autoglobal
+exploratory_plot_ww_vs_scores <- function(scores,
+                                          ww_metadata,
+                                          plot_type = "continuous",
+                                          fig_file_name = NULL,
+                                          fig_file_dir = file.path("output", "figs")) { # nolint
+  scores_summarised <- scores |>
+    summarise_scores(by = c(
+      "location", "forecast_date",
+      "model", "include_ww"
+    )) |>
+    mutate(model = glue::glue("{model}_{include_ww}")) |>
+    pivot_wider(
+      id_cols = c(
+        "location", "forecast_date"
+      ),
+      names_from = "model",
+      values_from = "wis",
+      names_prefix = "wis_"
+    ) |>
+    rename(
+      wis_ww    = `wis_wwinference_TRUE`,
+      wis_hosp  = `wis_wwinference_FALSE`,
+      wis_arima = `wis_arima_baseline_FALSE`
+    ) |>
+    left_join(ww_metadata, by = c(
+      "location" = "location_name",
+      "forecast_date"
+    )) |>
+    mutate(rwis = wis_ww / wis_hosp) |>
+    as.data.frame()
+
+  if (plot_type == "continuous") {
+    p1 <- ggplot(scores_summarised) +
+      geom_smooth(aes(x = min_latency, y = rwis), color = "steelblue") +
+      geom_point(aes(x = min_latency, y = rwis), alpha = 0.2) +
+      geom_hline(aes(yintercept = 1), linetype = "dashed") +
+      ggtitle("Minimum latency") +
+      scale_y_continuous(trans = "log10", limits = c(1 / 6, 6)) +
+      theme_bw() +
+      xlab("Minimum latency (days) across sites") +
+      ylab("rWIS (vs hospital admissions only)")
+
+    p2 <- ggplot(scores_summarised) +
+      geom_smooth(aes(x = avg_sampling_freq, y = rwis), color = "purple") +
+      geom_point(aes(x = avg_sampling_freq, y = rwis), alpha = 0.2) +
+      geom_hline(aes(yintercept = 1), linetype = "dashed") +
+      ggtitle("Average sampling frequency") +
+      scale_y_continuous(trans = "log10", limits = c(1 / 6, 6)) +
+      theme_bw() +
+      xlab("Average sampling frequncy across sites") +
+      ylab("rWIS (vs hospital admissions only)")
+
+    p3 <- ggplot(scores_summarised) +
+      geom_smooth(aes(x = n_sites, y = rwis), color = "blue") +
+      geom_point(aes(x = n_sites, y = rwis), alpha = 0.2) +
+      geom_hline(aes(yintercept = 1), linetype = "dashed") +
+      ggtitle("Number of sites") +
+      scale_y_continuous(trans = "log10", limits = c(1 / 6, 6)) +
+      theme_bw() +
+      xlab("Number of sites") +
+      ylab("rWIS (vs hospital admissions only)")
+
+    p4 <- ggplot(scores_summarised) +
+      geom_smooth(aes(x = pop_coverage, y = rwis), color = "orange") +
+      geom_point(aes(x = pop_coverage, y = rwis), alpha = 0.2) +
+      geom_hline(aes(yintercept = 1), linetype = "dashed") +
+      ggtitle("Wastewater population coverage") +
+      scale_y_continuous(trans = "log10", limits = c(1 / 6, 6)) +
+      theme_bw() +
+      xlab("Wastewater population coverage") +
+      ylab("rWIS (vs hospital admissions only)")
+
+    p5 <- ggplot(scores_summarised) +
+      geom_smooth(aes(x = avg_latency, y = rwis), color = "red") +
+      geom_point(aes(x = avg_latency, y = rwis), alpha = 0.2) +
+      geom_hline(aes(yintercept = 1), linetype = "dashed") +
+      ggtitle("Average latency ") +
+      scale_y_continuous(trans = "log10", limits = c(1 / 6, 6)) +
+      theme_bw() +
+      xlab("Average latency across sites (days)") +
+      ylab("rWIS (vs hospital admissions only)")
+
+    p6 <- ggplot(scores_summarised) +
+      geom_smooth(aes(x = avg_data_variability, y = rwis), color = "darkgreen") +
+      geom_point(aes(x = avg_data_variability, y = rwis), alpha = 0.2) +
+      geom_hline(aes(yintercept = 1), linetype = "dashed") +
+      ggtitle("Average data variability ") +
+      scale_y_continuous(trans = "log10", limits = c(1 / 6, 6)) +
+      theme_bw() +
+      xlab("Average data variability") +
+      ylab("rWIS (vs hospital admissions only)")
+
+    fig_layout <- "
+  ABC
+  DEF"
+
+    fig <- p1 + p2 + p3 + p4 + p5 + p6 +
+      plot_layout(
+        design = fig_layout
+      ) +
+      plot_annotation(
+        tag_levels = "A",
+        tag_sep = ""
+      )
+  }
+
+
+  # For each variable, make reasonable bins across the variable and then
+  # make density plots for each bin
+  if (plot_type == "discrete") {
+    p1 <- scores_summarised |>
+      mutate(latency_bin = cut(min_latency,
+        breaks = c(0, 7, 14, 21, Inf),
+        labels = c("<1 week", "1-2 weeks", "2-3 weeks", "3 weeks+")
+      )) |>
+      filter(!is.na(latency_bin)) |>
+      group_by(latency_bin) |>
+      mutate(mean_rwis = mean(rwis)) |> # quartile bins
+      ggplot(aes(x = latency_bin, y = rwis)) +
+      geom_violin(fill = "steelblue", alpha = 0.5) +
+      geom_jitter(width = 0.1, alpha = 0.2) +
+      geom_point(aes(x = latency_bin, y = mean_rwis), size = 3) +
+      geom_hline(yintercept = 1, linetype = "dashed") +
+      scale_y_continuous(trans = "log10", limits = c(1 / 6, 6)) +
+      theme_bw()
+
+    p2 <- scores_summarised |>
+      mutate(freq_bin = cut(avg_sampling_freq,
+        breaks = c(0, 1 / 14, 1 / 7, 2 / 7, Inf),
+        labels = c(
+          "<1 per 2 weeks",
+          "between\n 1 per week and\n 1 per 2 weeks",
+          "between\n 2 per week and\n1 per week",
+          "more than\n 2 per week"
+        )
+      )) |>
+      filter(!is.na(freq_bin)) |>
+      group_by(freq_bin) |>
+      mutate(mean_rwis = mean(rwis)) |> # quartile bins
+      ggplot(aes(x = freq_bin, y = rwis)) +
+      geom_violin(fill = "purple", alpha = 0.5) +
+      geom_jitter(width = 0.1, alpha = 0.2) +
+      geom_point(aes(x = freq_bin, y = mean_rwis), size = 3) +
+      geom_hline(yintercept = 1, linetype = "dashed") +
+      scale_y_continuous(trans = "log10", limits = c(1 / 6, 6)) +
+      theme_bw()
+
+    p3 <- scores_summarised |>
+      mutate(n_sites_bin = cut(n_sites,
+        breaks = c(0, 3, 8, 15, 22, Inf),
+        label = c(
+          "<3 ",
+          "4-8",
+          "9-15",
+          "16-22",
+          "23+"
+        )
+      )) |>
+      filter(!is.na(n_sites_bin)) |>
+      group_by(n_sites_bin) |>
+      mutate(mean_rwis = mean(rwis)) |> # quartile bins
+      ggplot(aes(x = n_sites_bin, y = rwis)) +
+      geom_violin(fill = "blue", alpha = 0.5) +
+      geom_jitter(width = 0.1, alpha = 0.2) +
+      geom_point(aes(x = n_sites_bin, y = mean_rwis), size = 3) +
+      geom_hline(yintercept = 1, linetype = "dashed") +
+      scale_y_continuous(trans = "log10", limits = c(1 / 6, 6)) +
+      theme_bw()
+
+    p4 <- scores_summarised |>
+      mutate(pop_cov_bin = cut(pop_coverage,
+        breaks = c(0, 20, 40, 75, Inf),
+        labels = c("<20%", "20-40%", "40-75%", "75+%")
+      )) |>
+      filter(!is.na(pop_cov_bin)) |>
+      group_by(pop_cov_bin) |>
+      mutate(mean_rwis = mean(rwis)) |> # quartile bins
+      ggplot(aes(x = pop_cov_bin, y = rwis)) +
+      geom_violin(fill = "orange", alpha = 0.5) +
+      geom_jitter(width = 0.1, alpha = 0.2) +
+      geom_point(aes(x = pop_cov_bin, y = mean_rwis), size = 3) +
+      geom_hline(yintercept = 1, linetype = "dashed") +
+      scale_y_continuous(trans = "log10", limits = c(1 / 6, 6)) +
+      theme_bw()
+
+    fig_layout <- "
+  AB
+  CD"
+
+    fig <- p1 + p2 + p3 + p4 +
+      plot_layout(
+        design = fig_layout
+      ) +
+      plot_annotation(
+        tag_levels = "A",
+        tag_sep = ""
+      )
+  }
+
+
+  if (!is.null(fig_file_name)) {
+    dir_create(fig_file_dir)
+    ggsave(
+      plot = fig,
+      filename = file.path(
+        fig_file_dir,
+        glue("{fig_file_name}.tiff")
+      ),
+      device = "tiff",
+      dpi = 600,
+      compression = "lzw",
+      type = "cairo",
+      width = 20,
+      height = 12
+    )
+    ggsave(
+      plot = fig,
+      filename = file.path(
+        fig_file_dir,
+        glue("{fig_file_name}.png")
+      ),
+      width = 20,
+      height = 12,
+      dpi = 600
+    )
+  }
+
+  return(fig)
+}

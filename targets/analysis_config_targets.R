@@ -13,9 +13,5 @@ analysis_config_targets <- list(
   tar_target(
     name = scores_fp,
     command = file.path("output", "overall_data_all_runs", "scores.csv")
-  ),
-  tar_target(
-    name = ww_metadata_fp,
-    command = file.path("metadata", "ww_metadata_table.csv")
   )
 )
