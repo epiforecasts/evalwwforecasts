@@ -40,6 +40,23 @@ utils::globalVariables(c(
   "FALSE", # <get_scatterplot_scores>
   "hosp_only", # <get_scatterplot_scores>
   "ww_plus_hosp", # <get_scatterplot_scores>
+  "wis_wwinference_TRUE", # <exploratory_plot_ww_vs_scores>
+  "wis_wwinference_FALSE", # <exploratory_plot_ww_vs_scores>
+  "wis_arima_baseline_FALSE", # <exploratory_plot_ww_vs_scores>
+  "wis_ww", # <exploratory_plot_ww_vs_scores>
+  "wis_hosp", # <exploratory_plot_ww_vs_scores>
+  "min_latency", # <exploratory_plot_ww_vs_scores>
+  "rwis", # <exploratory_plot_ww_vs_scores>
+  "avg_sampling_freq", # <exploratory_plot_ww_vs_scores>
+  "n_sites", # <exploratory_plot_ww_vs_scores>
+  "pop_coverage", # <exploratory_plot_ww_vs_scores>
+  "avg_latency", # <exploratory_plot_ww_vs_scores>
+  "avg_data_variability", # <exploratory_plot_ww_vs_scores>
+  "latency_bin", # <exploratory_plot_ww_vs_scores>
+  "mean_rwis", # <exploratory_plot_ww_vs_scores>
+  "freq_bin", # <exploratory_plot_ww_vs_scores>
+  "n_sites_bin", # <exploratory_plot_ww_vs_scores>
+  "pop_cov_bin", # <exploratory_plot_ww_vs_scores>
   "wis_wwinference_TRUE", # <prep_scores_to_model>
   "wis_wwinference_FALSE", # <prep_scores_to_model>
   "wis_arima_baseline_FALSE", # <prep_scores_to_model>
@@ -51,6 +68,7 @@ utils::globalVariables(c(
   "avg_latency", # <prep_scores_to_model>
   "min_latency", # <prep_scores_to_model>
   "avg_data_variability", # <prep_scores_to_model>
+  "horizon", # <prep_scores_to_model>
   "site", # <fit_wwinference_wrapper>
   "lab", # <fit_wwinference_wrapper>
   "log_genome_copies_per_ml", # <fit_wwinference_wrapper>
@@ -90,7 +108,7 @@ utils::globalVariables(c(
   "lab", # <calculate_ww_metadata_table>
   "n_labs", # <calculate_ww_metadata_table>
   "log_genome_copies_per_ml", # <calculate_ww_metadata_table>
-  "sampling_freq", # <calculate_ww_metadata_table>
+  "sampling_freq_overall", # <calculate_ww_metadata_table>
   "latency", # <calculate_ww_metadata_table>
   "lab_changes", # <calculate_ww_metadata_table>
   "data_variability", # <calculate_ww_metadata_table>

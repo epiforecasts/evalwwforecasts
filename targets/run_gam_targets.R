@@ -17,10 +17,21 @@ run_gam_targets <- list(
   # Descriptive plots of relationship between performance and wastewater
   # characteristics
   tar_target(
-    name = plots_ww_vs_scores,
+    name = plot_smooth_scores_vs_ww,
     command = exploratory_plot_ww_vs_scores(
-      scores = scores,
-      ww_metadata = ww_metadata
+      scores = as.data.frame(scores),
+      ww_metadata = ww_metadata,
+      plot_type = "continuous",
+      fig_file_name = "smooths_score_vs_ww"
+    )
+  ),
+  tar_target(
+    name = plot_binned_scores_vs_ww,
+    command = exploratory_plot_ww_vs_scores(
+      scores = as.data.frame(scores),
+      ww_metadata = ww_metadata,
+      plot_type = "discrete",
+      fig_file_name = "binned_score_vs_ww"
     )
   ),
 

@@ -4,13 +4,15 @@
 \alias{fit_gam}
 \title{Fit the GAM model}
 \usage{
-fit_gam(scores_to_model)
+fit_gam(scores_to_model, standardize = FALSE)
 }
 \arguments{
 \item{scores_to_model}{wide table of scores with wastewater metadata}
+
+\item{standardize}{logical, whether to z-score covariates before fitting}
 }
 \value{
-GAM object
+GAM object (with scaling attributes if standardize = TRUE)
 }
 \description{
 Fit the GAM model
