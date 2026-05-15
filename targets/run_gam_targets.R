@@ -14,6 +14,16 @@ run_gam_targets <- list(
       ww_metadata = ww_metadata
     )
   ),
+  # Descriptive plots of relationship between performance and wastewater
+  # characteristics
+  tar_target(
+    name = plots_ww_vs_scores,
+    command = exploratory_plot_ww_vs_scores(
+      scores = scores,
+      ww_metadata = ww_metadata
+    )
+  ),
+
   # Run GAM model -----------------------------------------------------------
   tar_target(
     name = gam_results,

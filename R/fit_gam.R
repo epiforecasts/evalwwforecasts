@@ -36,7 +36,8 @@ prep_scores_to_model <- function(scores_long,
       !is.na(n_sites), !is.na(pop_coverage),
       !is.na(avg_sampling_freq), !is.na(avg_latency),
       !is.na(min_latency), !is.na(avg_data_variability)
-    )
+    ) |>
+    mutate(horizon_weeks = ceiling((horizon) / 7))
   return(scores_joined)
 }
 
@@ -52,8 +53,10 @@ fit_gam <- function(scores_to_model, standardize = FALSE) {
     data_to_fit <- scores_to_model
 
     # Z-score the covariates
-    covariates <- c("n_sites", "pop_coverage", "avg_sampling_freq",
-                    "avg_latency", "min_latency", "avg_data_variability")
+    covariates <- c(
+      "n_sites", "pop_coverage", "avg_sampling_freq",
+      "avg_latency", "min_latency", "avg_data_variability"
+    )
 
     # Store means and SDs for later reference
     scaling_params <- data.frame(

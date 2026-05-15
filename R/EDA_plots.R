@@ -355,3 +355,113 @@ get_scatterplot_wis_vs_horizon <- function(scores_to_model) {
   ggplot(ww_metadata) +
     geom_histogram(aes(prop_below_LOD))
 }
+
+exploratory_plot_ww_vs_scores <- function(scores,
+                                          ww_metadata) {
+  scores_summarised <- scores |>
+    summarise_scores(by = c(
+      "location", "forecast_date",
+      "model", "include_ww"
+    )) |>
+    mutate(model = glue::glue("{model}_{include_ww}")) |>
+    pivot_wider(
+      id_cols = c(
+        "location", "forecast_date"
+      ),
+      names_from = "model",
+      values_from = "wis",
+      names_prefix = "wis_"
+    ) |>
+    rename(
+      wis_ww    = `wis_wwinference_TRUE`,
+      wis_hosp  = `wis_wwinference_FALSE`,
+      wis_arima = `wis_arima_baseline_FALSE`
+    ) |>
+    left_join(ww_metadata, by = c(
+      "location" = "location_name",
+      "forecast_date"
+    )) |>
+    mutate(rwis = wis_ww / wis_hosp)
+
+  p1 <- ggplot(scores_summarised) +
+    geom_smooth(aes(x = min_latency, y = rwis)) +
+    geom_point(aes(x = min_latency, y = rwis), alpha = 0.2) +
+    geom_hline(aes(yintercept = 1), linetype = "dashed") +
+    ggtitle("Relative performance vs minimum latency") +
+    scale_y_continuous(trans = "log10", limits = c(1 / 6, 6)) +
+    theme_bw() +
+    xlab("Minimum latency (days) across sites") +
+    ylab("rWIS (vs hospital admissions only)")
+
+  p2 <- ggplot(scores_summarised) +
+    geom_smooth(aes(x = avg_sampling_freq, y = rwis)) +
+    geom_point(aes(x = avg_sampling_freq, y = rwis), alpha = 0.2) +
+    geom_hline(aes(yintercept = 1), linetype = "dashed") +
+    ggtitle("Relative performance vs average sampling frequency") +
+    scale_y_continuous(trans = "log10", limits = c(1 / 6, 6)) +
+    theme_bw() +
+    xlab("Average sampling frequncy across sites") +
+    ylab("rWIS (vs hospital admissions only)")
+
+  p3 <- ggplot(scores_summarised) +
+    geom_smooth(aes(x = n_sites, y = rwis)) +
+    geom_point(aes(x = n_sites, y = rwis), alpha = 0.2) +
+    geom_hline(aes(yintercept = 1), linetype = "dashed") +
+    ggtitle("Relative performance vs number of sites") +
+    scale_y_continuous(trans = "log10", limits = c(1 / 6, 6)) +
+    theme_bw() +
+    xlab("Number of sites") +
+    ylab("rWIS (vs hospital admissions only)")
+
+  p4 <- ggplot(scores_summarised) +
+    geom_smooth(aes(x = pop_coverage, y = rwis)) +
+    geom_point(aes(x = pop_coverage, y = rwis), alpha = 0.2) +
+    geom_hline(aes(yintercept = 1), linetype = "dashed") +
+    ggtitle("Relative performance vs wastewater population coverage") +
+    scale_y_continuous(trans = "log10", limits = c(1 / 6, 6)) +
+    theme_bw() +
+    xlab("Wastewater population coverage") +
+    ylab("rWIS (vs hospital admissions only)")
+
+  p5 <- ggplot(scores_summarised) +
+    geom_smooth(aes(x = avg_latency, y = rwis)) +
+    geom_point(aes(x = avg_latency, y = rwis), alpha = 0.2) +
+    geom_hline(aes(yintercept = 1), linetype = "dashed") +
+    ggtitle("Relative performance vs average latency ") +
+    scale_y_continuous(trans = "log10", limits = c(1 / 6, 6)) +
+    theme_bw() +
+    xlab("Average latency across sites (days)") +
+    ylab("rWIS (vs hospital admissions only)")
+
+  p6 <- ggplot(scores_summarised) +
+    geom_smooth(aes(x = avg_data_variability, y = rwis)) +
+    geom_point(aes(x = avg_data_variability, y = rwis), alpha = 0.2) +
+    geom_hline(aes(yintercept = 1), linetype = "dashed") +
+    ggtitle("Relative performance vs avergae data variability ") +
+    scale_y_continuous(trans = "log10", limits = c(1 / 6, 6)) +
+    theme_bw() +
+    xlab("Average data variability") +
+    ylab("rWIS (vs hospital admissions only)")
+
+  # Scatterplot of WIS
+  p7 <- ggplot(scores_summarised) +
+    geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
+    geom_point(aes(x = wis_hosp, y = wis_ww)) +
+    theme_bw() +
+    xlab("WIS hospital admissions only model") +
+    ylab("WIS wastewater + hospital admissions")
+
+  # Scatterplot of rWIS vs key vars
+  p8 <- ggplot(scores_summarised) +
+    geom_point(
+      aes(
+        x = min_latency, y = avg_sampling_freq,
+        fill = rwis
+      ),
+      shape = 21, stroke = NA
+    )
+
+
+  # For each variable, make reasonable bins across the variable and then
+  # make density plots for each bin
+}

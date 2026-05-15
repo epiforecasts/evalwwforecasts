@@ -85,6 +85,11 @@ calculate_ww_metadata_table <- function(ww_data,
 
   # Aggregate to forecast_date and location level
   metadata_table <- site_metrics |>
+    # Replace Infs with NAs so they aren't included in mean/max
+    mutate(sampling_freq_overall = ifelse(is.infinite(sampling_freq_overall),
+      NA,
+      sampling_freq_overall
+    )) |>
     group_by(forecast_date, location_abbr, location_name) |>
     summarise(
       # 1. Site count
@@ -144,7 +149,7 @@ calculate_ww_metadata_table <- function(ww_data,
   if (!is.null(state_pop_data)) {
     metadata_table <- metadata_table |>
       left_join(state_pop_data, by = "location_name") |>
-      mutate(pop_coverage = total_site_pop / state_pop)
+      mutate(pop_coverage = min((total_site_pop / state_pop), 1))
   } else {
     # Otherwise, report as total site population
     metadata_table <- rename(metadata_table,
