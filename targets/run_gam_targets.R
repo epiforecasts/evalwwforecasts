@@ -14,6 +14,7 @@ run_gam_targets <- list(
       ww_metadata = ww_metadata
     )
   ),
+  # Run GAM model -----------------------------------------------------------
   tar_target(
     name = gam_results,
     command = fit_gam(
@@ -31,10 +32,18 @@ run_gam_targets <- list(
       scores_to_model
     )
   ),
+  # Run GLM for interpretability of coefficients---------------------------
   tar_target(
     name = glm_results,
     command = fit_glm(
       scores_to_model = scores_to_model
     )
   )
+  # Use the scores to model dataframe to make scatter plots comparing different
+  # variables
+  # tar_target(
+  #   name = scatter_plot_rWIS_vs_horizon,
+  #   command = get_scatter_plot_wis_vs_horizon(scores_to_model =
+  #                                               scores_to_model)
+  # )
 )

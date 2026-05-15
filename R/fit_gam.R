@@ -43,9 +43,34 @@ prep_scores_to_model <- function(scores_long,
 #' Fit the GAM model
 #'
 #' @param scores_to_model wide table of scores with wastewater metadata
+#' @param standardize logical, whether to z-score covariates before fitting
 #' @importFrom mgcv gam
-#' @returns GAM object
-fit_gam <- function(scores_to_model) {
+#' @returns GAM object (with scaling attributes if standardize = TRUE)
+fit_gam <- function(scores_to_model, standardize = FALSE) {
+  if (standardize) {
+    # Store original data
+    data_to_fit <- scores_to_model
+
+    # Z-score the covariates
+    covariates <- c("n_sites", "pop_coverage", "avg_sampling_freq",
+                    "avg_latency", "min_latency", "avg_data_variability")
+
+    # Store means and SDs for later reference
+    scaling_params <- data.frame(
+      variable = covariates,
+      mean = sapply(covariates, function(x) mean(data_to_fit[[x]], na.rm = TRUE)),
+      sd = sapply(covariates, function(x) sd(data_to_fit[[x]], na.rm = TRUE))
+    )
+
+    # Standardize
+    for (covar in covariates) {
+      data_to_fit[[covar]] <- scale(data_to_fit[[covar]])[, 1]
+    }
+  } else {
+    data_to_fit <- scores_to_model
+    scaling_params <- NULL
+  }
+
   gam_fit <- gam(
     wis_ww ~ offset(log(wis_hosp)) +
       s(n_sites, k = 5) +
@@ -54,10 +79,18 @@ fit_gam <- function(scores_to_model) {
       s(avg_latency, k = 5) +
       s(min_latency, k = 5) +
       s(avg_data_variability, k = 5),
-    data = scores_to_model,
-    family = Gamma(link = "log"), # or gaussian() for identity link
-    method = "REML" # REML recommended for smoothing parameter selection
+    data = data_to_fit,
+    family = Gamma(link = "log"),
+    method = "REML"
   )
+
+  # Store scaling information with the model
+  if (standardize) {
+    gam_fit$scaling_params <- scaling_params
+    gam_fit$standardized <- TRUE
+  } else {
+    gam_fit$standardized <- FALSE
+  }
 
   return(gam_fit)
 }

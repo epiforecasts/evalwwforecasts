@@ -320,3 +320,38 @@ get_scatterplot_scores <- function(scores) {
     geom_line(aes(x = hosp_only, y = hosp_only), linetype = "dashed")
   return(p)
 }
+
+get_scatterplot_wis_vs_horizon <- function(scores_to_model) {
+  scores_to_model <- scores_to_model |>
+    mutate(rWIS = wis_ww / wis_hosp)
+
+  ggplot(scores_to_model, aes(x = rWIS, y = factor(horizon), fill = factor(horizon))) +
+    geom_density_ridges(alpha = 0.7, scale = 0.9) +
+    geom_vline(aes(xintercept = 1), linetype = "dashed") +
+    scale_x_continuous(trans = "log10", limits = c(1 / 6.5, 6.5)) +
+    scale_fill_viridis_d(guide = "none") +
+    labs(x = "rWIS", y = "Horizon (days)") +
+    theme_bw()
+
+  # Distributions of ww metadata aross Germany
+  ggplot(ww_metadata) +
+    geom_histogram(aes(x = n_sites))
+
+  ggplot(ww_metadata) +
+    geom_histogram(aes(x = min_latency))
+
+  ggplot(ww_metadata) +
+    geom_histogram(aes(x = avg_latency))
+
+  ggplot(ww_metadata) +
+    geom_histogram(aes(max_sampling_freq))
+
+  ggplot(ww_metadata) +
+    geom_histogram(aes(avg_sampling_freq))
+
+  ggplot(ww_metadata) +
+    geom_histogram(aes(pop_coverage))
+
+  ggplot(ww_metadata) +
+    geom_histogram(aes(prop_below_LOD))
+}
