@@ -464,4 +464,16 @@ exploratory_plot_ww_vs_scores <- function(scores,
 
   # For each variable, make reasonable bins across the variable and then
   # make density plots for each bin
+
+  scores_summarised |>
+    mutate(latency_bin = cut(min_latency,
+      breaks = c(0, 10, 15, 30, Inf),
+      labels = c("0-10", "11-15", "16-30", "31+")
+    )) |> # quartile bins
+    ggplot(aes(x = latency_bin, y = rwis)) +
+    geom_violin(fill = "steelblue", alpha = 0.5) +
+    geom_jitter(width = 0.1, alpha = 0.2) +
+    geom_hline(yintercept = 1, linetype = "dashed") +
+    scale_y_continuous(trans = "log10", limits = c(1 / 6, 6)) +
+    theme_bw()
 }
