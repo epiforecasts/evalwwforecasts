@@ -49,6 +49,4 @@ fit_baseline_model_targets <- list(
     iteration = "list",
     format = "rds"
   )
-  # format for scoring the same as the output from the wwinference model
-  # wrapper
 )

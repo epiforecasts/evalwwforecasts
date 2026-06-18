@@ -97,7 +97,9 @@ secondary_outputs <- list(
 
 # Figures
 plot_targets <- list(
-  analysis_EDA_plot_targets
+  analysis_EDA_plot_targets,
+  multilocation_plot_targets,
+  figure_targets
   # Fig 1: visual comparison for a single forecast date
   # Fig 2: visual comparison + scores across forecast dates
   # Fig 3: overall, by horizon, by location, by forecast date

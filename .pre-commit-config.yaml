@@ -5,26 +5,11 @@ repos:
     hooks:
       - id: style-files
         args: [--style_pkg=styler, --style_fun=tidyverse_style]
+        exclude: '(\.lintr$|^renv/)'
       # - id: codemeta-description-updated
       - id: use-tidy-description
       - id: lintr
         additional_dependencies:
-          # From DESCRIPTION / Imports
-          - cli
-          - dplyr
-          - rlang
-          - readr
-          - ggplot2
-          - lubridate
-          - fs
-          - purrr
-          - glue
-          - scoringutils
-          - zoo
-          - stringr
-          # GitHub remote for wwinference
-          - github::CDCgov/ww-inference-model
-          # Only if you use these linters
           - cyclocomp
           - spelling
       - id: parsable-R

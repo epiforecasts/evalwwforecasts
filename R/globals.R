@@ -10,8 +10,6 @@ utils::globalVariables(c(
   "q_0.05", # <plot_forecast_comparison>
   "q_0.95", # <plot_forecast_comparison>
   "forecast_date", # <get_plot_model_comparison>
-  "quantile_level", # <get_plot_model_comparison>
-  "predicted", # <get_plot_model_comparison>
   "location", # <get_plot_model_comparison>
   "q_0.5", # <get_plot_model_comparison>
   "forecast_date_model_ww", # <get_plot_model_comparison>
@@ -41,6 +39,26 @@ utils::globalVariables(c(
   "FALSE", # <get_scatterplot_scores>
   "hosp_only", # <get_scatterplot_scores>
   "ww_plus_hosp", # <get_scatterplot_scores>
+  "location", # <aggregate_scores_for_plot>
+  "forecast_date", # <aggregate_scores_for_plot>
+  "model", # <aggregate_scores_for_plot>
+  "include_ww", # <aggregate_scores_for_plot>
+  "hosp_data_real_time", # <aggregate_scores_for_plot>
+  "wis", # <aggregate_scores_for_plot>
+  "forecast_date", # <create_wis_bar_chart>
+  "wis", # <create_wis_bar_chart>
+  "model_label", # <create_wis_bar_chart>
+  "location", # <get_bar_chart_scores_by_loc>
+  "wis", # <get_bar_chart_scores_by_loc>
+  "mean_wis", # <get_bar_chart_scores_by_loc>
+  "location", # <get_combined_forecast_wis_plot>
+  "date_parsed", # <get_combined_forecast_wis_plot>
+  "q_0.5", # <get_combined_forecast_wis_plot>
+  "forecast_date_model_ww", # <get_combined_forecast_wis_plot>
+  "model_label", # <get_combined_forecast_wis_plot>
+  "q_0.25", # <get_combined_forecast_wis_plot>
+  "q_0.75", # <get_combined_forecast_wis_plot>
+  "observed", # <get_combined_forecast_wis_plot>
   "site", # <fit_wwinference_wrapper>
   "lab", # <fit_wwinference_wrapper>
   "log_genome_copies_per_ml", # <fit_wwinference_wrapper>
@@ -110,6 +128,40 @@ utils::globalVariables(c(
   "loq", # <add_correct_lod>
   "mean_loq", # <add_correct_lod>
   "overall_mean", # <add_correct_lod>
+  "date_parsed", # <create_hospital_plot>
+  "observed", # <create_hospital_plot>
+  "date_parsed", # <create_ww_plot>
+  "q_0.5", # <create_ww_plot>
+  "forecast_date_site", # <create_ww_plot>
+  "q_0.25", # <create_ww_plot>
+  "q_0.75", # <create_ww_plot>
+  "log_genome_copies_per_ml", # <create_ww_plot>
+  "date_parsed", # <plot_multilocation_comparison>
+  "observed", # <plot_multilocation_comparison>
+  "date_parsed", # <forecast_ribbon_layers>
+  "q_0.5", # <forecast_ribbon_layers>
+  "forecast_date_model_ww", # <forecast_ribbon_layers>
+  "model_ww", # <forecast_ribbon_layers>
+  "q_0.25", # <forecast_ribbon_layers>
+  "q_0.75", # <forecast_ribbon_layers>
+  "q_0.05", # <forecast_ribbon_layers>
+  "q_0.95", # <forecast_ribbon_layers>
+  "quantile_level", # <pivot_quantiles>
+  "predicted", # <pivot_quantiles>
+  "model_label", # <plot_score_comparison>
+  "value", # <plot_score_comparison>
+  "component", # <plot_score_comparison>
+  "forecast_date", # <plot_score_comparison>
+  "horizon_days", # <plot_score_comparison>
+  "wis", # <plot_score_comparison>
+  "wis_ref", # <plot_score_comparison>
+  "rwis", # <plot_score_comparison>
+  "location", # <plot_score_comparison>
+  "quantile_level", # <plot_score_comparison>
+  "observed", # <plot_score_comparison>
+  "predicted", # <plot_score_comparison>
+  "observed_below", # <plot_score_comparison>
+  "median", # <plot_score_comparison>
   "state", # <format_baseline_forecasts>
   "quantile_level", # <format_baseline_forecasts>
   "pred_value7dsum", # <format_baseline_forecasts>
