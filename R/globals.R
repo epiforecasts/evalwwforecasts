@@ -24,12 +24,17 @@ utils::globalVariables(c(
   "pred_value7dsum", # <get_plot_draws_w_calib_data>
   "calib_data_7dsum", # <get_plot_draws_w_calib_data>
   "updated_hosp_7d_count", # <get_plot_draws_w_calib_data>
-  "model_ww", # <get_bar_chart_overall_scores>
+  "ww_var", # <get_bar_chart_overall_scores>
   "wis", # <get_bar_chart_overall_scores>
-  "forecast_date", # <get_bar_chart_overall_scores>
   "forecast_date", # <get_plot_scores_by_date>
   "wis", # <get_plot_scores_by_date>
-  "model_ww", # <get_plot_scores_by_date>
+  "ww_var", # <get_plot_scores_by_date>
+  "location", # <get_plot_scores_by_loc>
+  "wis", # <get_plot_scores_by_loc>
+  "ww_var", # <get_plot_scores_by_loc>
+  "horizon", # <get_plot_scores_by_horizon>
+  "wis", # <get_plot_scores_by_horizon>
+  "ww_var", # <get_plot_scores_by_horizon>
   "model", # <get_scatterplot_scores>
   "include_ww", # <get_scatterplot_scores>
   "wis", # <get_scatterplot_scores>
@@ -40,6 +45,10 @@ utils::globalVariables(c(
   "FALSE", # <get_scatterplot_scores>
   "hosp_only", # <get_scatterplot_scores>
   "ww_plus_hosp", # <get_scatterplot_scores>
+  "wis_ww", # <get_scatterplot_wis_vs_horizon>
+  "wis_hosp", # <get_scatterplot_wis_vs_horizon>
+  "rWIS", # <get_scatterplot_wis_vs_horizon>
+  "horizon", # <get_scatterplot_wis_vs_horizon>
   "wis_wwinference_TRUE", # <exploratory_plot_ww_vs_scores>
   "wis_wwinference_FALSE", # <exploratory_plot_ww_vs_scores>
   "wis_arima_baseline_FALSE", # <exploratory_plot_ww_vs_scores>
@@ -69,6 +78,38 @@ utils::globalVariables(c(
   "min_latency", # <prep_scores_to_model>
   "avg_data_variability", # <prep_scores_to_model>
   "horizon", # <prep_scores_to_model>
+  "location", # <prep_gam_data>
+  "forecast_date", # <prep_gam_data>
+  "gam_weight", # <fit_gam>
+  "wis_ww", # <fit_gam_long>
+  "wis_hosp", # <fit_gam_long>
+  "model", # <fit_gam_long>
+  "value", # <plot_rel_wis_by_covariate>
+  "rel_wis", # <plot_rel_wis_by_covariate>
+  "lower", # <plot_rel_wis_by_covariate>
+  "upper", # <plot_rel_wis_by_covariate>
+  "forecast_date", # <plot_rel_wis_by_time>
+  "rel_wis", # <plot_rel_wis_by_time>
+  "lower", # <plot_rel_wis_by_time>
+  "upper", # <plot_rel_wis_by_time>
+  "rel_wis", # <plot_rel_wis_by_location>
+  "value", # <plot_rel_wis_by_location>
+  "lower", # <plot_rel_wis_by_location>
+  "upper", # <plot_rel_wis_by_location>
+  "ratio", # <plot_gam_effect_sizes>
+  "label", # <plot_gam_effect_sizes>
+  "lower", # <plot_gam_effect_sizes>
+  "upper", # <plot_gam_effect_sizes>
+  "estimate", # <get_glm_coef_table>
+  "conf.low", # <get_glm_coef_table>
+  "conf.high", # <get_glm_coef_table>
+  "term", # <get_glm_coef_table>
+  "exp_estimate", # <get_glm_coef_table>
+  "exp_conf.low", # <get_glm_coef_table>
+  "exp_conf.high", # <get_glm_coef_table>
+  "p.value", # <get_glm_coef_table>
+  "wis_hosp", # <plot_scores_fit_gam>
+  "wis_ww", # <plot_scores_fit_gam>
   "site", # <fit_wwinference_wrapper>
   "lab", # <fit_wwinference_wrapper>
   "log_genome_copies_per_ml", # <fit_wwinference_wrapper>

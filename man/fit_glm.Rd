@@ -4,13 +4,15 @@
 \alias{fit_glm}
 \title{Fit the GLM model}
 \usage{
-fit_glm(scores_to_model)
+fit_glm(scores_to_model, standardize = TRUE)
 }
 \arguments{
 \item{scores_to_model}{wide table of scores with wastewater metadata}
+
+\item{standardize}{logical, whether to z-score covariates before fitting}
 }
 \value{
-GLM object
+GLM object (with scaling attributes if standardize = TRUE)
 }
 \description{
 Fit the GLM model

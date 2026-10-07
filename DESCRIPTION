@@ -44,7 +44,13 @@ Imports:
     httr,
     jsonlite,
     future,
-    future.callr
+    future.callr,
+    broom,
+    ggridges,
+    gratia,
+    gt,
+    mgcv,
+    patchwork
 Suggests:
     bookdown,
     targets,

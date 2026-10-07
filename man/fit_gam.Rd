@@ -4,16 +4,26 @@
 \alias{fit_gam}
 \title{Fit the GAM model}
 \usage{
-fit_gam(scores_to_model, standardize = FALSE)
+fit_gam(scores_to_model, standardize = FALSE, weighted = FALSE)
 }
 \arguments{
 \item{scores_to_model}{wide table of scores with wastewater metadata}
 
 \item{standardize}{logical, whether to z-score covariates before fitting}
+
+\item{weighted}{logical, whether to weight each forecast by \code{wis_hosp}}
 }
 \value{
 GAM object (with scaling attributes if standardize = TRUE)
 }
 \description{
-Fit the GAM model
+Models WIS of the wastewater model with the hospital-only WIS as an offset,
+so that exp(intercept + smooths) is the relative WIS (WIS_ww / WIS_hosp).
+}
+\details{
+Unweighted, the intercept is exactly the arithmetic mean of the
+(covariate-adjusted) per-forecast ratios, which is biased in favour of the
+hospital-only model (Bracher, Lerch, Pohle and Resin, 2026). Weighting each
+forecast by \code{wis_hosp} instead makes the intercept a covariate-adjusted
+ratio of mean scores, sum(WIS_ww) / sum(WIS_hosp).
 }

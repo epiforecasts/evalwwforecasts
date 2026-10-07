@@ -53,18 +53,59 @@ run_gam_targets <- list(
       scores_to_model
     )
   ),
+  # Relative WIS implied by the GAM -----------------------------------------
+  tar_target(
+    name = plot_gam_rel_wis_covariates,
+    command = plot_rel_wis_by_covariate(gam_results)
+  ),
+  tar_target(
+    name = plot_gam_rel_wis_time,
+    command = plot_rel_wis_by_time(gam_results)
+  ),
+  tar_target(
+    name = plot_gam_rel_wis_location,
+    command = plot_rel_wis_by_location(gam_results)
+  ),
+  tar_target(
+    name = gam_effect_sizes,
+    command = get_gam_effect_sizes(gam_results)
+  ),
+  tar_target(
+    name = plot_gam_effects,
+    command = plot_gam_effect_sizes(gam_results)
+  ),
+  # Alternative specifications targeting the ratio of mean scores -----------
+  tar_target(
+    name = gam_results_weighted,
+    command = fit_gam(
+      scores_to_model = scores_to_model,
+      weighted = TRUE
+    )
+  ),
+  tar_target(
+    name = gam_results_long,
+    command = fit_gam_long(
+      scores_to_model = scores_to_model
+    )
+  ),
+  tar_target(
+    name = gam_effect_sizes_comparison,
+    command = bind_rows(
+      unweighted = get_gam_effect_sizes(gam_results),
+      weighted = get_gam_effect_sizes(gam_results_weighted),
+      long = get_gam_effect_sizes(gam_results_long),
+      .id = "model"
+    )
+  ),
   # Run GLM for interpretability of coefficients---------------------------
   tar_target(
     name = glm_results,
     command = fit_glm(
       scores_to_model = scores_to_model
     )
+  ),
+  tar_target(
+    name = glm_coef_table,
+    command = get_glm_coef_table(glm_results)
   )
-  # Use the scores to model dataframe to make scatter plots comparing different
-  # variables
-  # tar_target(
-  #   name = scatter_plot_rWIS_vs_horizon,
-  #   command = get_scatter_plot_wis_vs_horizon(scores_to_model =
-  #                                               scores_to_model)
-  # )
 )
