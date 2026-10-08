@@ -191,30 +191,20 @@ fit_gam_long <- function(scores_to_model, standardize = FALSE) {
   # contrasts so the parametric include_ww term is the log relative WIS
   contrasts(data_to_fit$include_ww) <- "contr.treatment"
 
-  gam_fit <- bam(
+  gam_fit <- gam(
     wis ~ include_ww +
-      s(horizon_weeks, k = 4) +
       s(horizon_weeks, k = 4, by = include_ww) +
-      s(location, bs = "re") +
       s(location, bs = "re", by = include_ww) +
-      s(forecast_date_num, k = 20) +
       s(forecast_date_num, k = 20, by = include_ww) +
-      s(n_sites, k = 5) +
       s(n_sites, k = 5, by = include_ww) +
-      s(pop_coverage, k = 5) +
       s(pop_coverage, k = 5, by = include_ww) +
-      s(avg_sampling_freq, k = 5) +
       s(avg_sampling_freq, k = 5, by = include_ww) +
-      s(avg_latency, k = 5) +
       s(avg_latency, k = 5, by = include_ww) +
-      s(min_latency, k = 5) +
       s(min_latency, k = 5, by = include_ww) +
-      s(avg_data_variability, k = 5) +
       s(avg_data_variability, k = 5, by = include_ww),
     data = data_to_fit,
     family = Gamma(link = "log"),
-    method = "fREML",
-    discrete = TRUE
+    method = "REML"
   )
 
   gam_fit <- add_gam_metadata(gam_fit, prepped)
