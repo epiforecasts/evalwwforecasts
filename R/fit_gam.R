@@ -62,7 +62,7 @@ prep_gam_data <- function(scores_to_model, standardize = FALSE) {
   if (standardize) {
     covariates <- c(
       "n_sites", "pop_coverage", "avg_sampling_freq",
-      "avg_latency", "min_latency", "avg_data_variability"
+      "avg_latency", "min_latency", "avg_data_variability", "state_pop"
     )
 
     # Store means and SDs for later reference
@@ -156,6 +156,34 @@ fit_gam <- function(scores_to_model, standardize = FALSE, weighted = FALSE) {
   return(gam_fit)
 }
 
+#' Fit the GLM model
+#'
+#' @param scores_to_model wide table of scores with wastewater metadata
+#' @param standardize logical, whether to z-score covariates before fitting
+#' @importFrom stats glm Gamma
+#' @returns GLM object (with scaling attributes if standardize = TRUE)
+#' @autoglobal
+fit_glm <- function(scores_to_model, standardize = TRUE) {
+  prepped <- prep_gam_data(scores_to_model, standardize)
+
+  glm_fit <- glm(
+    wis_ww ~ offset(log(wis_hosp)) +
+      n_sites +
+      pop_coverage +
+      avg_sampling_freq +
+      avg_latency +
+      min_latency +
+      avg_data_variability,
+    data = prepped$data,
+    family = Gamma(link = "log")
+  )
+  glm_fit$standardized <- standardize
+  glm_fit$scaling_params <- prepped$scaling_params
+
+  return(glm_fit)
+}
+
+
 #' Fit the long-format GAM with wastewater inclusion as a covariate
 #'
 #' Stacks the WIS of the hospital-only and wastewater models into one
@@ -191,20 +219,26 @@ fit_gam_long <- function(scores_to_model, standardize = FALSE) {
   # contrasts so the parametric include_ww term is the log relative WIS
   contrasts(data_to_fit$include_ww) <- "contr.treatment"
 
-  gam_fit <- gam(
+  gam_fit <- bam(
     wis ~ include_ww +
-      s(horizon_weeks, k = 4, by = include_ww) +
-      s(location, bs = "re", by = include_ww) +
-      s(forecast_date_num, k = 20, by = include_ww) +
-      s(n_sites, k = 5, by = include_ww) +
-      s(pop_coverage, k = 5, by = include_ww) +
+      s(horizon, k = 4) + s(horizon, k = 4, by = include_ww) +
+      s(location, bs = "re") + s(location, bs = "re", by = include_ww) +
+      s(forecast_date_num, k = 40) +
+      s(forecast_date_num, k = 40, by = include_ww) +
+      # One value per state, so keep this smooth simple
+      s(state_pop, k = 3) + s(state_pop, k = 3, by = include_ww) +
+      s(n_sites, k = 5) + s(n_sites, k = 5, by = include_ww) +
+      s(pop_coverage, k = 5) + s(pop_coverage, k = 5, by = include_ww) +
+      s(avg_sampling_freq, k = 5) +
       s(avg_sampling_freq, k = 5, by = include_ww) +
-      s(avg_latency, k = 5, by = include_ww) +
-      s(min_latency, k = 5, by = include_ww) +
+      s(avg_latency, k = 5) + s(avg_latency, k = 5, by = include_ww) +
+      s(min_latency, k = 5) + s(min_latency, k = 5, by = include_ww) +
+      s(avg_data_variability, k = 5) +
       s(avg_data_variability, k = 5, by = include_ww),
     data = data_to_fit,
     family = Gamma(link = "log"),
-    method = "REML"
+    method = "fREML",
+    discrete = TRUE
   )
 
   gam_fit <- add_gam_metadata(gam_fit, prepped)
@@ -214,8 +248,186 @@ fit_gam_long <- function(scores_to_model, standardize = FALSE) {
   return(gam_fit)
 }
 
-# Breaks for log-scale axes of relative WIS
-rel_wis_breaks <- c(0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 2, 3)
+#' Get plot of location specific multiplicative effect
+#'
+#' @param gam_fit
+#'
+#' @returns ggplot object
+#' @autoglobal
+get_plot_effect_by_location <- function(gam_fit) {
+  # Tables and plots that I will export to separate figures
+  par(mfrow = c(2, 2))
+  gam.check(gam_fit)
+  par(mfrow = c(1, 1))
+
+  estimates <- smooth_estimates(gam_fit)
+
+  make_ci_table <- function(smooth_name, group_var) {
+    estimates |>
+      filter(.smooth == smooth_name) |>
+      select(.smooth, {{ group_var }}, .estimate, .se) |>
+      rename(est = .estimate, se = .se) |>
+      mutate(
+        ci_lower = est - 1.96 * se,
+        ci_upper = est + 1.96 * se,
+        effect = exp(est),
+        est_lower = exp(ci_lower),
+        est_upper = exp(ci_upper),
+        excludes_zero = ci_lower > 0 | ci_upper < 0
+      ) |>
+      arrange(effect)
+  }
+
+  location_ci <- make_ci_table("s(location):include_wwTRUE", location)
+
+  knitr::kable(location_ci |> select(-.smooth))
+
+  p <- ggplot(
+    location_ci,
+    aes(x = reorder(location, -effect), y = effect)
+  ) +
+    geom_errorbar(aes(ymin = est_lower, ymax = est_upper), width = 0.2) +
+    geom_point(color = "seagreen", size = 5) +
+    geom_hline(yintercept = 1, linetype = "dashed", linewidth = 1) +
+    scale_y_log10(breaks = rel_wis_breaks, labels = rel_wis_labels) +
+    labs(y = "Multiplicative effect on WIS of including wastewater", x = "Location") +
+    theme_bw() +
+    coord_flip() +
+    theme(
+      text            = element_text(size = 27),
+      axis.text.x     = element_text(size = 24),
+      axis.text.y     = element_text(size = 24),
+      axis.title      = element_text(size = 27),
+      legend.text     = element_text(size = 24),
+      legend.title    = element_text(size = 25.5),
+      strip.text      = element_text(size = 25.5)
+    ) +
+    scale_x_discrete(labels = function(x) gsub("-", "-\n", x))
+
+  return(p)
+}
+
+#' Get plot of the overall multiplicative effect of including wastewater
+#'
+#' Plots exp(beta_ww), the exponentiated `include_ww` coefficient from the
+#' long-format GAM, with a Wald confidence interval. Because the difference
+#' smooths are centred, this is the relative WIS (WIS_ww / WIS_hosp) with all
+#' difference smooths at zero.
+#'
+#' @param gam_fit long-format GAM fit from `fit_gam_long()`
+#' @param level confidence level for the interval
+#'
+#' @returns ggplot object
+#' @importFrom stats coef vcov qnorm
+#' @autoglobal
+get_plot_effect_ww <- function(gam_fit, level = 0.95) {
+  coef_name <- "include_wwTRUE"
+  est <- coef(gam_fit)[[coef_name]]
+  se <- sqrt(vcov(gam_fit)[coef_name, coef_name])
+  z <- qnorm(1 - (1 - level) / 2)
+
+  ww_effect <- data.frame(
+    term = "Include wastewater",
+    effect = exp(est),
+    est_lower = exp(est - z * se),
+    est_upper = exp(est + z * se)
+  )
+
+  p <- ggplot(ww_effect, aes(x = term, y = effect)) +
+    geom_errorbar(aes(ymin = est_lower, ymax = est_upper), width = 0.1) +
+    geom_point(color = "seagreen", size = 5) +
+    geom_hline(yintercept = 1, linetype = "dashed", linewidth = 1) +
+    scale_y_log10(breaks = rel_wis_breaks, labels = rel_wis_labels) +
+    labs(
+      y = "Multiplicative effect on WIS of including wastewater",
+      x = NULL
+    ) +
+    theme_bw() +
+    coord_flip() +
+    theme(
+      text = element_text(size = 27),
+      axis.text.x = element_text(size = 24),
+      axis.text.y = element_text(size = 24),
+      axis.title = element_text(size = 27)
+    )
+
+  return(p)
+}
+
+#' Get plot of the multiplicative effect of wastewater characteristics
+#'
+#' Plots exp(difference smooth) for each wastewater characteristic from the
+#' long-format GAM, i.e. how the multiplicative effect of including
+#' wastewater on WIS changes across values of that characteristic. Smooths
+#' are centred, so the curves are relative to the overall effect,
+#' exp(beta_ww), and exclude its uncertainty.
+#'
+#' @param gam_fit long-format GAM fit from `fit_gam_long()`
+#' @param vars character vector of wastewater characteristics to plot
+#' @param level confidence level for the interval
+#' @param n_grid number of points to evaluate each smooth at
+#'
+#' @returns ggplot object
+#' @importFrom gratia smooth_estimates
+#' @importFrom dplyr bind_rows filter mutate
+#' @importFrom ggplot2 ggplot aes geom_ribbon geom_line geom_hline
+#'   facet_wrap scale_y_log10 labs theme_bw theme element_text
+#' @importFrom stats qnorm
+#' @autoglobal
+get_plot_ww_chars <- function(gam_fit,
+                              vars = c(
+                                "n_sites", "pop_coverage", "avg_sampling_freq",
+                                "avg_latency", "min_latency", "avg_data_variability"
+                              ),
+                              level = 0.95,
+                              n_grid = 100) {
+  z <- qnorm(1 - (1 - level) / 2)
+
+  smooth_ci <- bind_rows(lapply(vars, function(v) {
+    est <- smooth_estimates(
+      gam_fit,
+      select = glue("s({v}):include_wwTRUE"),
+      n = n_grid
+    )
+    data.frame(
+      variable = v,
+      x = est[[v]],
+      effect = exp(est$.estimate),
+      est_lower = exp(est$.estimate - z * est$.se),
+      est_upper = exp(est$.estimate + z * est$.se)
+    )
+  }))
+
+  p <- ggplot(smooth_ci, aes(x = x, y = effect)) +
+    geom_ribbon(aes(ymin = est_lower, ymax = est_upper),
+      fill = "seagreen", alpha = 0.3
+    ) +
+    geom_line(color = "seagreen", linewidth = 1.5) +
+    geom_hline(yintercept = 1, linetype = "dashed", linewidth = 1) +
+    scale_y_log10(breaks = rel_wis_breaks, labels = rel_wis_labels) +
+    facet_wrap(~variable, scales = "free_x") +
+    labs(
+      y = "Multiplicative effect on WIS of including wastewater",
+      x = ""
+    ) +
+    theme_bw() +
+    theme(
+      text = element_text(size = 27),
+      axis.text.x = element_text(size = 24),
+      axis.text.y = element_text(size = 24),
+      axis.title = element_text(size = 27),
+      strip.text = element_text(size = 25.5)
+    )
+
+  return(p)
+}
+
+# Breaks for log-scale axes of relative WIS, in reciprocal pairs (r, 1 / r)
+# so ticks are symmetric about 1
+rel_wis_breaks <- c(1 / 3, 0.5, 2 / 3, 0.8, 0.9, 1, 1 / 0.9, 1.25, 1.5, 2, 3)
+rel_wis_labels <- c(
+  "0.33", "0.5", "0.67", "0.8", "0.9", "1", "1.11", "1.25", "1.5", "2", "3"
+)
 
 #' Convert a GAM covariate back to its original scale
 #'
@@ -330,164 +542,6 @@ get_gam_avg_rel_wis <- function(gam_fit) {
   return(exp(coef(gam_fit)[[term]]))
 }
 
-#' Predict relative WIS across values of a single GAM term
-#'
-#' Predicts the relative WIS (WIS_ww / WIS_hosp) as `var` changes, with all
-#' other terms held at their average effect. See `get_rel_wis_lpmatrix()`.
-#'
-#' @param gam_fit GAM object returned by `fit_gam()` or `fit_gam_long()`
-#' @param var Name of the variable to vary
-#' @param values Values of `var` (on the scale used in the fit) to predict at
-#' @param level Width of the confidence interval
-#'
-#' @returns data.frame of relative WIS and confidence intervals
-#' @importFrom stats qnorm coef vcov
-#' @autoglobal
-get_relative_wis_by_term <- function(gam_fit, var, values, level = 0.95) {
-  lp <- get_rel_wis_lpmatrix(gam_fit, var, values)
-  fit <- as.numeric(lp %*% coef(gam_fit))
-  se <- sqrt(rowSums((lp %*% vcov(gam_fit)) * lp))
-  z <- qnorm(1 - (1 - level) / 2)
-
-  return(data.frame(
-    variable = var,
-    value = values,
-    rel_wis = exp(fit),
-    lower = exp(fit - z * se),
-    upper = exp(fit + z * se)
-  ))
-}
-
-#' Plot relative WIS across each wastewater covariate and horizon
-#'
-#' Each panel shows exp(intercept + s(x)): the expected ratio of WIS with
-#' wastewater to WIS without wastewater as x varies, holding other terms at
-#' their average effect. Values below 1 mean wastewater improves forecasts.
-#'
-#' @param gam_fit GAM object returned by `fit_gam()` or `fit_gam_long()`
-#' @param vars Continuous variables to plot
-#' @param n_grid Number of grid points per variable
-#'
-#' @returns ggplot
-#' @importFrom ggplot2 ggplot aes geom_ribbon geom_line geom_hline geom_rug
-#'   facet_wrap scale_y_log10 theme_bw labs
-#' @importFrom dplyr bind_rows
-#' @autoglobal
-plot_rel_wis_by_covariate <- function(
-  gam_fit,
-  vars = c(
-    "horizon_weeks", "n_sites", "pop_coverage", "avg_sampling_freq",
-    "avg_latency", "min_latency", "avg_data_variability"
-  ),
-  n_grid = 100
-) {
-  preds <- bind_rows(lapply(vars, function(v) {
-    x <- gam_fit$model[[v]]
-    grid_vals <- seq(min(x), max(x), length.out = n_grid)
-    pred <- get_relative_wis_by_term(gam_fit, v, grid_vals)
-    pred$value <- gam_var_to_original_scale(gam_fit, v, pred$value)
-    return(pred)
-  }))
-  obs <- bind_rows(lapply(vars, function(v) {
-    return(data.frame(
-      variable = v,
-      value = gam_var_to_original_scale(gam_fit, v, unique(gam_fit$model[[v]]))
-    ))
-  }))
-
-  p <- ggplot(preds, aes(x = value, y = rel_wis)) +
-    geom_hline(yintercept = 1, linetype = "dashed", colour = "grey40") +
-    geom_hline(
-      yintercept = get_gam_avg_rel_wis(gam_fit),
-      linetype = "dotted", colour = "firebrick"
-    ) +
-    geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.25) +
-    geom_line() +
-    geom_rug(data = obs, aes(x = value), inherit.aes = FALSE, alpha = 0.3) +
-    facet_wrap(~variable, scales = "free_x") +
-    scale_y_log10(breaks = rel_wis_breaks) +
-    theme_bw() +
-    labs(
-      x = "Covariate value (original scale)",
-      y = "Relative WIS (WIS_ww \u00f7 WIS_hosp)",
-      title = "Relative forecast performance across wastewater characteristics",
-      subtitle = "< 1: wastewater improves forecast; red dotted = average relative WIS" # nolint
-    )
-
-  return(p)
-}
-
-#' Plot relative WIS over forecast date
-#'
-#' @param gam_fit GAM object returned by `fit_gam()` or `fit_gam_long()`
-#' @param n_grid Number of grid points
-#'
-#' @returns ggplot
-#' @importFrom ggplot2 ggplot aes geom_ribbon geom_line geom_hline
-#'   scale_y_log10 theme_bw labs
-#' @autoglobal
-plot_rel_wis_by_time <- function(gam_fit, n_grid = 200) {
-  x <- gam_fit$model$forecast_date_num
-  grid_vals <- seq(min(x), max(x), length.out = n_grid)
-  preds <- get_relative_wis_by_term(gam_fit, "forecast_date_num", grid_vals)
-  preds$forecast_date <- gam_fit$min_forecast_date + preds$value
-
-  p <- ggplot(preds, aes(x = forecast_date, y = rel_wis)) +
-    geom_hline(yintercept = 1, linetype = "dashed", colour = "grey40") +
-    geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.25) +
-    geom_line() +
-    scale_y_log10(breaks = rel_wis_breaks) +
-    theme_bw() +
-    labs(
-      x = "Forecast date",
-      y = "Relative WIS (WIS_ww \u00f7 WIS_hosp)",
-      title = "Relative forecast performance over time",
-      subtitle = "< 1: wastewater improves forecast"
-    )
-
-  return(p)
-}
-
-#' Plot relative WIS by location (random effects)
-#'
-#' Shows exp(intercept + location random effect) for each location, i.e. the
-#' expected relative WIS in that location with other terms at their average.
-#'
-#' @param gam_fit GAM object returned by `fit_gam()` or `fit_gam_long()`
-#'
-#' @returns ggplot
-#' @importFrom ggplot2 ggplot aes geom_pointrange geom_vline scale_x_log10
-#'   theme_bw labs
-#' @importFrom stats reorder
-#' @autoglobal
-plot_rel_wis_by_location <- function(gam_fit) {
-  locs <- levels(gam_fit$model$location)
-  preds <- get_relative_wis_by_term(
-    gam_fit, "location",
-    factor(locs, levels = locs)
-  )
-
-  p <- ggplot(preds, aes(
-    x = rel_wis, y = reorder(value, rel_wis),
-    xmin = lower, xmax = upper
-  )) +
-    geom_vline(xintercept = 1, linetype = "dashed", colour = "grey40") +
-    geom_vline(
-      xintercept = get_gam_avg_rel_wis(gam_fit),
-      linetype = "dotted", colour = "firebrick"
-    ) +
-    geom_pointrange() +
-    scale_x_log10(breaks = rel_wis_breaks) +
-    theme_bw() +
-    labs(
-      x = "Relative WIS (WIS_ww \u00f7 WIS_hosp)",
-      y = NULL,
-      title = "Relative forecast performance by location",
-      subtitle = "< 1: wastewater improves forecast; red dotted = average relative WIS" # nolint
-    )
-
-  return(p)
-}
 
 #' Estimate the effect of each covariate on relative WIS
 #'
@@ -568,7 +622,7 @@ plot_gam_effect_sizes <- function(gam_fit, lower_q = 0.1, upper_q = 0.9) {
   )) +
     geom_vline(xintercept = 1, linetype = "dashed", colour = "grey40") +
     geom_pointrange() +
-    scale_x_log10(breaks = rel_wis_breaks) +
+    scale_x_log10(breaks = rel_wis_breaks, labels = rel_wis_labels) +
     theme_bw() +
     labs(
       x = "Multiplicative change in relative WIS",
@@ -583,32 +637,6 @@ plot_gam_effect_sizes <- function(gam_fit, lower_q = 0.1, upper_q = 0.9) {
   return(p)
 }
 
-#' Fit the GLM model
-#'
-#' @param scores_to_model wide table of scores with wastewater metadata
-#' @param standardize logical, whether to z-score covariates before fitting
-#' @importFrom stats glm Gamma
-#' @returns GLM object (with scaling attributes if standardize = TRUE)
-#' @autoglobal
-fit_glm <- function(scores_to_model, standardize = TRUE) {
-  prepped <- prep_gam_data(scores_to_model, standardize)
-
-  glm_fit <- glm(
-    wis_ww ~ offset(log(wis_hosp)) +
-      n_sites +
-      pop_coverage +
-      avg_sampling_freq +
-      avg_latency +
-      min_latency +
-      avg_data_variability,
-    data = prepped$data,
-    family = Gamma(link = "log")
-  )
-  glm_fit$standardized <- standardize
-  glm_fit$scaling_params <- prepped$scaling_params
-
-  return(glm_fit)
-}
 
 #' Table of exponentiated GLM coefficients
 #'
@@ -619,7 +647,7 @@ fit_glm <- function(scores_to_model, standardize = TRUE) {
 #' @returns gt table
 #' @autoglobal
 get_glm_coef_table <- function(glm_fit) {
-  coef_table <- tidy(glm_fit, conf.int = TRUE) |>
+  coef_table <- broom::tidy(glm_fit, conf.int = TRUE) |>
     mutate(across(
       c(estimate, conf.low, conf.high), exp,
       .names = "exp_{.col}"
@@ -638,19 +666,96 @@ get_glm_coef_table <- function(glm_fit) {
   return(coef_table)
 }
 
-#' Make a plot of the partial effects
+#' Get residual diagnostic plots for a GAM
 #'
-#' @param gam_fit GAM object
-#' @importFrom gratia draw
-#' @importFrom ggplot2 theme_bw labs
-#' @returns ggplot
+#' Combines the standard `gratia::appraise()` panels (QQ plot, residuals vs
+#' linear predictor, histogram, observed vs fitted) with deviance residuals
+#' against forecast horizon and forecast date. For the long-format model these
+#' are split by model (hospital only vs wastewater), and a final panel plots
+#' the residuals of the two models for the same forecast against each other.
+#' The long-format model treats these as independent, so a strong
+#' correlation means its standard errors are mis-stated.
+#'
+#' @param gam_fit GAM fit from `fit_gam()` or `fit_gam_long()`
+#'
+#' @returns patchwork object
+#' @importFrom gratia appraise
+#' @importFrom mgcv k.check
+#' @importFrom stats residuals fitted cor
+#' @importFrom dplyr mutate select
+#' @importFrom tidyr pivot_wider
+#' @importFrom ggplot2 ggplot aes geom_point geom_smooth geom_hline
+#'   geom_abline labs theme_bw
+#' @importFrom patchwork wrap_plots
 #' @autoglobal
-partial_plot <- function(gam_fit) {
-  partial_plots <- draw(gam_fit, residuals = TRUE, rug = TRUE) &
-    theme_bw() &
-    labs(y = "Partial effect on log(WIS_ww)")
+get_plot_gam_diagnostics <- function(gam_fit) {
+  # Basis dimension check: k-index well below 1 with a small p-value suggests
+  # k is too low for that smooth
+  print(k.check(gam_fit))
 
-  return(partial_plots)
+  long_format <- isTRUE(gam_fit$long_format)
+  horizon_var <- intersect(c("horizon", "horizon_weeks"), names(gam_fit$model))
+  resid_data <- gam_fit$model |>
+    mutate(
+      resid = residuals(gam_fit, type = "deviance"),
+      fitted = fitted(gam_fit),
+      horizon = .data[[horizon_var[1]]],
+      model = if (long_format) {
+        ifelse(include_ww == "TRUE", "wastewater", "hospital only")
+      } else {
+        "wastewater vs hospital only"
+      }
+    )
+
+  p_appraise <- appraise(gam_fit, point_alpha = 0.1)
+
+  p_horizon <- ggplot(resid_data, aes(x = horizon, y = resid, colour = model)) +
+    geom_point(alpha = 0.05) +
+    geom_smooth(se = FALSE) +
+    geom_hline(yintercept = 0, linetype = "dashed") +
+    labs(x = "Horizon", y = "Deviance residual", colour = NULL) +
+    theme_bw()
+
+  p_date <- ggplot(
+    resid_data,
+    aes(x = forecast_date_num, y = resid, colour = model)
+  ) +
+    geom_point(alpha = 0.05) +
+    geom_smooth(se = FALSE) +
+    geom_hline(yintercept = 0, linetype = "dashed") +
+    labs(
+      x = "Days since first forecast date", y = "Deviance residual",
+      colour = NULL
+    ) +
+    theme_bw()
+
+  plots <- list(p_horizon, p_date)
+
+  if (long_format) {
+    paired <- resid_data |>
+      select(location, forecast_date_num, horizon, model, resid) |>
+      pivot_wider(names_from = model, values_from = resid)
+    resid_cor <- cor(
+      paired[["hospital only"]], paired[["wastewater"]],
+      use = "complete.obs"
+    )
+    p_paired <- ggplot(
+      paired,
+      aes(x = .data[["hospital only"]], y = .data[["wastewater"]])
+    ) +
+      geom_point(alpha = 0.05) +
+      geom_abline(intercept = 0, slope = 1, linetype = "dashed") +
+      labs(
+        x = "Residual, hospital only", y = "Residual, wastewater",
+        title = sprintf("Paired residual correlation = %.2f", resid_cor)
+      ) +
+      theme_bw()
+    plots <- c(plots, list(p_paired))
+  }
+
+  p <- wrap_plots(p_appraise, wrap_plots(plots, nrow = 1), ncol = 1)
+
+  return(p)
 }
 
 #' Plot fitted against observed WIS

@@ -21,6 +21,7 @@ utils::globalVariables(c(
   "q_0.75", # <get_plot_model_comparison>
   "q_0.05", # <get_plot_model_comparison>
   "q_0.95", # <get_plot_model_comparison>
+  "draw", # <get_plot_draws_w_calib_data>
   "pred_value7dsum", # <get_plot_draws_w_calib_data>
   "calib_data_7dsum", # <get_plot_draws_w_calib_data>
   "updated_hosp_7d_count", # <get_plot_draws_w_calib_data>
@@ -84,18 +85,25 @@ utils::globalVariables(c(
   "wis_ww", # <fit_gam_long>
   "wis_hosp", # <fit_gam_long>
   "model", # <fit_gam_long>
-  "value", # <plot_rel_wis_by_covariate>
-  "rel_wis", # <plot_rel_wis_by_covariate>
-  "lower", # <plot_rel_wis_by_covariate>
-  "upper", # <plot_rel_wis_by_covariate>
-  "forecast_date", # <plot_rel_wis_by_time>
-  "rel_wis", # <plot_rel_wis_by_time>
-  "lower", # <plot_rel_wis_by_time>
-  "upper", # <plot_rel_wis_by_time>
-  "rel_wis", # <plot_rel_wis_by_location>
-  "value", # <plot_rel_wis_by_location>
-  "lower", # <plot_rel_wis_by_location>
-  "upper", # <plot_rel_wis_by_location>
+  ".smooth", # <get_plot_effect_by_location>
+  ".estimate", # <get_plot_effect_by_location>
+  ".se", # <get_plot_effect_by_location>
+  "est", # <get_plot_effect_by_location>
+  "se", # <get_plot_effect_by_location>
+  "ci_lower", # <get_plot_effect_by_location>
+  "ci_upper", # <get_plot_effect_by_location>
+  "effect", # <get_plot_effect_by_location>
+  "location", # <get_plot_effect_by_location>
+  "est_lower", # <get_plot_effect_by_location>
+  "est_upper", # <get_plot_effect_by_location>
+  "term", # <get_plot_effect_ww>
+  "effect", # <get_plot_effect_ww>
+  "est_lower", # <get_plot_effect_ww>
+  "est_upper", # <get_plot_effect_ww>
+  "x", # <get_plot_ww_chars>
+  "effect", # <get_plot_ww_chars>
+  "est_lower", # <get_plot_ww_chars>
+  "est_upper", # <get_plot_ww_chars>
   "ratio", # <plot_gam_effect_sizes>
   "label", # <plot_gam_effect_sizes>
   "lower", # <plot_gam_effect_sizes>
@@ -108,6 +116,12 @@ utils::globalVariables(c(
   "exp_conf.low", # <get_glm_coef_table>
   "exp_conf.high", # <get_glm_coef_table>
   "p.value", # <get_glm_coef_table>
+  "include_ww", # <get_plot_gam_diagnostics>
+  "horizon", # <get_plot_gam_diagnostics>
+  "resid", # <get_plot_gam_diagnostics>
+  "model", # <get_plot_gam_diagnostics>
+  "forecast_date_num", # <get_plot_gam_diagnostics>
+  "location", # <get_plot_gam_diagnostics>
   "wis_hosp", # <plot_scores_fit_gam>
   "wis_ww", # <plot_scores_fit_gam>
   "site", # <fit_wwinference_wrapper>
@@ -156,6 +170,7 @@ utils::globalVariables(c(
   "below_LOD", # <calculate_ww_metadata_table>
   "total_site_pop", # <calculate_ww_metadata_table>
   "state_pop", # <calculate_ww_metadata_table>
+  "draw", # <get_model_draws_w_data>
   "pred_value", # <get_model_draws_w_data>
   "observed_value", # <get_model_draws_w_data>
   "pred_value7dsum", # <get_model_draws_w_data>

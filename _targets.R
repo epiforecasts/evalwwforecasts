@@ -49,6 +49,7 @@ tar_option_set(
   packages = c(
     "wwinference",
     "tibble",
+    "broom",
     "dplyr",
     "ggplot2",
     "readr",
