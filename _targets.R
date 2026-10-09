@@ -26,7 +26,11 @@ library(tidyr)
 library(glue)
 library(fs)
 library(rlang)
+library(mgcv)
+library(gratia)
+library(gt)
 library(scoringutils)
+library(patchwork)
 library(forecast)
 library(future)
 library(future.callr)
@@ -45,6 +49,7 @@ tar_option_set(
   packages = c(
     "wwinference",
     "tibble",
+    "broom",
     "dplyr",
     "ggplot2",
     "readr",
@@ -76,14 +81,7 @@ analysis_config <- list(
 
 # Wastewater and state metadata
 get_metadata <- list(
-  tar_target(
-    name = ww_metadata,
-    command = read_csv(ww_metadata_fp)
-  ),
-  tar_target(
-    name = state_pop_data,
-    command = get_state_pop_data()
-  )
+  get_metadata_targets
 )
 
 # Secondary outputs
