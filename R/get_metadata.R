@@ -64,9 +64,9 @@ calculate_ww_metadata_table <- function(ww_data,
       ),
       # Sampling frequency (observations per day over the window)
       sampling_freq = n_obs / pmax(n_days_in_window, 1),
-      sampling_freq_overall = n_obs / as.numeric(
+      sampling_freq_overall = n_obs / pmax(as.numeric(
         max_date - min_date
-      ),
+      ), sampling_freq_window),
       # Latency (days from last observation to forecast date)
       latency = as.numeric(ymd(first(forecast_date)) - max_date),
       # Number of lab changes (distinct labs - 1)
@@ -149,7 +149,7 @@ calculate_ww_metadata_table <- function(ww_data,
   if (!is.null(state_pop_data)) {
     metadata_table <- metadata_table |>
       left_join(state_pop_data, by = "location_name") |>
-      mutate(pop_coverage = min((total_site_pop / state_pop), 1))
+      mutate(pop_coverage = pmin((total_site_pop / state_pop), 1))
   } else {
     # Otherwise, report as total site population
     metadata_table <- rename(metadata_table,

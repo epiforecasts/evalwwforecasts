@@ -274,7 +274,7 @@ get_plot_scores_by_date <- function(scores) {
   return(p)
 }
 
-#' Get bar chart of the scores by forecast date
+#' Get bar chart of the scores by location
 #'
 #' @param scores Data.frame of scores from across locations and forecast dates
 #'
@@ -303,7 +303,7 @@ get_plot_scores_by_loc <- function(scores) {
   return(p)
 }
 
-#' Get bar chart of the scores by forecast date
+#' Get line plot fo scores by horizons
 #'
 #' @param scores Data.frame of scores from across locations and forecast dates
 #'
@@ -411,7 +411,7 @@ get_ww_metadata_histograms <- function(ww_metadata) {
   return(wrap_plots(plots))
 }
 
-#' Explortory plots of rWIS vs wastewater characteristics
+#' Exploratory plots of rWIS vs wastewater characteristics
 #'
 #' @param scores dataframe of scores by location, forecast date, model, and
 #'   target date
@@ -540,6 +540,7 @@ exploratory_plot_ww_vs_scores <- function(scores,
     p1 <- scores_summarised |>
       mutate(latency_bin = cut(min_latency,
         breaks = c(0, 7, 14, 21, Inf),
+        include.lowest = TRUE,
         labels = c("<1 week", "1-2 weeks", "2-3 weeks", "3 weeks+")
       )) |>
       filter(!is.na(latency_bin)) |>
@@ -556,6 +557,7 @@ exploratory_plot_ww_vs_scores <- function(scores,
     p2 <- scores_summarised |>
       mutate(freq_bin = cut(avg_sampling_freq,
         breaks = c(0, 1 / 14, 1 / 7, 2 / 7, Inf),
+        include_lowest = TRUE,
         labels = c(
           "<1 per 2 weeks",
           "between\n 1 per week and\n 1 per 2 weeks",
@@ -578,7 +580,7 @@ exploratory_plot_ww_vs_scores <- function(scores,
       mutate(n_sites_bin = cut(n_sites,
         breaks = c(0, 3, 8, 15, 22, Inf),
         label = c(
-          "<3 ",
+          "<=3 ",
           "4-8",
           "9-15",
           "16-22",
@@ -599,6 +601,7 @@ exploratory_plot_ww_vs_scores <- function(scores,
     p4 <- scores_summarised |>
       mutate(pop_cov_bin = cut(pop_coverage,
         breaks = c(0, 0.20, 0.40, 0.75, Inf),
+        include.lowest = TRUE,
         labels = c("<20%", "20-40%", "40-75%", "75+%")
       )) |>
       filter(!is.na(pop_cov_bin)) |>

@@ -2,7 +2,7 @@
 % Please edit documentation in R/EDA_plots.R
 \name{exploratory_plot_ww_vs_scores}
 \alias{exploratory_plot_ww_vs_scores}
-\title{Explortory plots of rWIS vs wastewater characteristics}
+\title{Exploratory plots of rWIS vs wastewater characteristics}
 \usage{
 exploratory_plot_ww_vs_scores(
   scores,
@@ -29,5 +29,5 @@ target date}
 patchwork object
 }
 \description{
-Explortory plots of rWIS vs wastewater characteristics
+Exploratory plots of rWIS vs wastewater characteristics
 }

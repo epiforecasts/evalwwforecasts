@@ -2,7 +2,7 @@
 % Please edit documentation in R/EDA_plots.R
 \name{get_plot_scores_by_loc}
 \alias{get_plot_scores_by_loc}
-\title{Get bar chart of the scores by forecast date}
+\title{Get bar chart of the scores by location}
 \usage{
 get_plot_scores_by_loc(scores)
 }
@@ -13,5 +13,5 @@ get_plot_scores_by_loc(scores)
 ggplot object
 }
 \description{
-Get bar chart of the scores by forecast date
+Get bar chart of the scores by location
 }

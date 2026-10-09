@@ -2,7 +2,7 @@
 % Please edit documentation in R/EDA_plots.R
 \name{get_plot_scores_by_horizon}
 \alias{get_plot_scores_by_horizon}
-\title{Get bar chart of the scores by forecast date}
+\title{Get line plot fo scores by horizons}
 \usage{
 get_plot_scores_by_horizon(scores)
 }
@@ -13,5 +13,5 @@ get_plot_scores_by_horizon(scores)
 ggplot object
 }
 \description{
-Get bar chart of the scores by forecast date
+Get line plot fo scores by horizons
 }

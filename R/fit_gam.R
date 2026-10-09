@@ -250,8 +250,9 @@ fit_gam_long <- function(scores_to_model, standardize = FALSE) {
 
 #' Get plot of location specific multiplicative effect
 #'
-#' @param gam_fit
-#'
+#' @param gam_fit long-format GAM fit from `fit_gam_long()`
+#' @importFrom mgcv gam.check
+#' @importFrom ggplot2 geom_errorbar coord_flip scale_x_discrete
 #' @returns ggplot object
 #' @autoglobal
 get_plot_effect_by_location <- function(gam_fit) {
@@ -263,7 +264,7 @@ get_plot_effect_by_location <- function(gam_fit) {
   estimates <- smooth_estimates(gam_fit)
 
   make_ci_table <- function(smooth_name, group_var) {
-    estimates |>
+    cis <- estimates |>
       filter(.smooth == smooth_name) |>
       select(.smooth, {{ group_var }}, .estimate, .se) |>
       rename(est = .estimate, se = .se) |>
@@ -276,11 +277,12 @@ get_plot_effect_by_location <- function(gam_fit) {
         excludes_zero = ci_lower > 0 | ci_upper < 0
       ) |>
       arrange(effect)
+    retrun(cis)
   }
 
   location_ci <- make_ci_table("s(location):include_wwTRUE", location)
 
-  knitr::kable(location_ci |> select(-.smooth))
+  knitr::kable(select(location_ci, -.smooth))
 
   p <- ggplot(
     location_ci,
@@ -290,7 +292,10 @@ get_plot_effect_by_location <- function(gam_fit) {
     geom_point(color = "seagreen", size = 5) +
     geom_hline(yintercept = 1, linetype = "dashed", linewidth = 1) +
     scale_y_log10(breaks = rel_wis_breaks, labels = rel_wis_labels) +
-    labs(y = "Multiplicative effect on WIS of including wastewater", x = "Location") +
+    labs(
+      y = "Multiplicative effect on WIS of including wastewater",
+      x = "Location"
+    ) +
     theme_bw() +
     coord_flip() +
     theme(
@@ -302,7 +307,7 @@ get_plot_effect_by_location <- function(gam_fit) {
       legend.title    = element_text(size = 25.5),
       strip.text      = element_text(size = 25.5)
     ) +
-    scale_x_discrete(labels = function(x) gsub("-", "-\n", x))
+    scale_x_discrete(labels = function(x) gsub("-", "-\n", x)) # nolint
 
   return(p)
 }
@@ -377,7 +382,8 @@ get_plot_effect_ww <- function(gam_fit, level = 0.95) {
 get_plot_ww_chars <- function(gam_fit,
                               vars = c(
                                 "n_sites", "pop_coverage", "avg_sampling_freq",
-                                "avg_latency", "min_latency", "avg_data_variability"
+                                "avg_latency", "min_latency",
+                                "avg_data_variability"
                               ),
                               level = 0.95,
                               n_grid = 100) {
@@ -396,6 +402,7 @@ get_plot_ww_chars <- function(gam_fit,
       est_lower = exp(est$.estimate - z * est$.se),
       est_upper = exp(est$.estimate + z * est$.se)
     )
+    return(est)
   }))
 
   p <- ggplot(smooth_ci, aes(x = x, y = effect)) +
@@ -647,7 +654,7 @@ plot_gam_effect_sizes <- function(gam_fit, lower_q = 0.1, upper_q = 0.9) {
 #' @returns gt table
 #' @autoglobal
 get_glm_coef_table <- function(glm_fit) {
-  coef_table <- broom::tidy(glm_fit, conf.int = TRUE) |>
+  coef_table <- tidy(glm_fit, conf.int = TRUE) |>
     mutate(across(
       c(estimate, conf.low, conf.high), exp,
       .names = "exp_{.col}"

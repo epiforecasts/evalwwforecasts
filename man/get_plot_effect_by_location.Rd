@@ -7,7 +7,7 @@
 get_plot_effect_by_location(gam_fit)
 }
 \arguments{
-\item{gam_fit}{}
+\item{gam_fit}{long-format GAM fit from \code{fit_gam_long()}}
 }
 \value{
 ggplot object

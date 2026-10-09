@@ -59,7 +59,8 @@ run_gam_targets <- list(
       vars =
         c(
           "avg_sampling_freq", "min_latency",
-          "pop_coverage", "n_sites"
+          "pop_coverage", "n_sites", "avg_latency",
+          "avg_data_variability"
         )
     )
   ),
