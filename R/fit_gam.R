@@ -277,7 +277,7 @@ get_plot_effect_by_location <- function(gam_fit) {
         excludes_zero = ci_lower > 0 | ci_upper < 0
       ) |>
       arrange(effect)
-    retrun(cis)
+    return(cis)
   }
 
   location_ci <- make_ci_table("s(location):include_wwTRUE", location)
@@ -330,13 +330,14 @@ get_plot_effect_ww <- function(gam_fit, level = 0.95) {
   est <- coef(gam_fit)[[coef_name]]
   se <- sqrt(vcov(gam_fit)[coef_name, coef_name])
   z <- qnorm(1 - (1 - level) / 2)
-
+  # nolint start
   ww_effect <- data.frame(
     term = "Include wastewater",
     effect = exp(est),
     est_lower = exp(est - z * se),
     est_upper = exp(est + z * se)
   )
+  # nolint end
 
   p <- ggplot(ww_effect, aes(x = term, y = effect)) +
     geom_errorbar(aes(ymin = est_lower, ymax = est_upper), width = 0.1) +
