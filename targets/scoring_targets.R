@@ -4,7 +4,22 @@ scoring_targets <- list(
     command = hosp_quantiles_wwinference |>
       filter(
         date >= forecast_date
-      )
+      ) |>
+      select(-starts_with("diag_"))
+  ),
+  # One row of MCMC diagnostics per forecast date, location and model
+  tar_target(
+    name = fit_diagnostics,
+    command = extract_fit_diagnostics(hosp_quantiles_wwinference)
+  ),
+  tar_target(
+    name = save_fit_diagnostics,
+    command = save_csv(
+      fit_diagnostics,
+      "diagnostics.csv",
+      path = file.path("output", "overall_data")
+    ),
+    format = "file"
   ),
   # Need to ensure both forecasts have the same columns and format and such
   tar_target(

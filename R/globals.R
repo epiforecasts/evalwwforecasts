@@ -135,6 +135,19 @@ utils::globalVariables(c(
   "location_abbr", # <fit_wwinference_wrapper>
   "forecast_date", # <fit_wwinference_wrapper>
   "lab_site_name", # <fit_wwinference_wrapper>
+  "max_n_divergent_chain", # <get_fit_diagnostics>
+  "frac_high_rhat", # <get_fit_diagnostics>
+  "mean_ebfmi", # <get_fit_diagnostics>
+  "flag_high_max_treedepth", # <get_fit_diagnostics>
+  "flag_too_many_divergences", # <get_fit_diagnostics>
+  "flag_high_rhat", # <get_fit_diagnostics>
+  "flag_low_ebfmi", # <get_fit_diagnostics>
+  "model", # <extract_fit_diagnostics>
+  "include_ww", # <extract_fit_diagnostics>
+  "hosp_data_real_time", # <extract_fit_diagnostics>
+  "location", # <extract_fit_diagnostics>
+  "forecast_date", # <extract_fit_diagnostics>
+  "flag_missing_ww", # <extract_fit_diagnostics>
   "age_group", # <reformat_hosp_data>
   "location", # <reformat_hosp_data>
   "value", # <reformat_hosp_data>

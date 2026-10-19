@@ -25,21 +25,22 @@
 #' @importFrom fs dir_create
 #' @importFrom readr write_csv
 #' @importFrom glue glue
-#' @importFrom dplyr filter
+#' @importFrom dplyr filter cross_join rename_with
 #' @importFrom arrow write_parquet
 fit_wwinference_wrapper <- function(
-    ww_data,
-    count_data,
-    hosp_data_eval,
-    this_forecast_date,
-    model_spec,
-    fit_opts,
-    compiled_model,
-    calibration_time = 90,
-    forecast_horizon = 28,
-    quantiles_to_save = c(0.025, 0.1, 0.25, 0.5, 0.75, 0.9, 0.975),
-    ind_filepath = file.path("output"),
-    save_draws = FALSE) {
+  ww_data,
+  count_data,
+  hosp_data_eval,
+  this_forecast_date,
+  model_spec,
+  fit_opts,
+  compiled_model,
+  calibration_time = 90,
+  forecast_horizon = 28,
+  quantiles_to_save = c(0.025, 0.1, 0.25, 0.5, 0.75, 0.9, 0.975),
+  ind_filepath = file.path("output"),
+  save_draws = FALSE
+) {
   loc <- unique(count_data$state)
   if ((nrow(ww_data) == 0 || is.null(ww_data)) &&
     isTRUE(model_spec$include_ww)) {
@@ -60,6 +61,7 @@ fit_wwinference_wrapper <- function(
     fit_opts = fit_opts,
     compiled_model = compiled_model
   )
+  fit_diagnostics <- get_fit_diagnostics(ww_fit_obj)
 
   hosp_draws <- get_draws(ww_fit_obj,
     what = "predicted_counts"
@@ -232,6 +234,23 @@ fit_wwinference_wrapper <- function(
         "hosp_quantiles_ww_{include_ww}.csv"
       )
     )
+  )
+
+  write_csv(
+    fit_diagnostics,
+    file.path(
+      data_fp,
+      glue(
+        "diagnostics_ww_{include_ww}_rt_{hosp_data_real_time}.csv"
+      )
+    )
+  )
+
+  # Attach the run's diagnostics (prefixed with `diag_`) so they can be
+  # collected across branches. They are dropped again before scoring.
+  hosp_quantiles <- cross_join(
+    hosp_quantiles,
+    rename_with(fit_diagnostics, function(x) paste0("diag_", x))
   )
 
   return(hosp_quantiles)
