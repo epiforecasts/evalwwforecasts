@@ -42,8 +42,10 @@ fit_wwinference_wrapper <- function(
   save_draws = FALSE
 ) {
   loc <- unique(count_data$state)
-  if ((nrow(ww_data) == 0 || is.null(ww_data)) &&
-    isTRUE(model_spec$include_ww)) {
+  if (
+    (nrow(ww_data) == 0 || is.null(ww_data)) &&
+      isTRUE(model_spec$include_ww)
+  ) {
     model_spec$include_ww <- FALSE
     flag_missing_ww <- TRUE
   } else {
@@ -63,7 +65,8 @@ fit_wwinference_wrapper <- function(
   )
   fit_diagnostics <- get_fit_diagnostics(ww_fit_obj)
 
-  hosp_draws <- get_draws(ww_fit_obj,
+  hosp_draws <- get_draws(
+    ww_fit_obj,
     what = "predicted_counts"
   )$predicted_counts
   # Save plots
@@ -79,7 +82,10 @@ fit_wwinference_wrapper <- function(
   plot_hosp_draws <- get_plot_forecasted_counts(
     draws = hosp_draws,
     forecast_date = this_forecast_date
-  ) + ggtitle(glue("{loc}, wastewater: {include_ww}, hosp data real-time: {hosp_data_real_time}")) # nolint
+  ) +
+    ggtitle(glue(
+      "{loc}, wastewater: {include_ww}, hosp data real-time: {hosp_data_real_time}"
+    )) # nolint
 
   ggsave(
     plot = plot_hosp_draws,
@@ -103,7 +109,8 @@ fit_wwinference_wrapper <- function(
     plot_ww_draws <- get_plot_ww_conc(
       draws = ww_draws,
       forecast_date = this_forecast_date
-    ) + ggtitle(glue("{loc}, wastewater: {include_ww}")) # nolint
+    ) +
+      ggtitle(glue("{loc}, wastewater: {include_ww}")) # nolint
     ggsave(
       plot = plot_ww_draws,
       filename = file.path(
@@ -113,15 +120,23 @@ fit_wwinference_wrapper <- function(
     )
     ww_data_obs <- select(
       ww_data,
-      date, site, lab,
-      log_genome_copies_per_ml, below_lod,
-      log_lod, flag_as_ww_outlier
+      date,
+      site,
+      lab,
+      log_genome_copies_per_ml,
+      below_lod,
+      log_lod,
+      flag_as_ww_outlier
     )
     ww_metadata <- ww_data |>
       select(
-        site, lab, site_pop,
-        location_name, location_abbr,
-        forecast_date, lab_site_name
+        site,
+        lab,
+        site_pop,
+        location_name,
+        location_abbr,
+        forecast_date,
+        lab_site_name
       ) |>
       distinct()
 
@@ -135,12 +150,8 @@ fit_wwinference_wrapper <- function(
         quantile_level_name = "quantile_level",
         id_cols = c("site", "lab")
       ) |>
-      left_join(ww_data_obs,
-        by = c("date", "site", "lab")
-      ) |>
-      left_join(ww_metadata,
-        by = c("site", "lab")
-      )
+      left_join(ww_data_obs, by = c("date", "site", "lab")) |>
+      left_join(ww_metadata, by = c("site", "lab"))
     write_csv(
       ww_quantiles,
       file.path(
@@ -150,9 +161,7 @@ fit_wwinference_wrapper <- function(
     )
 
     # Extract and save subpopulation R(t) draws at forecast date only
-    subpop_rt_draws <- get_draws(ww_fit_obj,
-      what = "subpop_rt"
-    )$subpop_rt
+    subpop_rt_draws <- get_draws(ww_fit_obj, what = "subpop_rt")$subpop_rt
     subpop_rt_forecast_date <- subpop_rt_draws |>
       filter(date == this_forecast_date) |>
       mutate(
@@ -161,11 +170,14 @@ fit_wwinference_wrapper <- function(
         real_time = hosp_data_real_time
       )
 
-    arrow::write_parquet(
+    write_parquet(
       subpop_rt_forecast_date,
-      file.path(data_fp, glue::glue(
-        "subpop_rt_ww_{include_ww}_rt_{hosp_data_real_time}.parquet"
-      ))
+      file.path(
+        data_fp,
+        glue(
+          "subpop_rt_ww_{include_ww}_rt_{hosp_data_real_time}.parquet"
+        )
+      )
     )
   }
 
@@ -181,19 +193,20 @@ fit_wwinference_wrapper <- function(
   )
 
   if (isTRUE(save_draws)) {
-    arrow::write_parquet(
+    write_parquet(
       draws_w_data,
-      file.path(data_fp, glue::glue(
-        "hosp_draws_ww_{include_ww}_rt_{hosp_data_real_time}.parquet"
-      ))
+      file.path(
+        data_fp,
+        glue(
+          "hosp_draws_ww_{include_ww}_rt_{hosp_data_real_time}.parquet"
+        )
+      )
     )
   }
 
   # Extract and save R(t) draws at forecast date only (always save as these
   # are not as large)
-  global_rt_draws <- get_draws(ww_fit_obj,
-    what = "global_rt"
-  )$global_rt
+  global_rt_draws <- get_draws(ww_fit_obj, what = "global_rt")$global_rt
 
   global_rt_forecast_date <- global_rt_draws |>
     filter(date == this_forecast_date) |>
@@ -203,13 +216,15 @@ fit_wwinference_wrapper <- function(
       real_time = hosp_data_real_time
     )
 
-  arrow::write_parquet(
+  write_parquet(
     global_rt_forecast_date,
-    file.path(data_fp, glue::glue(
-      "global_rt_ww_{include_ww}_rt_{hosp_data_real_time}.parquet"
-    ))
+    file.path(
+      data_fp,
+      glue(
+        "global_rt_ww_{include_ww}_rt_{hosp_data_real_time}.parquet"
+      )
+    )
   )
-
 
   # Make a plot here with calibration and evaluation data and save it.
   get_plot_draws_w_calib_data(
@@ -230,7 +245,7 @@ fit_wwinference_wrapper <- function(
     hosp_quantiles,
     file.path(
       data_fp,
-      glue::glue(
+      glue(
         "hosp_quantiles_ww_{include_ww}.csv"
       )
     )
