@@ -4,7 +4,12 @@
 \alias{score_ww_quantile_files}
 \title{Score the saved wastewater quantiles from every model run}
 \usage{
-score_ww_quantile_files(scenarios, ind_filepath, metrics)
+score_ww_quantile_files(
+  scenarios,
+  ind_filepath,
+  metrics,
+  epidemic_phase = NULL
+)
 }
 \arguments{
 \item{scenarios}{Data.frame of model run scenarios, with columns
@@ -14,6 +19,9 @@ score_ww_quantile_files(scenarios, ind_filepath, metrics)
 outputs were saved to}
 
 \item{metrics}{Scoring metrics passed to \code{scoringutils::score()}}
+
+\item{epidemic_phase}{Optional data.frame of epidemic phases by location
+and forecast date, from \code{get_epidemic_phase()}, joined onto the scores}
 }
 \value{
 Data.frame of scores combined across runs

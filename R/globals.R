@@ -67,6 +67,10 @@ utils::globalVariables(c(
   "freq_bin", # <exploratory_plot_ww_vs_scores>
   "n_sites_bin", # <exploratory_plot_ww_vs_scores>
   "pop_cov_bin", # <exploratory_plot_ww_vs_scores>
+  "site", # <get_epidemic_phase>
+  "lab", # <get_epidemic_phase>
+  "log_genome_copies_per_ml", # <get_epidemic_phase>
+  "site_pop", # <get_epidemic_phase>
   "wis_wwinference_TRUE", # <prep_scores_to_model>
   "wis_wwinference_FALSE", # <prep_scores_to_model>
   "wis_arima_baseline_FALSE", # <prep_scores_to_model>

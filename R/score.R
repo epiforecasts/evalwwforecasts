@@ -29,12 +29,13 @@ quantile_metrics <- scoringutils::get_metrics(
 #' @importFrom scoringutils log_shift as_forecast_quantile
 #' @importFrom rlang .data
 draws_for_scoring <- function(
-    draws,
-    forecast_date,
-    offset = 1,
-    quantiles = FALSE,
-    remove_before_forecast_date = FALSE,
-    probs = c(0.05, 0.25, 0.5, 0.75, 0.95)) {
+  draws,
+  forecast_date,
+  offset = 1,
+  quantiles = FALSE,
+  remove_before_forecast_date = FALSE,
+  probs = c(0.05, 0.25, 0.5, 0.75, 0.95)
+) {
   if (is.null(draws)) {
     to_score <- NULL
   } else {
@@ -172,18 +173,23 @@ format_baseline_forecasts <- function(baseline_forecasts,
 #' @param save_scores Boolean indicating whether or not to save the scores.
 #' @param fp_data Character string indicating file path to save the scores.
 #'   Default is NULL.
+#' @param epidemic_phase Optional data.frame of epidemic phases by location
+#'   and forecast date, from `get_epidemic_phase()`, joined onto the scores.
+#'   Default is NULL.
 #' @return a dataframe containing scores for each day of forecasting horizon
-#' @importFrom dplyr filter select mutate
+#' @importFrom dplyr filter select mutate left_join
 #' @importFrom lubridate ymd
 #' @importFrom scoringutils as_forecast_sample transform_forecasts log_shift
 #'   get_metrics score
 #' @importFrom rlang .data
 generate_scores <- function(
-    draws_for_scoring,
-    metrics = NULL,
-    scale_selected = "log",
-    save_scores = FALSE,
-    fp_data = NULL) {
+  draws_for_scoring,
+  metrics = NULL,
+  scale_selected = "log",
+  save_scores = FALSE,
+  fp_data = NULL,
+  epidemic_phase = NULL
+) {
   if (is.null(draws_for_scoring)) {
     scores <- NULL
   } else {
@@ -196,6 +202,11 @@ generate_scores <- function(
         horizon = as.numeric(ymd(date) - ymd(forecast_date))
       ) |>
       filter(scale == scale_selected)
+    if (!is.null(epidemic_phase)) {
+      scores <- scores |>
+        mutate(forecast_date = as.Date(forecast_date)) |>
+        left_join(epidemic_phase, by = c("location", "forecast_date"))
+    }
   }
   if (isTRUE(save_scores)) {
     if (!file.exists(fp_data)) {

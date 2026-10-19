@@ -154,12 +154,17 @@ score_ww_quantiles <- function(ww_quantiles, metrics) {
 #' @param ind_filepath Character string of the directory the model run
 #'   outputs were saved to
 #' @param metrics Scoring metrics passed to `scoringutils::score()`
+#' @param epidemic_phase Optional data.frame of epidemic phases by location
+#'   and forecast date, from `get_epidemic_phase()`, joined onto the scores
 #'
 #' @returns Data.frame of scores combined across runs
-#' @importFrom dplyr bind_rows filter distinct
+#' @importFrom dplyr bind_rows filter distinct left_join mutate
 #' @importFrom readr read_csv
 #' @autoglobal
-score_ww_quantile_files <- function(scenarios, ind_filepath, metrics) {
+score_ww_quantile_files <- function(scenarios,
+                                    ind_filepath,
+                                    metrics,
+                                    epidemic_phase = NULL) {
   ww_runs <- scenarios |>
     filter(include_ww) |>
     distinct(forecast_date, location_name)
@@ -173,6 +178,12 @@ score_ww_quantile_files <- function(scenarios, ind_filepath, metrics) {
     ww_quantiles <- read_csv(f, show_col_types = FALSE)
     return(score_ww_quantiles(ww_quantiles, metrics = metrics))
   }))
+
+  if (!is.null(epidemic_phase) && nrow(scores_ww) > 0) {
+    scores_ww <- scores_ww |>
+      mutate(forecast_date = as.Date(forecast_date)) |>
+      left_join(epidemic_phase, by = c("location", "forecast_date"))
+  }
 
   return(scores_ww)
 }
