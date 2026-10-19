@@ -2,6 +2,9 @@
 #' For now, just pull the latest wastewater data and filter to exclude the
 #' most recent dates
 #'
+#' Concentrations are RKI's flow-normalised viral loads, matching the data
+#' used to fit the models; see `reformat_ww_data()`.
+#'
 #' @inheritParams get_hosp_for_eval
 #' @inheritParams add_correct_lod
 #' @param filepath_name Name of directory to save the raw input wastewater data.
@@ -174,6 +177,18 @@ get_vintage <- function(raw_url,
 #' Reformat the ww data, selecting only the location we need and the variables
 #'  we need.
 #'
+#' The concentrations used are RKI's flow-normalised SARS-CoV-2 viral loads
+#' (gene copies per litre), multiplied by Q_current / Q_median: the
+#' treatment plant's volume flow during the sampling period divided by its
+#' median volume flow. This adjusts for dilution, e.g. from heavy rainfall.
+#' In the historical versions of `amelag_einzelstandorte.tsv` used to fit
+#' the models (the vintages), the flow-normalised value is in `viruslast`.
+#' Later versions report it as `viruslast_normalisiert` and use `viruslast`
+#' for the unnormalised value, so `viruslast_normalisiert` is used whenever
+#' it is present. This keeps the final (evaluation) data on the same scale
+#' as the data the models were fitted to. See the AMELAG README
+#' (<https://github.com/robert-koch-institut/Abwassersurveillance_AMELAG>).
+#'
 #' @param raw_ww Data.frame from the RKI GitHub
 #' @inheritParams get_hosp_for_eval
 #' @inheritParams add_correct_lod
@@ -217,9 +232,9 @@ reformat_ww_data <- function(raw_ww,
     )
   }
 
-  # The vintages' `viruslast` is the normalised concentration. Later
-  # releases report it as `viruslast_normalisiert` and use `viruslast` for
-  # the unnormalised concentration, so use the normalised column if present.
+  # Use the flow-normalised concentration throughout (see documentation).
+  # The vintages' `viruslast` is flow-normalised. Later releases report it as
+  # `viruslast_normalisiert` and use `viruslast` for the unnormalised value.
   if ("viruslast_normalisiert" %in% names(raw_ww)) {
     raw_ww <- raw_ww |>
       dplyr::select(-"viruslast") |>

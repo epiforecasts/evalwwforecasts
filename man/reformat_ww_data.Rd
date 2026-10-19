@@ -32,6 +32,15 @@ measurement or site.}
 Data.frame of cleaned wastewater values from location_abbr.
 }
 \description{
-Reformat the ww data, selecting only the location we need and the variables
-we need.
+The concentrations used are RKI's flow-normalised SARS-CoV-2 viral loads
+(gene copies per litre), multiplied by Q_current / Q_median: the
+treatment plant's volume flow during the sampling period divided by its
+median volume flow. This adjusts for dilution, e.g. from heavy rainfall.
+In the historical versions of \code{amelag_einzelstandorte.tsv} used to fit
+the models (the vintages), the flow-normalised value is in \code{viruslast}.
+Later versions report it as \code{viruslast_normalisiert} and use \code{viruslast}
+for the unnormalised value, so \code{viruslast_normalisiert} is used whenever
+it is present. This keeps the final (evaluation) data on the same scale
+as the data the models were fitted to. See the AMELAG README
+(\url{https://github.com/robert-koch-institut/Abwassersurveillance_AMELAG}).
 }
