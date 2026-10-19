@@ -17,7 +17,8 @@ fit_wwinference_wrapper(
   forecast_horizon = 28,
   quantiles_to_save = c(0.025, 0.1, 0.25, 0.5, 0.75, 0.9, 0.975),
   ind_filepath = file.path("output"),
-  save_draws = FALSE
+  save_draws = FALSE,
+  ww_data_eval = NULL
 )
 }
 \arguments{
@@ -47,6 +48,10 @@ from each model run}
 
 \item{save_draws}{Boolean indicating whether or not to save the draws of the
 hospital admissions calibration and forecasts. Default is FALSE.}
+
+\item{ww_data_eval}{Dataframe of the final (later) wastewater data for the
+location. If provided, the later observations are added to the saved
+wastewater quantiles (\code{ww_quantiles.csv}) so they can be scored.}
 }
 \value{
 Data.frame of the quantiles alongside the evaluation data.

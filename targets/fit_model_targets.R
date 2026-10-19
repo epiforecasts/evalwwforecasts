@@ -115,11 +115,12 @@ fit_model_targets <- list(
       quantiles_to_save = quantiles_to_save,
       compiled_model = compiled_model,
       hosp_data_eval = hosp_data_eval,
+      ww_data_eval = ww_data_eval,
       ind_filepath = ind_filepath
     ),
     pattern = map(
       ww_data_to_fit, hosp_data_preprocessed, scenarios,
-      model_spec, hosp_data_eval
+      model_spec, hosp_data_eval, ww_data_eval
     ),
     deployment = "worker"
   )
