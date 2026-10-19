@@ -25,7 +25,7 @@
 #' @importFrom fs dir_create
 #' @importFrom readr write_csv
 #' @importFrom glue glue
-#' @importFrom dplyr filter cross_join rename_with
+#' @importFrom dplyr filter rename_with
 #' @importFrom arrow write_parquet
 fit_wwinference_wrapper <- function(
   ww_data,
@@ -84,8 +84,8 @@ fit_wwinference_wrapper <- function(
     forecast_date = this_forecast_date
   ) +
     ggtitle(glue(
-      "{loc}, wastewater: {include_ww}, hosp data real-time: {hosp_data_real_time}"
-    )) # nolint
+      "{loc}, wastewater: {include_ww}, hosp data real-time: {hosp_data_real_time}" # nolint
+    ))
 
   ggsave(
     plot = plot_hosp_draws,
@@ -263,10 +263,14 @@ fit_wwinference_wrapper <- function(
 
   # Attach the run's diagnostics (prefixed with `diag_`) so they can be
   # collected across branches. They are dropped again before scoring.
-  hosp_quantiles <- cross_join(
-    hosp_quantiles,
-    rename_with(fit_diagnostics, function(x) paste0("diag_", x))
-  )
+  # Columns are added with data.table::set() to keep the scoringutils
+  # `forecast_quantile` class: dplyr joins would convert it with the
+  # `forecast` package's as.data.frame.forecast() method, which fails.
+  diag_cols <- rename_with(fit_diagnostics, function(x) paste0("diag_", x))
+  hosp_quantiles <- data.table::copy(hosp_quantiles)
+  for (col in names(diag_cols)) {
+    data.table::set(hosp_quantiles, j = col, value = diag_cols[[col]])
+  }
 
   return(hosp_quantiles)
 }
