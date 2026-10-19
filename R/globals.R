@@ -217,6 +217,7 @@ utils::globalVariables(c(
   "lab", # <get_ww_eval_obs>
   "log_genome_copies_per_ml", # <get_ww_eval_obs>
   "log_lod", # <get_ww_eval_obs>
+  "period", # <score_ww_quantiles>
   "observed", # <score_ww_quantiles>
   "observed_below_lod", # <score_ww_quantiles>
   "model", # <score_ww_quantiles>
@@ -227,7 +228,6 @@ utils::globalVariables(c(
   "site", # <score_ww_quantiles>
   "lab", # <score_ww_quantiles>
   "horizon", # <score_ww_quantiles>
-  "period", # <score_ww_quantiles>
   "quantile_level", # <score_ww_quantiles>
   "predicted", # <score_ww_quantiles>
   "include_ww", # <score_ww_quantile_files>

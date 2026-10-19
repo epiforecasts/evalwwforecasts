@@ -98,9 +98,10 @@ get_ww_eval_obs <- function(ww_data_eval) {
 #'
 #' Scores the quantiles of the predicted wastewater concentrations (log genome
 #' copies per mL) against the later observed concentrations, for every site,
-#' lab and date with a later observation. Observations at or below the limit
-#' of detection are excluded. Predictions are already on the log scale, so no
-#' transformation is applied. Use `period` to separate the in-sample fit,
+#' lab and date with a later observation, for the nowcast and forecast periods
+#' only (the in-sample calibration period is not scored). Observations at or
+#' below the limit of detection are excluded. Predictions are already on the
+#' log scale, so no transformation is applied. Use `period` to separate the
 #' nowcast and forecast.
 #'
 #' @param ww_quantiles Data.frame of wastewater quantiles with evaluation
@@ -117,7 +118,11 @@ score_ww_quantiles <- function(ww_quantiles, metrics) {
     return(NULL)
   }
   to_score <- ww_quantiles |>
-    filter(!is.na(observed), !observed_below_lod) |>
+    filter(
+      period != "calibration",
+      !is.na(observed),
+      !observed_below_lod
+    ) |>
     select(
       model, include_ww, hosp_data_real_time,
       location = location_name,

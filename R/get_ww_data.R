@@ -217,6 +217,15 @@ reformat_ww_data <- function(raw_ww,
     )
   }
 
+  # The vintages' `viruslast` is the normalised concentration. Later
+  # releases report it as `viruslast_normalisiert` and use `viruslast` for
+  # the unnormalised concentration, so use the normalised column if present.
+  if ("viruslast_normalisiert" %in% names(raw_ww)) {
+    raw_ww <- raw_ww |>
+      dplyr::select(-"viruslast") |>
+      dplyr::rename(viruslast = "viruslast_normalisiert")
+  }
+
   # Add a grouping variable for changes in lab indicators:
 
   ww_clean <- raw_ww |>
