@@ -74,7 +74,8 @@ get_ww_phase <- function(ww_data_eval,
     empty <- data.frame(
       location = character(), forecast_date = as.Date(character()),
       site = character(), lab = character(),
-      ww_pct_change = numeric(), ww_phase = character()
+      ww_pct_change = numeric(), ww_phase = character(),
+      stringsAsFactors = FALSE
     )
     return(empty)
   }
