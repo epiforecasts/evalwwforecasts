@@ -8,7 +8,8 @@ score_ww_quantile_files(
   scenarios,
   ind_filepath,
   metrics,
-  epidemic_phase = NULL
+  hosp_phase = NULL,
+  ww_phase = NULL
 )
 }
 \arguments{
@@ -20,8 +21,13 @@ outputs were saved to}
 
 \item{metrics}{Scoring metrics passed to \code{scoringutils::score()}}
 
-\item{epidemic_phase}{Optional data.frame of epidemic phases by location
-and forecast date, from \code{get_epidemic_phase()}, joined onto the scores}
+\item{hosp_phase}{Optional data.frame of hospital admissions phases by
+location and forecast date, from \code{get_hosp_phase()}, joined onto the
+scores}
+
+\item{ww_phase}{Optional data.frame of wastewater phases by location,
+forecast date, site and lab, from \code{get_ww_phase()}, joined onto the
+scores}
 }
 \value{
 Data.frame of scores combined across runs

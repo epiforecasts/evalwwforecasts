@@ -54,38 +54,43 @@ scoring_targets <- list(
     format = "rds",
     iteration = "list"
   ),
-  # Epidemic phase over the forecast period for each location and forecast
-  # date, from the 28-day percent change in the final hospital admissions and
-  # wastewater data. The percent changes are kept so the phases can be
-  # reclassified with a different threshold.
+  # Epidemic phase over the forecast period, from the 28-day percent change
+  # in the final data: hospital admissions by location and forecast date, and
+  # wastewater by site. The percent changes are joined onto the scores along
+  # with the phases, so they can be reclassified with a different threshold.
   tar_target(
     name = phase_threshold,
-    command = 5
+    command = 15
   ),
   tar_target(
-    name = epidemic_phase_by_run,
-    command = get_epidemic_phase(
+    name = hosp_phase_by_run,
+    command = get_hosp_phase(
       hosp_data_eval = hosp_data_eval,
+      forecast_date = scenarios$forecast_date,
+      location_name = scenarios$location_name,
+      horizon = forecast_horizon,
+      threshold = phase_threshold
+    ),
+    pattern = map(hosp_data_eval, scenarios)
+  ),
+  tar_target(
+    name = hosp_phase,
+    command = distinct(hosp_phase_by_run)
+  ),
+  tar_target(
+    name = ww_phase_by_run,
+    command = get_ww_phase(
       ww_data_eval = ww_data_eval,
       forecast_date = scenarios$forecast_date,
       location_name = scenarios$location_name,
       horizon = forecast_horizon,
       threshold = phase_threshold
     ),
-    pattern = map(hosp_data_eval, ww_data_eval, scenarios)
+    pattern = map(ww_data_eval, scenarios)
   ),
   tar_target(
-    name = epidemic_phase,
-    command = distinct(epidemic_phase_by_run)
-  ),
-  tar_target(
-    name = save_epidemic_phase,
-    command = save_csv(
-      epidemic_phase,
-      "epidemic_phase.csv",
-      path = file.path("output", "overall_data")
-    ),
-    format = "file"
+    name = ww_phase,
+    command = distinct(ww_phase_by_run)
   ),
   # Target for scoring quantiles
   tar_target(
@@ -95,7 +100,7 @@ scoring_targets <- list(
       metrics = quantile_metrics,
       fp_data = file.path("output", "overall_data"),
       save_scores = TRUE,
-      epidemic_phase = epidemic_phase
+      epidemic_phase = hosp_phase
     )
   ),
   # Score the wastewater predictions in each run's ww_quantiles.csv against
@@ -108,7 +113,8 @@ scoring_targets <- list(
         scenarios = scenarios,
         ind_filepath = ind_filepath,
         metrics = quantile_metrics,
-        epidemic_phase = epidemic_phase
+        hosp_phase = hosp_phase,
+        ww_phase = ww_phase
       )
     }
   ),

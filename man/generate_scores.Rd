@@ -28,8 +28,8 @@ on natural or log scale, default is "log".}
 Default is NULL.}
 
 \item{epidemic_phase}{Optional data.frame of epidemic phases by location
-and forecast date, from \code{get_epidemic_phase()}, joined onto the scores.
-Default is NULL.}
+and forecast date (e.g. from \code{get_hosp_phase()}), joined onto the
+scores. Default is NULL.}
 }
 \value{
 a dataframe containing scores for each day of forecasting horizon

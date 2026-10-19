@@ -174,8 +174,8 @@ format_baseline_forecasts <- function(baseline_forecasts,
 #' @param fp_data Character string indicating file path to save the scores.
 #'   Default is NULL.
 #' @param epidemic_phase Optional data.frame of epidemic phases by location
-#'   and forecast date, from `get_epidemic_phase()`, joined onto the scores.
-#'   Default is NULL.
+#'   and forecast date (e.g. from `get_hosp_phase()`), joined onto the
+#'   scores. Default is NULL.
 #' @return a dataframe containing scores for each day of forecasting horizon
 #' @importFrom dplyr filter select mutate left_join
 #' @importFrom lubridate ymd

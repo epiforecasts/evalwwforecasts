@@ -4,7 +4,7 @@
 \alias{classify_phase}
 \title{Classify a percent change as increasing, decreasing or stable}
 \usage{
-classify_phase(pct_change, threshold = 5)
+classify_phase(pct_change, threshold = 15)
 }
 \arguments{
 \item{pct_change}{Numeric vector of percent changes}
