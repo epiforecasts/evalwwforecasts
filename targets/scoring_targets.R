@@ -104,6 +104,25 @@ scoring_targets <- list(
     name = ww_phase,
     command = distinct(ww_phase_by_run)
   ),
+  # One figure per location of the hospital and site phases by forecast date,
+  # saved to output/overall_figs/{location}/
+  tar_target(
+    name = plot_epidemic_phase,
+    command = get_plot_epidemic_phase(
+      hosp_phase = hosp_phase,
+      ww_phase = ww_phase,
+      location_name = locations$location_name,
+      location_abbr = locations$location_abbr,
+      path_to_lod_vals = path_to_lod_vals,
+      forecast_horizon = forecast_horizon,
+      threshold = phase_threshold,
+      abs_threshold = phase_abs_threshold,
+      fig_fp = file.path("output", "overall_figs")
+    ),
+    pattern = map(locations),
+    format = "rds",
+    iteration = "list"
+  ),
   # Target for scoring quantiles
   tar_target(
     name = score_hosp_quantiles,

@@ -68,6 +68,15 @@ utils::globalVariables(c(
   "freq_bin", # <exploratory_plot_ww_vs_scores>
   "n_sites_bin", # <exploratory_plot_ww_vs_scores>
   "pop_cov_bin", # <exploratory_plot_ww_vs_scores>
+  "location", # <get_plot_epidemic_phase>
+  "forecast_date", # <get_plot_epidemic_phase>
+  "site", # <get_plot_epidemic_phase>
+  "lab", # <get_plot_epidemic_phase>
+  "xmin", # <get_plot_epidemic_phase>
+  "xmax", # <get_plot_epidemic_phase>
+  "phase", # <get_plot_epidemic_phase>
+  "updated_hosp_7d_count", # <get_plot_epidemic_phase>
+  "log_genome_copies_per_ml", # <get_plot_epidemic_phase>
   "site", # <get_ww_phase>
   "lab", # <get_ww_phase>
   "log_genome_copies_per_ml", # <get_ww_phase>
