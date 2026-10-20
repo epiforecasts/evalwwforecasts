@@ -702,10 +702,6 @@ exploratory_plot_ww_vs_scores <- function(scores,
 #' @param path_to_lod_vals Character string of the path to the LOQ values,
 #'   passed to `get_ww_for_eval()`
 #' @param forecast_horizon Integer, number of days of the forecast period
-#' @param threshold Numeric, percent threshold used for the phases (for the
-#'   subtitle)
-#' @param abs_threshold Numeric, absolute threshold used for the hospital
-#'   phases (for the subtitle)
 #' @param fig_fp Character string of the directory to save the figure in
 #'
 #' @returns ggplot (patchwork) object
@@ -723,8 +719,6 @@ get_plot_epidemic_phase <- function(hosp_phase,
                                     location_abbr,
                                     path_to_lod_vals,
                                     forecast_horizon = 28,
-                                    threshold = 15,
-                                    abs_threshold = 5,
                                     fig_fp = file.path(
                                       "output", "overall_figs"
                                     )) {
@@ -791,13 +785,7 @@ get_plot_epidemic_phase <- function(hosp_phase,
     scale_x_date(limits = date_range, date_labels = "%b %Y") +
     labs(
       x = NULL, y = "Hospital admissions\n(7-day sum)",
-      title = glue("{loc}: epidemic phase by forecast date"),
-      subtitle = glue(
-        "Each band runs from a forecast date to 7 days later, coloured by ",
-        "the phase over the following {forecast_horizon} days.\n",
-        "Hospital: change in the 7-day sum must exceed both {threshold}% ",
-        "and {abs_threshold} admissions to count as increasing or decreasing."
-      )
+      title = glue("{loc}: epidemic phase by forecast date")
     ) +
     phase_theme
 
@@ -816,14 +804,7 @@ get_plot_epidemic_phase <- function(hosp_phase,
     scale_shape_manual(values = rep_len(c(16, 1, 17, 2), 200)) +
     scale_fill_manual(values = phase_cols, drop = FALSE, guide = "none") +
     scale_x_date(limits = date_range, date_labels = "%b %y") +
-    labs(
-      x = NULL, y = "Log wastewater conc.\n(flow-normalised)",
-      caption = glue(
-        "Site bands use each site's own {forecast_horizon}-day change ",
-        "({threshold}% threshold); no band where a site had no data in ",
-        "either 7-day window. Point shape changes with lab."
-      )
-    ) +
+    labs(x = NULL, y = "Log wastewater conc.\n(flow-normalised)") +
     phase_theme
 
   n_rows <- max(1, ceiling(n_sites / 4))

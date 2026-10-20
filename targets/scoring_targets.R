@@ -115,8 +115,6 @@ scoring_targets <- list(
       location_abbr = locations$location_abbr,
       path_to_lod_vals = path_to_lod_vals,
       forecast_horizon = forecast_horizon,
-      threshold = phase_threshold,
-      abs_threshold = phase_abs_threshold,
       fig_fp = file.path("output", "overall_figs")
     ),
     pattern = map(locations),

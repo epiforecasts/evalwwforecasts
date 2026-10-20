@@ -11,8 +11,6 @@ get_plot_epidemic_phase(
   location_abbr,
   path_to_lod_vals,
   forecast_horizon = 28,
-  threshold = 15,
-  abs_threshold = 5,
   fig_fp = file.path("output", "overall_figs")
 )
 }
@@ -31,12 +29,6 @@ for all locations and forecast dates}
 passed to \code{get_ww_for_eval()}}
 
 \item{forecast_horizon}{Integer, number of days of the forecast period}
-
-\item{threshold}{Numeric, percent threshold used for the phases (for the
-subtitle)}
-
-\item{abs_threshold}{Numeric, absolute threshold used for the hospital
-phases (for the subtitle)}
 
 \item{fig_fp}{Character string of the directory to save the figure in}
 }
