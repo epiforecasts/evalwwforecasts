@@ -9,7 +9,8 @@ add_ww_eval_cols(
   ww_data_eval,
   forecast_date,
   include_ww,
-  hosp_data_real_time
+  hosp_data_real_time,
+  any_flag
 )
 }
 \arguments{
@@ -25,19 +26,24 @@ location, as returned by \code{get_ww_for_eval()}, or \code{NULL}}
 
 \item{hosp_data_real_time}{Logical, whether real-time hospital data were
 used}
+
+\item{any_flag}{Logical, whether the model run was flagged for convergence
+issues by \code{get_fit_diagnostics()}}
 }
 \value{
 \code{ww_quantiles} with the additional columns
 }
 \description{
-Adds the model identifiers, the horizon relative to the forecast date, a
-\code{period} label and, if \code{ww_data_eval} is provided, the later observed
-concentrations (\code{observed}, \code{observed_below_lod}). The \code{period} is:
+Adds the model identifiers, the run's MCMC convergence flag (\code{any_flag}),
+the horizon relative to the forecast date, a \code{period} label and, if
+\code{ww_data_eval} is provided, the later observed concentrations (\code{observed},
+\code{observed_below_lod}). The \code{period} of each site, lab and date is:
 \itemize{
-\item \code{"calibration"}: on or before the last observation for that site and lab
-available as of the forecast date (in-sample fit)
-\item \code{"nowcast"}: after that, up to the forecast date (not yet reported at the
-time of the forecast)
+\item \code{"calibration"}: on or before the forecast date, with an observation in
+the data available as of the forecast date (used to fit the model)
+\item \code{"nowcast"}: on or before the forecast date, without an observation in
+the data available as of the forecast date. This includes dates after the
+last fit-time observation and dates that were backfilled later.
 \item \code{"forecast"}: after the forecast date
 }
 }

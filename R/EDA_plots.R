@@ -79,8 +79,13 @@ plot_forecast_comparison <- function(
 #' @param facet_models Boolean indicating whether to facet the outputs, default
 #'   is FALSE.
 #' @param fig_fp Character string indicating file path to save figure.
+#' @param exclude_flagged Boolean indicating whether to drop forecast dates
+#'   where any model run was flagged for convergence issues (`any_flag`), for
+#'   all models, so a failed run does not distort the figure. Default is TRUE.
+#'   The excluded dates are listed in the figure caption.
 #' @importFrom tidyr pivot_wider
-#' @importFrom ggplot2 facet_wrap
+#' @importFrom ggplot2 facet_wrap labs
+#' @importFrom dplyr group_by ungroup distinct pull filter
 #' @importFrom fs dir_create
 #' @returns ggplot object
 #' @autoglobal
@@ -91,8 +96,21 @@ get_plot_model_comparison <- function(
   historical_data_to_plot = 90,
   scale_selected = "natural",
   facet_models = FALSE,
-  fig_fp
+  fig_fp,
+  exclude_flagged = TRUE
 ) {
+  excluded_dates <- NULL
+  if (isTRUE(exclude_flagged) && "any_flag" %in% names(quantiles_to_score)) {
+    excluded_dates <- quantiles_to_score |>
+      filter(any_flag) |>
+      distinct(forecast_date) |>
+      pull(forecast_date) |>
+      sort()
+    quantiles_to_score <- filter(
+      quantiles_to_score,
+      !forecast_date %in% excluded_dates
+    )
+  }
   forecasts_i <- quantiles_to_score |>
     filter(
       date <= ymd(forecast_date) + days(forecast_horizon_to_plot - 1),
@@ -149,6 +167,12 @@ get_plot_model_comparison <- function(
     xlab("") +
     ylab("7-day rolling sum of hospital admissions") +
     ggtitle(glue("Forecast comparison for {this_location}"))
+  if (length(excluded_dates) > 0) {
+    p <- p + labs(caption = glue(
+      "Forecast dates excluded (a model run failed convergence checks): ",
+      "{paste(excluded_dates, collapse = ', ')}"
+    ))
+  }
   if (isTRUE(facet_models)) {
     p <- p + facet_wrap(~model_ww, nrow = 3)
   }

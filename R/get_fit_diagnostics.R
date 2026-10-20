@@ -78,10 +78,13 @@ get_fit_diagnostics <- function(ww_fit_obj,
 #'   combined across runs
 #'
 #' @returns data.frame with one row per model run
-#' @importFrom dplyr distinct across starts_with rename_with
+#' @importFrom dplyr distinct across starts_with rename_with as_tibble
 #' @autoglobal
 extract_fit_diagnostics <- function(hosp_quantiles) {
-  diagnostics <- hosp_quantiles |>
+  # Drop the scoringutils `forecast` class first (unclass, so the `forecast`
+  # package's as.data.frame() method is never called); scoringutils otherwise
+  # warns when a subset is no longer a valid forecast
+  diagnostics <- as_tibble(unclass(hosp_quantiles)) |>
     distinct(
       model, include_ww, hosp_data_real_time, location, forecast_date,
       flag_missing_ww, across(starts_with("diag_"))

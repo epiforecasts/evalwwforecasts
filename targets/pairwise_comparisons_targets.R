@@ -4,7 +4,10 @@ pairwise_comparisons_targets <- list(
     name = scores_for_comparison,
     command = scores |>
       mutate(model = glue::glue("{model}-{include_ww}")) |>
-      select(-include_ww, -hosp_data_real_time, -scale, -flag_missing_ww)
+      select(
+        -include_ww, -hosp_data_real_time, -scale, -flag_missing_ww,
+        -any_of("any_flag")
+      )
   ),
   tar_target(
     name = pairwise_comparisons,
