@@ -1,12 +1,13 @@
 #' Metrics to use for sample scores
+#' @importFrom scoringutils get_metrics
 #' @export
-sample_metrics <- scoringutils::get_metrics(
+sample_metrics <- get_metrics(
   scoringutils::example_sample_discrete
 )
 
 #' Metrics to use for quantile scores
 #' @export
-quantile_metrics <- scoringutils::get_metrics(
+quantile_metrics <- get_metrics(
   scoringutils::example_quantile
 )
 
@@ -91,6 +92,8 @@ draws_for_scoring <- function(
 #' @param fp_data Character string indicating the high level file path to
 #'   save the data.
 #' @importFrom tidyr pivot_longer starts_with
+#' @importFrom dplyr rename
+#' @importFrom glue glue
 #' @importFrom cli cli_warn
 #' @importFrom fs dir_create
 #' @returns Data.frame with the baseline forecasts formatted for scoringutils
@@ -104,13 +107,13 @@ format_baseline_forecasts <- function(baseline_forecasts,
   real_time_hosp_bool <- unique(baseline_forecasts$hosp_data_real_time)
   # pivot quantiles from wide to long
   bl_to_score <- baseline_forecasts |>
-    tidyr::pivot_longer(
+    pivot_longer(
       cols = starts_with("q_"),
       names_prefix = "q_",
       values_to = "pred_value7dsum",
       names_to = "quantile_level"
     ) |>
-    dplyr::rename(
+    rename(
       location = state
     ) |>
     select(
@@ -156,7 +159,7 @@ format_baseline_forecasts <- function(baseline_forecasts,
     bl_to_score,
     file.path(
       full_fp,
-      glue::glue("baseline_quantiles_rt_{real_time_hosp_bool}.csv")
+      glue("baseline_quantiles_rt_{real_time_hosp_bool}.csv")
     )
   )
   return(bl_to_score)
