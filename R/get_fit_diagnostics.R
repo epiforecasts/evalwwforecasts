@@ -81,7 +81,9 @@ get_fit_diagnostics <- function(ww_fit_obj,
 #' @importFrom dplyr distinct across starts_with rename_with
 #' @autoglobal
 extract_fit_diagnostics <- function(hosp_quantiles) {
-  diagnostics <- hosp_quantiles |>
+  # Convert via data.table: the scoringutils `forecast` class otherwise
+  # dispatches to the `forecast` package's as.data.frame() method
+  diagnostics <- as.data.frame(data.table::as.data.table(hosp_quantiles)) |>
     distinct(
       model, include_ww, hosp_data_real_time, location, forecast_date,
       flag_missing_ww, across(starts_with("diag_"))

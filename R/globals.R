@@ -9,6 +9,7 @@ utils::globalVariables(c(
   "q_0.75", # <plot_forecast_comparison>
   "q_0.05", # <plot_forecast_comparison>
   "q_0.95", # <plot_forecast_comparison>
+  "any_flag", # <get_plot_model_comparison>
   "forecast_date", # <get_plot_model_comparison>
   "quantile_level", # <get_plot_model_comparison>
   "predicted", # <get_plot_model_comparison>
