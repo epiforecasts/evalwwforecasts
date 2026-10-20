@@ -77,17 +77,5 @@ scoring_targets <- list(
       filter(!any(flag_missing_ww)) |>
       ungroup() |>
       convert_to_su_object()
-  ),
-  tar_target(
-    name = bar_chart_overall_scores,
-    command = get_bar_chart_overall_scores(scores),
-    format = "rds",
-    iteration = "list"
-  ),
-  tar_target(
-    name = bar_chart_scores_forecast_date,
-    command = get_bar_chart_overall_scores(scores),
-    format = "rds",
-    iteration = "list"
   )
 )
