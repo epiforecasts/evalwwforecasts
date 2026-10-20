@@ -210,6 +210,28 @@ utils::globalVariables(c(
   "state", # <format_baseline_forecasts>
   "quantile_level", # <format_baseline_forecasts>
   "pred_value7dsum", # <format_baseline_forecasts>
+  "site", # <add_ww_eval_cols>
+  "lab", # <add_ww_eval_cols>
+  "site", # <get_ww_eval_obs>
+  "lab", # <get_ww_eval_obs>
+  "log_genome_copies_per_ml", # <get_ww_eval_obs>
+  "log_lod", # <get_ww_eval_obs>
+  "period", # <score_ww_quantiles>
+  "observed", # <score_ww_quantiles>
+  "observed_below_lod", # <score_ww_quantiles>
+  "model", # <score_ww_quantiles>
+  "include_ww", # <score_ww_quantiles>
+  "hosp_data_real_time", # <score_ww_quantiles>
+  "location_name", # <score_ww_quantiles>
+  "forecast_date", # <score_ww_quantiles>
+  "site", # <score_ww_quantiles>
+  "lab", # <score_ww_quantiles>
+  "horizon", # <score_ww_quantiles>
+  "quantile_level", # <score_ww_quantiles>
+  "predicted", # <score_ww_quantiles>
+  "include_ww", # <score_ww_quantile_files>
+  "forecast_date", # <score_ww_quantile_files>
+  "location_name", # <score_ww_quantile_files>
   ":=", # <trajectories_to_quantiles>
   NULL
 ))

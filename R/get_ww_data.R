@@ -2,6 +2,9 @@
 #' For now, just pull the latest wastewater data and filter to exclude the
 #' most recent dates
 #'
+#' Concentrations are RKI's flow-normalised viral loads, matching the data
+#' used to fit the models; see `reformat_ww_data()`.
+#'
 #' @inheritParams get_hosp_for_eval
 #' @inheritParams add_correct_lod
 #' @param filepath_name Name of directory to save the raw input wastewater data.
@@ -174,6 +177,18 @@ get_vintage <- function(raw_url,
 #' Reformat the ww data, selecting only the location we need and the variables
 #'  we need.
 #'
+#' The concentrations used are RKI's flow-normalised SARS-CoV-2 viral loads
+#' (gene copies per litre), multiplied by Q_current / Q_median: the
+#' treatment plant's volume flow during the sampling period divided by its
+#' median volume flow. This adjusts for dilution, e.g. from heavy rainfall.
+#' In the historical versions of `amelag_einzelstandorte.tsv` used to fit
+#' the models (the vintages), the flow-normalised value is in `viruslast`.
+#' Later versions report it as `viruslast_normalisiert` and use `viruslast`
+#' for the unnormalised value, so `viruslast_normalisiert` is used whenever
+#' it is present. This keeps the final (evaluation) data on the same scale
+#' as the data the models were fitted to. See the AMELAG README
+#' (<https://github.com/robert-koch-institut/Abwassersurveillance_AMELAG>).
+#'
 #' @param raw_ww Data.frame from the RKI GitHub
 #' @inheritParams get_hosp_for_eval
 #' @inheritParams add_correct_lod
@@ -183,7 +198,8 @@ get_vintage <- function(raw_url,
 #'   measurement or site.
 #'
 #' @returns Data.frame of cleaned wastewater values from location_abbr.
-#' @importFrom dplyr mutate filter select rename
+#' @importFrom dplyr mutate filter select rename group_by ungroup
+#' @importFrom glue glue
 #' @autoglobal
 reformat_ww_data <- function(raw_ww,
                              location_abbr,
@@ -191,30 +207,39 @@ reformat_ww_data <- function(raw_ww,
                              path_to_lod_vals,
                              log_lod_val = 1) {
   if ("unter_bg" %in% names(raw_ww)) {
-    raw_ww <- dplyr::rename(raw_ww, below_LOD = unter_bg)
+    raw_ww <- rename(raw_ww, below_LOD = unter_bg)
   } else if ("unter_BG" %in% names(raw_ww)) {
-    raw_ww <- dplyr::rename(raw_ww, below_LOD = unter_BG)
+    raw_ww <- rename(raw_ww, below_LOD = unter_BG)
   } else { # Assume its no if not present in the data?
-    raw_ww <- dplyr::mutate(raw_ww, below_LOD = "nein")
+    raw_ww <- mutate(raw_ww, below_LOD = "nein")
   }
   if ("typ" %in% names(raw_ww)) {
     raw_ww <- raw_ww |>
-      dplyr::rename(pathogen = "typ") |>
-      dplyr::filter(pathogen == "SARS-CoV-2")
+      rename(pathogen = "typ") |>
+      filter(pathogen == "SARS-CoV-2")
   } else {
-    raw_ww <- dplyr::mutate(
+    raw_ww <- mutate(
       raw_ww,
       pathogen = "SARS-CoV-2"
     )
   }
   if ("laborwechsel" %in% names(raw_ww)) {
-    raw_ww <- dplyr::rename(raw_ww,
+    raw_ww <- rename(raw_ww,
       change_in_lab_indicator = "laborwechsel"
     )
   } else {
-    raw_ww <- dplyr::mutate(raw_ww,
+    raw_ww <- mutate(raw_ww,
       change_in_lab_indicator = "nein"
     )
+  }
+
+  # Use the flow-normalised concentration throughout (see documentation).
+  # The vintages' `viruslast` is flow-normalised. Later releases report it as
+  # `viruslast_normalisiert` and use `viruslast` for the unnormalised value.
+  if ("viruslast_normalisiert" %in% names(raw_ww)) {
+    raw_ww <- raw_ww |>
+      select(-"viruslast") |>
+      rename(viruslast = "viruslast_normalisiert")
   }
 
   # Add a grouping variable for changes in lab indicators:
@@ -240,7 +265,7 @@ reformat_ww_data <- function(raw_ww,
     ) |>
     ungroup() |>
     mutate(
-      lab = glue::glue("{location}-{change_in_lab_indicator}"),
+      lab = glue("{location}-{change_in_lab_indicator}"),
       log_genome_copies_per_ml = log((conc / 1e3) + 1e-8),
       log_lod = log_lod_val,
       location_name = location_name,

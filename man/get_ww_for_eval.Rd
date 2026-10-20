@@ -31,7 +31,6 @@ data}
 \item{filepath_name}{Name of directory to save the raw input wastewater data.}
 }
 \description{
-Get wastewater data
-For now, just pull the latest wastewater data and filter to exclude the
-most recent dates
+Concentrations are RKI's flow-normalised viral loads, matching the data
+used to fit the models; see \code{reformat_ww_data()}.
 }

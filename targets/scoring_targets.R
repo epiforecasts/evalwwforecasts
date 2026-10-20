@@ -68,6 +68,28 @@ scoring_targets <- list(
       save_scores = TRUE
     )
   ),
+  # Score the wastewater predictions in each run's ww_quantiles.csv against
+  # the later observed data. Depends on the model fits so the files exist.
+  tar_target(
+    name = scores_ww,
+    command = {
+      hosp_quantiles_wwinference
+      score_ww_quantile_files(
+        scenarios = scenarios,
+        ind_filepath = ind_filepath,
+        metrics = quantile_metrics
+      )
+    }
+  ),
+  tar_target(
+    name = save_scores_ww,
+    command = save_csv(
+      scores_ww,
+      "scores_ww.csv",
+      path = file.path("output", "overall_data")
+    ),
+    format = "file"
+  ),
   # Exclude from the analysis any location forecast dates which don't
   # contain ww, convert back to scoring utils object
   tar_target(

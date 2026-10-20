@@ -4,6 +4,9 @@
 #' @param ww_data Dataframe of wastewater data for fitting
 #' @param count_data Dataframe of case data for fitting
 #' @param hosp_data_eval Dataframe of hospital admissions data for evaluation
+#' @param ww_data_eval Dataframe of the final (later) wastewater data for the
+#'   location. If provided, the later observations are added to the saved
+#'   wastewater quantiles (`ww_quantiles.csv`) so they can be scored.
 #' @param this_forecast_date Character string indicating forecast date
 #' @param model_spec List of model specifications
 #' @param fit_opts List of fitting specifications
@@ -39,7 +42,8 @@ fit_wwinference_wrapper <- function(
   forecast_horizon = 28,
   quantiles_to_save = c(0.025, 0.1, 0.25, 0.5, 0.75, 0.9, 0.975),
   ind_filepath = file.path("output"),
-  save_draws = FALSE
+  save_draws = FALSE,
+  ww_data_eval = NULL
 ) {
   loc <- unique(count_data$state)
   if (
@@ -151,7 +155,14 @@ fit_wwinference_wrapper <- function(
         id_cols = c("site", "lab")
       ) |>
       left_join(ww_data_obs, by = c("date", "site", "lab")) |>
-      left_join(ww_metadata, by = c("site", "lab"))
+      left_join(ww_metadata, by = c("site", "lab")) |>
+      add_ww_eval_cols(
+        ww_data_eval = ww_data_eval,
+        forecast_date = this_forecast_date,
+        include_ww = include_ww,
+        hosp_data_real_time = hosp_data_real_time,
+        any_flag = fit_diagnostics$any_flag
+      )
     write_csv(
       ww_quantiles,
       file.path(
