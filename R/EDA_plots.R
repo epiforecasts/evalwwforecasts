@@ -683,3 +683,140 @@ exploratory_plot_ww_vs_scores <- function(scores,
 
   return(fig)
 }
+
+#' Plot the epidemic phase by forecast date for a location and its sites
+#'
+#' Plots the final hospital admissions (7-day sum) for a location, and the
+#' final wastewater concentrations at each of its sites, with a shaded band
+#' from each forecast date to 7 days later coloured by the phase over the
+#' following forecast period (`get_hosp_phase()` for the location,
+#' `get_ww_phase()` for each site). Saves the figure to
+#' `{fig_fp}/{location}/epidemic_phase_{location}.png`.
+#'
+#' @param hosp_phase Data.frame of hospital phases from `get_hosp_phase()`,
+#'   for all locations and forecast dates
+#' @param ww_phase Data.frame of wastewater site phases from `get_ww_phase()`,
+#'   for all locations and forecast dates
+#' @param location_name Name of the location to plot
+#' @param location_abbr Abbreviation of the location to plot
+#' @param path_to_lod_vals Character string of the path to the LOQ values,
+#'   passed to `get_ww_for_eval()`
+#' @param forecast_horizon Integer, number of days of the forecast period
+#' @param fig_fp Character string of the directory to save the figure in
+#'
+#' @returns ggplot (patchwork) object
+#' @importFrom ggplot2 ggplot aes geom_rect geom_line geom_point
+#'   scale_fill_manual scale_shape_manual scale_x_date facet_wrap labs
+#'   theme_bw theme element_blank element_rect element_text ggsave
+#' @importFrom patchwork wrap_plots
+#' @importFrom dplyr filter mutate
+#' @importFrom glue glue
+#' @importFrom fs dir_create
+#' @autoglobal
+get_plot_epidemic_phase <- function(hosp_phase,
+                                    ww_phase,
+                                    location_name,
+                                    location_abbr,
+                                    path_to_lod_vals,
+                                    forecast_horizon = 28,
+                                    fig_fp = file.path(
+                                      "output", "overall_figs"
+                                    )) {
+  phase_cols <- c(
+    decreasing = "#2a78d6", stable = "#c9c8c4", increasing = "#e34948"
+  )
+  loc <- location_name
+  hosp_bands <- hosp_phase |>
+    filter(location == loc, !is.na(hosp_phase)) |>
+    mutate(
+      xmin = forecast_date, xmax = forecast_date + 7,
+      phase = factor(hosp_phase, levels = names(phase_cols))
+    )
+  ww_bands <- ww_phase |>
+    filter(location == loc, !is.na(ww_phase)) |>
+    mutate(
+      xmin = forecast_date, xmax = forecast_date + 7,
+      phase = factor(ww_phase, levels = names(phase_cols))
+    )
+  date_range <- c(
+    min(hosp_bands$forecast_date),
+    max(hosp_bands$forecast_date) + forecast_horizon
+  )
+
+  hosp_data <- get_hosp_for_eval(
+    location_name = loc,
+    location_abbr = location_abbr,
+    forecast_date = max(hosp_bands$forecast_date),
+    forecast_horizon = forecast_horizon
+  ) |>
+    filter(date >= date_range[1], date <= date_range[2])
+  ww_data <- get_ww_for_eval(
+    location_name = loc,
+    location_abbr = location_abbr,
+    forecast_date = max(hosp_bands$forecast_date),
+    path_to_lod_vals = path_to_lod_vals
+  ) |>
+    filter(date >= date_range[1], date <= date_range[2]) |>
+    mutate(site = as.character(site), lab = as.character(lab))
+  n_sites <- length(unique(ww_data$site))
+
+  phase_theme <- theme_bw(base_size = 11) +
+    theme(
+      panel.grid.minor = element_blank(),
+      legend.position = "top",
+      strip.background = element_rect(fill = "white"),
+      strip.text = element_text(size = 9)
+    )
+
+  p_hosp <- ggplot() +
+    geom_rect(
+      data = hosp_bands,
+      aes(xmin = xmin, xmax = xmax, ymin = -Inf, ymax = Inf, fill = phase),
+      alpha = 0.35
+    ) +
+    geom_line(
+      data = hosp_data, aes(x = date, y = updated_hosp_7d_count),
+      linewidth = 0.6
+    ) +
+    scale_fill_manual(
+      values = phase_cols, drop = FALSE,
+      name = glue("Phase over next {forecast_horizon} days")
+    ) +
+    scale_x_date(limits = date_range, date_labels = "%b %Y") +
+    labs(
+      x = NULL, y = "Hospital admissions\n(7-day sum)",
+      title = glue("{loc}: epidemic phase by forecast date")
+    ) +
+    phase_theme
+
+  p_ww <- ggplot() +
+    geom_rect(
+      data = ww_bands,
+      aes(xmin = xmin, xmax = xmax, ymin = -Inf, ymax = Inf, fill = phase),
+      alpha = 0.35
+    ) +
+    geom_point(
+      data = ww_data,
+      aes(x = date, y = log_genome_copies_per_ml, shape = lab),
+      size = 0.7, show.legend = FALSE
+    ) +
+    facet_wrap(~site, ncol = 4, scales = "free_y") +
+    scale_shape_manual(values = rep_len(c(16, 1, 17, 2), 200)) +
+    scale_fill_manual(values = phase_cols, drop = FALSE, guide = "none") +
+    scale_x_date(limits = date_range, date_labels = "%b %y") +
+    labs(x = NULL, y = "Log wastewater conc.\n(flow-normalised)") +
+    phase_theme
+
+  n_rows <- max(1, ceiling(n_sites / 4))
+  p <- wrap_plots(p_hosp, p_ww, ncol = 1, heights = c(1.2, 0.9 * n_rows))
+
+  full_fp <- file.path(fig_fp, loc)
+  dir_create(full_fp, recurse = TRUE)
+  ggsave(
+    plot = p,
+    filename = file.path(full_fp, glue("epidemic_phase_{loc}.png")),
+    width = 12, height = 3.5 + 1.8 * n_rows, dpi = 120, limitsize = FALSE
+  )
+
+  return(p)
+}

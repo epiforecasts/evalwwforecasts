@@ -58,6 +58,69 @@ scoring_targets <- list(
     format = "rds",
     iteration = "list"
   ),
+  # Epidemic phase over the forecast period, from the 28-day percent change
+  # in the final data: hospital admissions by location and forecast date, and
+  # wastewater by site. The percent changes are joined onto the scores along
+  # with the phases, so they can be reclassified with a different threshold.
+  tar_target(
+    name = phase_threshold,
+    command = 15
+  ),
+  # Hospital admissions must also change by more than this many admissions
+  # (7-day sum) to count as increasing or decreasing, so that fluctuations at
+  # low counts are treated as stable
+  tar_target(
+    name = phase_abs_threshold,
+    command = 5
+  ),
+  tar_target(
+    name = hosp_phase_by_run,
+    command = get_hosp_phase(
+      hosp_data_eval = hosp_data_eval,
+      forecast_date = scenarios$forecast_date,
+      location_name = scenarios$location_name,
+      horizon = forecast_horizon,
+      threshold = phase_threshold,
+      abs_threshold = phase_abs_threshold
+    ),
+    pattern = map(hosp_data_eval, scenarios)
+  ),
+  tar_target(
+    name = hosp_phase,
+    command = distinct(hosp_phase_by_run)
+  ),
+  tar_target(
+    name = ww_phase_by_run,
+    command = get_ww_phase(
+      ww_data_eval = ww_data_eval,
+      forecast_date = scenarios$forecast_date,
+      location_name = scenarios$location_name,
+      horizon = forecast_horizon,
+      threshold = phase_threshold
+    ),
+    pattern = map(ww_data_eval, scenarios)
+  ),
+  tar_target(
+    name = ww_phase,
+    command = distinct(ww_phase_by_run)
+  ),
+  # One figure per location of the hospital and site phases by forecast date,
+  # saved to output/overall_figs/{location}/
+  tar_target(
+    name = plot_epidemic_phase,
+    command = get_plot_epidemic_phase(
+      hosp_phase = hosp_phase,
+      ww_phase = ww_phase,
+      location_name = locations$location_name,
+      location_abbr = locations$location_abbr,
+      path_to_lod_vals = path_to_lod_vals,
+      forecast_horizon = forecast_horizon,
+      fig_fp = file.path("output", "overall_figs")
+    ),
+    pattern = map(locations),
+    format = "rds",
+    iteration = "list"
+  ),
   # Target for scoring quantiles
   tar_target(
     name = score_hosp_quantiles,
@@ -65,7 +128,8 @@ scoring_targets <- list(
       draws = all_quantiles_for_scoring,
       metrics = quantile_metrics,
       fp_data = file.path("output", "overall_data"),
-      save_scores = TRUE
+      save_scores = TRUE,
+      epidemic_phase = hosp_phase
     )
   ),
   # Score the wastewater predictions in each run's ww_quantiles.csv against
@@ -77,7 +141,9 @@ scoring_targets <- list(
       score_ww_quantile_files(
         scenarios = scenarios,
         ind_filepath = ind_filepath,
-        metrics = quantile_metrics
+        metrics = quantile_metrics,
+        hosp_phase = hosp_phase,
+        ww_phase = ww_phase
       )
     }
   ),
