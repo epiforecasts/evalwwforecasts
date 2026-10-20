@@ -1,5 +1,5 @@
 ---
-title: "Evaluating the influence of incorporating wastewater on forecast performance: a case study applied to COVID-19 Hospitalizations in Germany during the 2024-2025 respiratory virus season"
+title: "Evaluating the influence of incorporating wastewater on real-time forecast performance: a case study applied to COVID-19 Hospitalizations in Germany during the 2024-2025 respiratory virus season"
 authors: "Kaitlyn E. Johnson"
 format: docx
 editor: visual
@@ -35,7 +35,7 @@ The goal of these analyses will be to assess, in the context of the 2024-2025 re
 
 ## What we do here
 
-In this paper, we retrospectively produced 28-day ahead forecasts of incident COVID-19 hospital admissions, with and without incorporating wastewater, for each state in Germany from July 2024 to July 2025 using a semi-mechanistic renewal model, `wwinference` and a baseline ARIMA model. In all cases, we used GitHub's commit history to ensure that we only used the wastewater and hospital admissions data that would have been available as of the forecast date. Retrospective forecasts were evaluated against a final evaluation dataset using proper scoring metrics. We assess the value of incorporating wastewater by comparing the scores from each models overall, across horizons, locations, and forecast dates. To assess the impact of different characteristics of the wastewater surveillance system on forecast performance, we used a generative additive model with wastewater-informed forecast scores as an outcome while including covariate indicators which we hypothesized may have an impact on forecast performance. Based on these analyses, we assess the value of incorporating wastewater for this particular model and discuss areas for future development in wastewater-informed forecasting.
+In this paper, we retrospectively produced 28-day ahead forecasts of incident COVID-19 hospital admissions, with and without incorporating wastewater, for each state in Germany from July 2024 to July 2025 using a semi-mechanistic renewal model, `wwinference` and a baseline ARIMA model. In all cases, we used GitHub's commit history to ensure that we only used the wastewater and hospital admissions data that would have been available as of the forecast date. Retrospective forecasts were evaluated against a final evaluation dataset using proper scoring metrics. We assess the value of incorporating wastewater by comparing the scores from each model overall, across horizons, locations, and forecast dates. To assess the impact of different characteristics of the wastewater surveillance system on forecast performance, we used a generalized additive model with wastewater-informed forecast scores as an outcome while including covariate indicators which we hypothesized may have an impact on relative forecast performance. Based on these analyses, we assess the value of incorporating wastewater for this particular model and discuss areas for future development in wastewater-informed forecasting.
 
 # Methods
 
@@ -79,7 +79,7 @@ The hospital admissions data provided are indexed by the data of the positive te
 
 ## Evaluation
 
-We will use a single evaluation dataset from November X, 2025. It is assume that as of this date, all forecast horizons from the entire period of study (July 1st 2-24 to July 7th 2025) will have reached a stable value. We will evaluate all forecasts using the 7-day rolling sum of hospital admissions. Posterior samples of forecasts will be log-transformed, along with the observations the models are evaluated against. Forecasts will be scored using proper scoring rules, with metrics including the Continuous Ranked Probabilist Score (CRPS), its component breakdown (underprediction, overprediction, dispersion) and interval coverage.
+We will use a single evaluation dataset from November X, 2025. It is assume that as of this date, all forecast horizons from the entire period of study (July 1st 2024 to July 7th 2025) will have reached a stable value. We will evaluate all forecasts using the 7-day rolling sum of hospital admissions. Posterior samples of forecasts will be log-transformed, along with the observations the models are evaluated against. Forecasts will be scored using proper scoring rules, with metrics including the Continuous Ranked Probability Score (CRPS), its component breakdown (underprediction, overprediction, dispersion) and interval coverage.
 
 Visual comparisons of forecasts overlaid with evaluation data will be used to assess the forecast performance of each model for individual locations.
 
@@ -93,17 +93,56 @@ Results which include the baseline ARIMA model will be presented in the suppleme
 
 In addition to stratifying results by forecast date, location, and horizon, we perform an exploratory analysis into the factors that may contribute to the relative performance of the `ww + hosp` model compared to the `hosp only` model.
 
-We will include the following variables with which we would like to understand their impact on relative forecast performance:
+To do so, we will model the WIS of the log-transformed predictions and observations as outcome variables, and account for the following variables which might impact relative forecast performance:
 
-1.  score of the `hosp only` model (as an offset)
-2.  number of wastewater treatment plants (sites)
-3.  population coverage of all the wastewater treatment plants (proportion of the state population on wastewater)
-4.  average sampling frequency across sites (this is likely very similar so may not be useful)
-5.  average latency from last collection date to the forecast date
-6.  minimum latency from last collection date to forecast date
-7.  variability in wastewater data as measured by the coefficient of variation across sites and time during the calibration period
+1.  Location
+2.  Horizon
+3.  Forecast date
+4.  Population size of the state
+5.  Number of wastewater treatment plants (sites)
+6.  Population coverage of all the wastewater treatment plants (proportion of the state population on wastewater)
+7.  Average sampling frequency across sites (this is likely very similar so may not be useful)
+8.  Average latency from last collection date to the forecast date
+9.  Minimum latency from last collection date to forecast date
+10. variability in wastewater data as measured by the coefficient of variation across sites and time during the calibration period
 
 Resulting in the following model formulation:
+
+Let $WIS_{h, d, l, m}$ denote the WIS of the forecast at horizon $h$, forecast date $d$, location $l$, and model type $m$. The WIS of the log transformed predictions and observations are non-negative and right-skewed so we treat the WIS as Gamma-distributed with a log link, letting the linear predictor $\eta_{h,d,l,m}$ act multiplicatively on the expected score
+
+$$ WIS_{h,d,l,m} \sim Gamma(\mu_{h,d,l,m}, \sigma)$$
+
+$$ \eta_{h,d,l,m} = \log(\mu_{h,d,l,m}) $$
+
+Where the $\eta_{h,d,l,m}$ is modelled as:
+
+$$ \log(\mu_{h,d,l,m}) = \beta_0 + \beta_{ww}d_m + f(h) + b_l + f(d) + f(pop) + f(n_{sites}) + f(\nu) + f(\rho) + f(\gamma) + f(\phi) + f(\alpha) + d_m \times \left( g(h) + u_l + g(d) + g(pop) + g(n_{sites}) + g(\nu) + g(\rho) + g(\gamma) + g(\phi) + g(\alpha) \right) $$
+
+Where $d_m$ is an indicator variable for whether wastewater was used to fit the model, $b_l$, $f(h)$, $f(pop)$, $f(n_{sites})$, $f(\nu)$, $f(\rho)$, and $f(\alpha)$ are the overall effects, respectively, of location, horizon, state population, number of wastewater treatment plants, average wastewater data collection frequency $\nu$, average wastewater latency between latest collection date and forecast date $\rho$, minimum latency between collection date and forecast date $\gamma$, wastewater population coverage $\phi$, and average wastewater data variability $\alpha$. The interaction terms with $d_m$ then reflect the additional effect from incorporating wastewater of each of those variables, after already accounting for the overall impact of that variable on forecast performance across both wastewater and hospital admissions informed models. The formula passed to `mgcv` is provided below.
+
+``` r
+gam_fit <- bam(
+  wis ~ include_ww +
+    s(horizon, k = 4) + s(horizon, k = 4, by = include_ww) +
+    s(location, bs = "re") + s(location, bs = "re", by = include_ww) +
+    s(forecast_date_num, k = 40) +
+    s(forecast_date_num, k = 40, by = include_ww) +
+    # One value per state, so keep this smooth simple
+    s(state_pop, k = 3) + s(state_pop, k = 3, by = include_ww) +
+    s(n_sites, k = 5) + s(n_sites, k = 5, by = include_ww) +
+    s(pop_coverage, k = 5) + s(pop_coverage, k = 5, by = include_ww) +
+    s(avg_sampling_freq, k = 5) +
+    s(avg_sampling_freq, k = 5, by = include_ww) +
+    s(avg_latency, k = 5) + s(avg_latency, k = 5, by = include_ww) +
+    s(min_latency, k = 5) + s(min_latency, k = 5, by = include_ww) +
+    s(avg_data_variability, k = 5) +
+    s(avg_data_variability, k = 5, by = include_ww),
+  data = data_to_fit,
+  family = Gamma(link = "log"),
+  method = "fREML",
+  discrete = TRUE
+)
+```
 
 `CRPS^{ww+hosp}_{h,d,l} ~ \beta + CRPS^{hosponly}_{h,d,l}+ s(numberofsites, k ) + s(popcoverageww, k ) + s(avgfreqsampling, k) + s(avglatencyreporting,k) + s(minlatencyreporting, k) + s(variability_wwdata)`
 
@@ -123,44 +162,28 @@ Figure 2. Schematic diagram describing the retrospective production of forecasts
 
 Q: Do we include baseline in all of the below? Probably not necessary in main text but could make supplement version where we include it
 
-Figure 3. Visual comparison of fit and forecast for a subset of locations and forecast dates (can pick ones where ww improves, wastewater has no impact, wastewater degrades performance) + fit to wastewater data
-
-3 rows, 4 columns
-
-row = location
-
-column 1 = hospital admissions fit with `ww+hosp` vs `hosp_only`
-
-columns 2:4 = fit to wastewater data by site
-
-Figure 4. Visual comparison of forecast performance across forecast dates for a subset of locations for horizons 1-7
-
-2 rows, 3 columns
-
-row 1 = forecast eval overlay `ww+hosp` vs `hosp only`
-
-row 2 = score underlay (bar chart)
-
-columns = locations
+Figure 3. Visual comparison of fit and forecast for a subset of locations and forecast dates for 28 day horizons rows, (row1 is model forecast + data overlay, row 2 are WIS summaries, columns are locations)
 
 Supplement:
 
-1.  Fig 3 & 4 with baseline ARIMA
-2.  Fig 4 for additional horizons (7-14, 14-21, 21-28)
+1.  Fig 3 with baseline ARIMA
+2.  Add the wastewater fit and forecast and hospital forecast comparison figure to supplement
 
 ## Quantitative forecast comparison
 
-Figure 5. "traditional" score comparison: overall, by horizon, by location, by forecast date, by location and forecast date
+Statistical significance test results using scoringutils/ mcs R package (same set of forecasts so can use either of these)
 
-A. CRPS by model summarised across locations and forecast dates, broken down by under/over prediction and dispersion, in the form of a horizontal bar chart for each of the models across all 28 day horizons.
+Figure 4. "traditional" score comparison: overall, by horizon, by location, by forecast date, by location and forecast date (make a version with and without ARIMA baseline)
+
+A. WIS by model summarised across locations and forecast dates, broken down by under/over prediction and dispersion, in the form of a horizontal bar chart for each of the models across all 28 day horizons.
 
 C. 50th and 90th interval coverage summarised across locations and forecast dates (horizontal bar chart, color = model)
 
 B. rWIS by horizon overall
 
-D. CRPS by model stratified by location ordered by CRPS of the hosp-only model (stacked bar chart x-axis = location, y-axis = CRPS breakdown, color = model, shading = CRPS breakdown)
+D. WIS by model stratified by location ordered by CRPS of the hosp-only model (stacked bar chart x-axis = location, y-axis = CRPS breakdown, color = model, shading = WIS breakdown)
 
-E. CRPS by model stratified by forecast date (stacked bar chart x-axis = date, y-axis = CRPS breakdown, color = model, shading = CRPS breakdown)
+E. WIS by model stratified by forecast date (stacked bar chart x-axis = date, y-axis = WIS breakdown, color = model, shading = WIS breakdown)
 
 F. National hospital admissions over time
 
@@ -170,13 +193,13 @@ G. Heatmap of rWIS (relative to hosp only) averaged across horizons for each for
 
 Result table from GAM output (what is $\beta$)
 
-Figure 6: Model based eval results
+Figure 5: Model based eval results
 
-A. scatterplot of CRPS from wastewater model vs CRPS from hospital admissions only model summarised by location-forecast date
+A. scatterplot of WIS from wastewater model vs WIS from hospital admissions only model summarised by location-forecast date
 
-B. scatterplot of CRPS from wastewater vs hosp only summarised by location
+B. scatterplot of WIS from wastewater vs hosp only summarised by location
 
-C. scatter plot of CRPS from wastewater vs hosp only summarise by forecast date
+C. scatter plot of WIS from wastewater vs hosp only summarise by forecast date
 
 D. Partial effect of min latency, avg latency, avg frequency, pop coverage, variability in ww, number of sites
 
