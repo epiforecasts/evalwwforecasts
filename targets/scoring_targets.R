@@ -66,6 +66,13 @@ scoring_targets <- list(
     name = phase_threshold,
     command = 15
   ),
+  # Hospital admissions must also change by more than this many admissions
+  # (7-day sum) to count as increasing or decreasing, so that fluctuations at
+  # low counts are treated as stable
+  tar_target(
+    name = phase_abs_threshold,
+    command = 5
+  ),
   tar_target(
     name = hosp_phase_by_run,
     command = get_hosp_phase(
@@ -73,7 +80,8 @@ scoring_targets <- list(
       forecast_date = scenarios$forecast_date,
       location_name = scenarios$location_name,
       horizon = forecast_horizon,
-      threshold = phase_threshold
+      threshold = phase_threshold,
+      abs_threshold = phase_abs_threshold
     ),
     pattern = map(hosp_data_eval, scenarios)
   ),

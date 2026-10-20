@@ -9,7 +9,8 @@ get_hosp_phase(
   forecast_date,
   location_name,
   horizon = 28,
-  threshold = 15
+  threshold = 15,
+  abs_threshold = 5
 )
 }
 \arguments{
@@ -25,13 +26,20 @@ with. Default \code{28}.}
 
 \item{threshold}{Numeric, percent change separating increasing and
 decreasing from stable. Default \code{15}.}
+
+\item{abs_threshold}{Numeric, change in the 7-day sum of admissions that an
+increase or decrease must also exceed. Default \code{5}.}
 }
 \value{
 One-row data.frame with \code{location}, \code{forecast_date},
-\code{hosp_pct_change} and \code{hosp_phase}
+\code{hosp_pct_change}, \code{hosp_abs_change} and \code{hosp_phase}
 }
 \description{
-Computes the percent change in the final (evaluation) 7-day rolling sum of
-hospital admissions from the forecast date to \code{horizon} days later, and
-classifies it with \code{classify_phase()}.
+Computes the percent and absolute change in the final (evaluation) 7-day
+rolling sum of hospital admissions from the forecast date to \code{horizon} days
+later, and classifies it with \code{classify_phase()}. A change counts as
+increasing or decreasing only if it exceeds both \code{threshold} percent and
+\code{abs_threshold} admissions, so that fluctuations at low counts are treated
+as stable. When the count on the forecast date is 0 the percent change is
+undefined (\code{NA}), and the phase is based on the absolute change alone.
 }
