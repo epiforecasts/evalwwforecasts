@@ -8,14 +8,34 @@ bibliography: references.bib
 
 # S1. Comparison with the baseline ARIMA model
 
-Figure S1. Figure 3 with the baseline ARIMA model included: forecast and evaluation data overlay (row 1) and WIS summaries (row 2) for a subset of locations and forecast dates.
+Figure S1. Figure 2 with the baseline ARIMA model included: hospital admissions forecasts overlaid with the evaluation data and WIS by horizon, for the same example location-forecast dates.
 
-Figure S2. Figure 4 with the baseline ARIMA model included: WIS by model broken down by underprediction, overprediction and dispersion, 50% and 90% interval coverage, and relative WIS by horizon, location and forecast date.
+Figure S2. Figure 3 with the baseline ARIMA model included: WIS by model broken down by underprediction, overprediction and dispersion, relative WIS by horizon and epidemic phase, interval coverage and bias.
+
+Figure S3. WIS by model stratified by location and by forecast date, broken down by underprediction, overprediction and dispersion, including the baseline ARIMA model, with national hospital admissions over time.
 
 # S2. Epidemic phase
 
 The epidemic phase of each forecast was defined from the change in the final evaluation data over the 28-day forecast period, for hospital admissions by location and for wastewater by site (see Methods).
 
-Figure S3. Epidemic phase by forecast date for each location. Top panel: hospital admissions (7-day rolling sum) from the final evaluation dataset, with each forecast date to 7 days later shaded by the hospital admissions phase over the following 28 days. Bottom panels: log wastewater concentrations at each site, shaded by that site's phase.
+Figure S4. Epidemic phase by forecast date for each location. Top panel: hospital admissions (7-day rolling sum) from the final evaluation dataset, with each forecast date to 7 days later shaded by the hospital admissions phase over the following 28 days. Bottom panels: log wastewater concentrations at each site, shaded by that site's phase.
+
+# S3. MCMC convergence
+
+Table S1. Number and proportion of `wwinference` model runs flagged for each convergence diagnostic, by model.
+
+Figure S5. Relative WIS overall, by horizon and by epidemic phase, excluding location-forecast dates where either model was flagged for convergence issues.
+
+# S4. Wastewater concentration forecasts by site
+
+Figure S6. WIS, bias and interval coverage of the wastewater nowcasts and forecasts for each wastewater treatment plant.
+
+# S5. Model-based evaluation
+
+Figure S7. Location effects on the relative WIS, and the horizon and forecast date smooths.
+
+Figure S8. Model diagnostics (residuals, QQ plot, observed against fitted).
+
+Figure S9. Relative WIS by epidemic phase from the model with a less flexible forecast date smooth.
 
 # References
