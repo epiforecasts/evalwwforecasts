@@ -89,6 +89,14 @@ When comparing forecast performance with and without wastewater, we will compute
 
 The main text will focus on the head-to-head comparison of the `wwinference` models with and without wastewater. All results which include the baseline ARIMA model will be presented in the supplement.
 
+### Epidemic phase
+
+To compare forecast performance across epidemic phases, we will classify each forecast into an epidemic phase based on the change in the final evaluation data over the 28-day forecast period.
+
+For hospital admissions, we will compare the 7-day rolling sum of hospital admissions on the forecast date with the 7-day rolling sum 28 days later, for each location and forecast date. A forecast will be classified as increasing if admissions increased by more than 15% and by more than 5 admissions, as decreasing if admissions decreased by more than 15% and by more than 5 admissions, and as stable otherwise. The absolute threshold prevents small fluctuations at low counts from being classified as increasing or decreasing. When there were 0 admissions on the forecast date, the percent change is undefined and the phase will be based on the absolute change alone.
+
+For wastewater, we will classify the phase separately for each wastewater treatment plant and lab. We will compare the mean log concentration in the 7 days up to the forecast date with the mean log concentration in the 7 days up to 28 days later, and classify the change as increasing (more than 15%), decreasing (less than -15%) or stable. Sites with no observations in either 7-day window will not be classified.
+
 ### Model-based evaluation: investigation into drivers of differences in forecast performance with and without wastewater
 
 In addition to stratifying results by forecast date, location, and horizon, we perform an exploratory analysis into the factors that may contribute to the relative performance of the `ww + hosp` model compared to the `hosp only` model.
