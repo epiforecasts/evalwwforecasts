@@ -1,10 +1,13 @@
 scoring_targets <- list(
   tar_target(
     name = hosp_quantiles_for_scoring,
+    # Keep the run's overall convergence flag (any_flag) so it is carried
+    # through to the scores; drop the other diagnostics
     command = hosp_quantiles_wwinference |>
       filter(
         date >= forecast_date
       ) |>
+      rename(any_flag = diag_any_flag) |>
       select(-starts_with("diag_"))
   ),
   # One row of MCMC diagnostics per forecast date, location and model
@@ -27,7 +30,8 @@ scoring_targets <- list(
     command = bind_rows(
       hosp_quantiles_for_scoring,
       baseline_quantiles |>
-        mutate(flag_missing_ww = FALSE) |>
+        # No MCMC for the baseline, so never flagged for convergence
+        mutate(flag_missing_ww = FALSE, any_flag = FALSE) |>
         select(colnames(hosp_quantiles_for_scoring))
     )
   ),
