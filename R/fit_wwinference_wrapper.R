@@ -28,7 +28,7 @@
 #' @importFrom fs dir_create
 #' @importFrom readr write_csv
 #' @importFrom glue glue
-#' @importFrom dplyr filter rename_with
+#' @importFrom dplyr filter rename_with mutate
 #' @importFrom arrow write_parquet
 fit_wwinference_wrapper <- function(
   ww_data,
@@ -272,15 +272,9 @@ fit_wwinference_wrapper <- function(
   )
 
   # Attach the run's diagnostics (prefixed with `diag_`) so they can be
-  # collected across branches. They are dropped again before scoring.
-  # Columns are added with data.table::set() to keep the scoringutils
-  # `forecast_quantile` class: dplyr joins would convert it with the
-  # `forecast` package's as.data.frame.forecast() method, which fails.
+  # collected across branches. Only any_flag is kept for scoring.
   diag_cols <- rename_with(fit_diagnostics, function(x) paste0("diag_", x))
-  hosp_quantiles <- data.table::copy(hosp_quantiles)
-  for (col in names(diag_cols)) {
-    data.table::set(hosp_quantiles, j = col, value = diag_cols[[col]])
-  }
+  hosp_quantiles <- mutate(hosp_quantiles, !!!as.list(diag_cols))
 
   return(hosp_quantiles)
 }
