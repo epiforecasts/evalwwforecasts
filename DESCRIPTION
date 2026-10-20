@@ -53,6 +53,7 @@ Imports:
     patchwork
 Suggests:
     bookdown,
+    purrr,
     targets,
     spelling,
     rmarkdown,

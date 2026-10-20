@@ -80,7 +80,8 @@ create_permutations_targets <- list(
   ),
   tar_target(
     name = iter_warmup,
-    command = 250
+    # wwinference default
+    command = 750
   ),
   tar_target(
     name = models,

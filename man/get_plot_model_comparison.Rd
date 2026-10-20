@@ -12,7 +12,8 @@ get_plot_model_comparison(
   historical_data_to_plot = 90,
   scale_selected = "natural",
   facet_models = FALSE,
-  fig_fp
+  fig_fp,
+  exclude_flagged = TRUE
 )
 }
 \arguments{
@@ -35,6 +36,11 @@ default is \code{"natural"}}
 is FALSE.}
 
 \item{fig_fp}{Character string indicating file path to save figure.}
+
+\item{exclude_flagged}{Boolean indicating whether to drop forecast dates
+where any model run was flagged for convergence issues (\code{any_flag}), for
+all models, so a failed run does not distort the figure. Default is TRUE.
+The excluded dates are listed in the figure caption.}
 }
 \value{
 ggplot object

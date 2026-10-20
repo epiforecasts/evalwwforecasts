@@ -11,6 +11,7 @@ library(wwinference)
 library(dplyr)
 library(ggplot2)
 library(readr)
+library(arrow)
 library(here)
 library(purrr)
 library(lubridate)
@@ -42,6 +43,7 @@ tar_option_set(
     "tibble",
     "dplyr",
     "ggplot2",
+    "arrow",
     "readr",
     "lubridate",
     "tidyr",
@@ -92,14 +94,9 @@ scoring <- list(
   scoring_targets
 )
 
-metadata <- list(
-  get_metadata_targets
-)
-
 list(
   set_up,
   load_data,
   fit_models,
-  scoring,
-  metadata
+  scoring
 )

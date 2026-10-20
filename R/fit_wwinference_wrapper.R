@@ -25,24 +25,27 @@
 #' @importFrom fs dir_create
 #' @importFrom readr write_csv
 #' @importFrom glue glue
-#' @importFrom dplyr filter
+#' @importFrom dplyr filter rename_with mutate
 #' @importFrom arrow write_parquet
 fit_wwinference_wrapper <- function(
-    ww_data,
-    count_data,
-    hosp_data_eval,
-    this_forecast_date,
-    model_spec,
-    fit_opts,
-    compiled_model,
-    calibration_time = 90,
-    forecast_horizon = 28,
-    quantiles_to_save = c(0.025, 0.1, 0.25, 0.5, 0.75, 0.9, 0.975),
-    ind_filepath = file.path("output"),
-    save_draws = FALSE) {
+  ww_data,
+  count_data,
+  hosp_data_eval,
+  this_forecast_date,
+  model_spec,
+  fit_opts,
+  compiled_model,
+  calibration_time = 90,
+  forecast_horizon = 28,
+  quantiles_to_save = c(0.025, 0.1, 0.25, 0.5, 0.75, 0.9, 0.975),
+  ind_filepath = file.path("output"),
+  save_draws = FALSE
+) {
   loc <- unique(count_data$state)
-  if ((nrow(ww_data) == 0 || is.null(ww_data)) &&
-    isTRUE(model_spec$include_ww)) {
+  if (
+    (nrow(ww_data) == 0 || is.null(ww_data)) &&
+      isTRUE(model_spec$include_ww)
+  ) {
     model_spec$include_ww <- FALSE
     flag_missing_ww <- TRUE
   } else {
@@ -60,8 +63,10 @@ fit_wwinference_wrapper <- function(
     fit_opts = fit_opts,
     compiled_model = compiled_model
   )
+  fit_diagnostics <- get_fit_diagnostics(ww_fit_obj)
 
-  hosp_draws <- get_draws(ww_fit_obj,
+  hosp_draws <- get_draws(
+    ww_fit_obj,
     what = "predicted_counts"
   )$predicted_counts
   # Save plots
@@ -77,7 +82,10 @@ fit_wwinference_wrapper <- function(
   plot_hosp_draws <- get_plot_forecasted_counts(
     draws = hosp_draws,
     forecast_date = this_forecast_date
-  ) + ggtitle(glue("{loc}, wastewater: {include_ww}, hosp data real-time: {hosp_data_real_time}")) # nolint
+  ) +
+    ggtitle(glue(
+      "{loc}, wastewater: {include_ww}, hosp data real-time: {hosp_data_real_time}" # nolint
+    ))
 
   ggsave(
     plot = plot_hosp_draws,
@@ -101,7 +109,8 @@ fit_wwinference_wrapper <- function(
     plot_ww_draws <- get_plot_ww_conc(
       draws = ww_draws,
       forecast_date = this_forecast_date
-    ) + ggtitle(glue("{loc}, wastewater: {include_ww}")) # nolint
+    ) +
+      ggtitle(glue("{loc}, wastewater: {include_ww}")) # nolint
     ggsave(
       plot = plot_ww_draws,
       filename = file.path(
@@ -111,15 +120,23 @@ fit_wwinference_wrapper <- function(
     )
     ww_data_obs <- select(
       ww_data,
-      date, site, lab,
-      log_genome_copies_per_ml, below_lod,
-      log_lod, flag_as_ww_outlier
+      date,
+      site,
+      lab,
+      log_genome_copies_per_ml,
+      below_lod,
+      log_lod,
+      flag_as_ww_outlier
     )
     ww_metadata <- ww_data |>
       select(
-        site, lab, site_pop,
-        location_name, location_abbr,
-        forecast_date, lab_site_name
+        site,
+        lab,
+        site_pop,
+        location_name,
+        location_abbr,
+        forecast_date,
+        lab_site_name
       ) |>
       distinct()
 
@@ -133,12 +150,8 @@ fit_wwinference_wrapper <- function(
         quantile_level_name = "quantile_level",
         id_cols = c("site", "lab")
       ) |>
-      left_join(ww_data_obs,
-        by = c("date", "site", "lab")
-      ) |>
-      left_join(ww_metadata,
-        by = c("site", "lab")
-      )
+      left_join(ww_data_obs, by = c("date", "site", "lab")) |>
+      left_join(ww_metadata, by = c("site", "lab"))
     write_csv(
       ww_quantiles,
       file.path(
@@ -148,9 +161,7 @@ fit_wwinference_wrapper <- function(
     )
 
     # Extract and save subpopulation R(t) draws at forecast date only
-    subpop_rt_draws <- get_draws(ww_fit_obj,
-      what = "subpop_rt"
-    )$subpop_rt
+    subpop_rt_draws <- get_draws(ww_fit_obj, what = "subpop_rt")$subpop_rt
     subpop_rt_forecast_date <- subpop_rt_draws |>
       filter(date == this_forecast_date) |>
       mutate(
@@ -159,11 +170,14 @@ fit_wwinference_wrapper <- function(
         real_time = hosp_data_real_time
       )
 
-    arrow::write_parquet(
+    write_parquet(
       subpop_rt_forecast_date,
-      file.path(data_fp, glue::glue(
-        "subpop_rt_ww_{include_ww}_rt_{hosp_data_real_time}.parquet"
-      ))
+      file.path(
+        data_fp,
+        glue(
+          "subpop_rt_ww_{include_ww}_rt_{hosp_data_real_time}.parquet"
+        )
+      )
     )
   }
 
@@ -179,19 +193,20 @@ fit_wwinference_wrapper <- function(
   )
 
   if (isTRUE(save_draws)) {
-    arrow::write_parquet(
+    write_parquet(
       draws_w_data,
-      file.path(data_fp, glue::glue(
-        "hosp_draws_ww_{include_ww}_rt_{hosp_data_real_time}.parquet"
-      ))
+      file.path(
+        data_fp,
+        glue(
+          "hosp_draws_ww_{include_ww}_rt_{hosp_data_real_time}.parquet"
+        )
+      )
     )
   }
 
   # Extract and save R(t) draws at forecast date only (always save as these
   # are not as large)
-  global_rt_draws <- get_draws(ww_fit_obj,
-    what = "global_rt"
-  )$global_rt
+  global_rt_draws <- get_draws(ww_fit_obj, what = "global_rt")$global_rt
 
   global_rt_forecast_date <- global_rt_draws |>
     filter(date == this_forecast_date) |>
@@ -201,13 +216,15 @@ fit_wwinference_wrapper <- function(
       real_time = hosp_data_real_time
     )
 
-  arrow::write_parquet(
+  write_parquet(
     global_rt_forecast_date,
-    file.path(data_fp, glue::glue(
-      "global_rt_ww_{include_ww}_rt_{hosp_data_real_time}.parquet"
-    ))
+    file.path(
+      data_fp,
+      glue(
+        "global_rt_ww_{include_ww}_rt_{hosp_data_real_time}.parquet"
+      )
+    )
   )
-
 
   # Make a plot here with calibration and evaluation data and save it.
   get_plot_draws_w_calib_data(
@@ -228,11 +245,26 @@ fit_wwinference_wrapper <- function(
     hosp_quantiles,
     file.path(
       data_fp,
-      glue::glue(
+      glue(
         "hosp_quantiles_ww_{include_ww}.csv"
       )
     )
   )
+
+  write_csv(
+    fit_diagnostics,
+    file.path(
+      data_fp,
+      glue(
+        "diagnostics_ww_{include_ww}_rt_{hosp_data_real_time}.csv"
+      )
+    )
+  )
+
+  # Attach the run's diagnostics (prefixed with `diag_`) so they can be
+  # collected across branches. Only any_flag is kept for scoring.
+  diag_cols <- rename_with(fit_diagnostics, function(x) paste0("diag_", x))
+  hosp_quantiles <- mutate(hosp_quantiles, !!!as.list(diag_cols))
 
   return(hosp_quantiles)
 }
