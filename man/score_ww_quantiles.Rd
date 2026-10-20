@@ -20,7 +20,8 @@ forecast, or \code{NULL} if there are no observations to score against
 Scores the quantiles of the predicted wastewater concentrations (log genome
 copies per mL) against the later observed concentrations, for every site,
 lab and date with a later observation, for the nowcast and forecast periods
-only (the in-sample calibration period is not scored). Observations at or
+only, i.e. observations that were not available when the model was fitted
+(see \code{add_ww_eval_cols()}). Observations at or
 below the limit of detection are excluded. Predictions are already on the
 log scale, so no transformation is applied. Use \code{period} to separate the
 nowcast and forecast.

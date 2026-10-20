@@ -212,8 +212,6 @@ utils::globalVariables(c(
   "pred_value7dsum", # <format_baseline_forecasts>
   "site", # <add_ww_eval_cols>
   "lab", # <add_ww_eval_cols>
-  "log_genome_copies_per_ml", # <add_ww_eval_cols>
-  "last_obs_as_of", # <add_ww_eval_cols>
   "site", # <get_ww_eval_obs>
   "lab", # <get_ww_eval_obs>
   "log_genome_copies_per_ml", # <get_ww_eval_obs>

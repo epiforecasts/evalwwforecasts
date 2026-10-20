@@ -3,11 +3,12 @@
 #' Adds the model identifiers, the run's MCMC convergence flag (`any_flag`),
 #' the horizon relative to the forecast date, a `period` label and, if
 #' `ww_data_eval` is provided, the later observed concentrations (`observed`,
-#' `observed_below_lod`). The `period` is:
-#' - `"calibration"`: on or before the last observation for that site and lab
-#'   available as of the forecast date (in-sample fit)
-#' - `"nowcast"`: after that, up to the forecast date (not yet reported at the
-#'   time of the forecast)
+#' `observed_below_lod`). The `period` of each site, lab and date is:
+#' - `"calibration"`: on or before the forecast date, with an observation in
+#'   the data available as of the forecast date (used to fit the model)
+#' - `"nowcast"`: on or before the forecast date, without an observation in
+#'   the data available as of the forecast date. This includes dates after the
+#'   last fit-time observation and dates that were backfilled later.
 #' - `"forecast"`: after the forecast date
 #'
 #' @param ww_quantiles Data.frame of wastewater quantiles joined to the
@@ -22,7 +23,7 @@
 #'   issues by `get_fit_diagnostics()`
 #'
 #' @returns `ww_quantiles` with the additional columns
-#' @importFrom dplyr mutate group_by ungroup case_when left_join select
+#' @importFrom dplyr mutate case_when left_join
 #' @importFrom lubridate ymd
 #' @autoglobal
 add_ww_eval_cols <- function(ww_quantiles,
@@ -39,23 +40,15 @@ add_ww_eval_cols <- function(ww_quantiles,
       any_flag = any_flag,
       site = as.character(site),
       lab = as.character(lab),
-      horizon = as.numeric(ymd(date) - ymd(forecast_date))
-    ) |>
-    group_by(site, lab) |>
-    mutate(
-      last_obs_as_of = suppressWarnings(
-        max(date[!is.na(log_genome_copies_per_ml)])
-      )
-    ) |>
-    ungroup() |>
-    mutate(
+      horizon = as.numeric(ymd(date) - ymd(forecast_date)),
+      # Calibration only where the date had an observation at fit time, so
+      # observations that were not available then are always scored
       period = case_when(
         horizon > 0 ~ "forecast",
-        is.finite(last_obs_as_of) & date <= last_obs_as_of ~ "calibration",
+        !is.na(log_genome_copies_per_ml) ~ "calibration",
         TRUE ~ "nowcast"
       )
-    ) |>
-    select(-last_obs_as_of)
+    )
 
   if (!is.null(ww_data_eval) && nrow(ww_data_eval) > 0) {
     ww_quantiles <- left_join(
@@ -104,7 +97,8 @@ get_ww_eval_obs <- function(ww_data_eval) {
 #' Scores the quantiles of the predicted wastewater concentrations (log genome
 #' copies per mL) against the later observed concentrations, for every site,
 #' lab and date with a later observation, for the nowcast and forecast periods
-#' only (the in-sample calibration period is not scored). Observations at or
+#' only, i.e. observations that were not available when the model was fitted
+#' (see `add_ww_eval_cols()`). Observations at or
 #' below the limit of detection are excluded. Predictions are already on the
 #' log scale, so no transformation is applied. Use `period` to separate the
 #' nowcast and forecast.
