@@ -79,7 +79,7 @@ The hospital admissions data provided are indexed by the data of the positive te
 
 ## Evaluation
 
-We will use a single evaluation dataset from November X, 2025. It is assume that as of this date, all forecast horizons from the entire period of study (July 1st 2024 to July 7th 2025) will have reached a stable value. We will evaluate all forecasts using the 7-day rolling sum of hospital admissions. Posterior samples of forecasts will be log-transformed, along with the observations the models are evaluated against. Forecasts will be scored using proper scoring rules, with metrics including the Continuous Ranked Probability Score (CRPS), its component breakdown (underprediction, overprediction, dispersion) and interval coverage.
+We will use a single evaluation dataset from November X, 2025. It is assume that as of this date, all forecast horizons from the entire period of study (July 1st 2024 to July 7th 2025) will have reached a stable value. We will evaluate all forecasts using the 7-day rolling sum of hospital admissions. Posterior samples of forecasts will be log-transformed, along with the observations the models are evaluated against. Forecasts will be scored using proper scoring rules, with metrics including the weighted interval score (WIS), its component breakdown (underprediction, overprediction, dispersion) and interval coverage.
 
 Visual comparisons of forecasts overlaid with evaluation data will be used to assess the forecast performance of each model for individual locations.
 
@@ -87,7 +87,7 @@ We will present the results by analysing the mean scores by model and then strat
 
 When comparing forecast performance with and without wastewater, we will compute the relative WIS compared to the hospital admissions only `wwinference` model.
 
-Results which include the baseline ARIMA model will be presented in the supplement.
+The main text will focus on the head-to-head comparison of the `wwinference` models with and without wastewater. All results which include the baseline ARIMA model will be presented in the supplement.
 
 ### Model-based evaluation: investigation into drivers of differences in forecast performance with and without wastewater
 
@@ -144,13 +144,9 @@ gam_fit <- bam(
 )
 ```
 
-`CRPS^{ww+hosp}_{h,d,l} ~ \beta + CRPS^{hosponly}_{h,d,l}+ s(numberofsites, k ) + s(popcoverageww, k ) + s(avgfreqsampling, k) + s(avglatencyreporting,k) + s(minlatencyreporting, k) + s(variability_wwdata)`
-
-The idea behind this analysis will be that including the CRPS score for the `hosp only` model as an offset accounts for the baseline "difficulty" in that particular location $l$, at forecast date $d$ and horizon $h$. Each of the additional components has some (assumed to be non-linear) positive or negative impact on the relative forecast performance of the wastewater-informed model that we would like to estimate.
-
 We will plot the partial effects as a function of the number of sites, population coverage of wastewater surveillance, the average sampling frequency in the wastewater data and the average latency in reporting of the wastewater data.
 
-The estimated $\beta$ reflects the adjusted additive impact of incorporating wastewater on forecast performance taking into account the other covariates. We will implement this using a linear-link function in the R package `brms`. These exploratory analyses will be used to generate hypotheses into the impact of the characteristics of wastewater surveillance system on the performance of the `wwinference` model.
+The estimated $\beta_{ww}$ reflects the adjusted impact of incorporating wastewater on forecast performance taking into account the other covariates. Because of the log link, $\exp(\beta_{ww})$ is a multiplicative effect on the expected WIS. These exploratory analyses will be used to generate hypotheses into the impact of the characteristics of wastewater surveillance system on the performance of the `wwinference` model.
 
 # Results
 
@@ -160,20 +156,19 @@ Figure 2. Schematic diagram describing the retrospective production of forecasts
 
 ## Visual comparison of forecast performance
 
-Q: Do we include baseline in all of the below? Probably not necessary in main text but could make supplement version where we include it
-
 Figure 3. Visual comparison of fit and forecast for a subset of locations and forecast dates for 28 day horizons rows, (row1 is model forecast + data overlay, row 2 are WIS summaries, columns are locations)
 
 Supplement:
 
-1.  Fig 3 with baseline ARIMA
-2.  Add the wastewater fit and forecast and hospital forecast comparison figure to supplement
+1.  Add the wastewater fit and forecast and hospital forecast comparison figure to supplement
+
+The version of Figure 3 which includes the baseline ARIMA model is in the supplement (`supplement.qmd`).
 
 ## Quantitative forecast comparison
 
 Statistical significance test results using scoringutils/ mcs R package (same set of forecasts so can use either of these)
 
-Figure 4. "traditional" score comparison: overall, by horizon, by location, by forecast date, by location and forecast date (make a version with and without ARIMA baseline)
+Figure 4. "traditional" score comparison: overall, by horizon, by location, by forecast date, by location and forecast date (the version including the ARIMA baseline is in the supplement)
 
 A. WIS by model summarised across locations and forecast dates, broken down by under/over prediction and dispersion, in the form of a horizontal bar chart for each of the models across all 28 day horizons.
 
@@ -181,7 +176,7 @@ C. 50th and 90th interval coverage summarised across locations and forecast date
 
 B. rWIS by horizon overall
 
-D. WIS by model stratified by location ordered by CRPS of the hosp-only model (stacked bar chart x-axis = location, y-axis = CRPS breakdown, color = model, shading = WIS breakdown)
+D. WIS by model stratified by location ordered by WIS of the hosp-only model (stacked bar chart x-axis = location, y-axis = WIS breakdown, color = model, shading = WIS breakdown)
 
 E. WIS by model stratified by forecast date (stacked bar chart x-axis = date, y-axis = WIS breakdown, color = model, shading = WIS breakdown)
 

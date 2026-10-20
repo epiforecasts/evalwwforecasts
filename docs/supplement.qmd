@@ -1,0 +1,25 @@
+---
+title: "Supplement: Evaluating the influence of incorporating wastewater on real-time forecast performance: a case study applied to COVID-19 Hospitalizations in Germany during the 2024-2025 respiratory virus season"
+authors: "Kaitlyn E. Johnson"
+format: docx
+editor: visual
+bibliography: references.bib
+---
+
+# S1. Comparison with the baseline ARIMA model
+
+Figure S1. Figure 3 with the baseline ARIMA model included: forecast and evaluation data overlay (row 1) and WIS summaries (row 2) for a subset of locations and forecast dates.
+
+Figure S2. Figure 4 with the baseline ARIMA model included: WIS by model broken down by underprediction, overprediction and dispersion, 50% and 90% interval coverage, and relative WIS by horizon, location and forecast date.
+
+# S2. Epidemic phase
+
+We classified each forecast into an epidemic phase based on the change in the final evaluation data over the 28-day forecast period.
+
+For hospital admissions, we compared the 7-day rolling sum of hospital admissions on the forecast date with the 7-day rolling sum 28 days later, for each location and forecast date. A forecast was classified as increasing if admissions increased by more than 15% and by more than 5 admissions, as decreasing if admissions decreased by more than 15% and by more than 5 admissions, and as stable otherwise. The absolute threshold prevents small fluctuations at low counts from being classified as increasing or decreasing. When there were 0 admissions on the forecast date, the percent change is undefined and the phase was based on the absolute change alone.
+
+For wastewater, we classified the phase separately for each wastewater treatment plant and lab. We compared the mean log concentration in the 7 days up to the forecast date with the mean log concentration in the 7 days up to 28 days later, and classified the change as increasing (more than 15%), decreasing (less than -15%) or stable. Sites with no observations in either 7-day window were not classified.
+
+Figure S3. Epidemic phase by forecast date for each location. Top panel: hospital admissions (7-day rolling sum) from the final evaluation dataset, with each forecast date to 7 days later shaded by the hospital admissions phase over the following 28 days. Bottom panels: log wastewater concentrations at each site, shaded by that site's phase.
+
+# References
