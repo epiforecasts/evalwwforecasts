@@ -1,8 +1,9 @@
 #' Add evaluation columns to the wastewater quantiles
 #'
-#' Adds the model identifiers, the horizon relative to the forecast date, a
-#' `period` label and, if `ww_data_eval` is provided, the later observed
-#' concentrations (`observed`, `observed_below_lod`). The `period` is:
+#' Adds the model identifiers, the run's MCMC convergence flag (`any_flag`),
+#' the horizon relative to the forecast date, a `period` label and, if
+#' `ww_data_eval` is provided, the later observed concentrations (`observed`,
+#' `observed_below_lod`). The `period` is:
 #' - `"calibration"`: on or before the last observation for that site and lab
 #'   available as of the forecast date (in-sample fit)
 #' - `"nowcast"`: after that, up to the forecast date (not yet reported at the
@@ -17,6 +18,8 @@
 #' @param include_ww Logical, whether the model included wastewater
 #' @param hosp_data_real_time Logical, whether real-time hospital data were
 #'   used
+#' @param any_flag Logical, whether the model run was flagged for convergence
+#'   issues by `get_fit_diagnostics()`
 #'
 #' @returns `ww_quantiles` with the additional columns
 #' @importFrom dplyr mutate group_by ungroup case_when left_join select
@@ -26,12 +29,14 @@ add_ww_eval_cols <- function(ww_quantiles,
                              ww_data_eval,
                              forecast_date,
                              include_ww,
-                             hosp_data_real_time) {
+                             hosp_data_real_time,
+                             any_flag) {
   ww_quantiles <- ww_quantiles |>
     mutate(
       model = "wwinference",
       include_ww = include_ww,
       hosp_data_real_time = hosp_data_real_time,
+      any_flag = any_flag,
       site = as.character(site),
       lab = as.character(lab),
       horizon = as.numeric(ymd(date) - ymd(forecast_date))
@@ -110,7 +115,7 @@ get_ww_eval_obs <- function(ww_data_eval) {
 #'
 #' @returns Data.frame of scores with one row per site, lab, date and
 #'   forecast, or `NULL` if there are no observations to score against
-#' @importFrom dplyr filter select
+#' @importFrom dplyr filter select any_of
 #' @importFrom scoringutils as_forecast_quantile score
 #' @autoglobal
 score_ww_quantiles <- function(ww_quantiles, metrics) {
@@ -124,7 +129,7 @@ score_ww_quantiles <- function(ww_quantiles, metrics) {
       !observed_below_lod
     ) |>
     select(
-      model, include_ww, hosp_data_real_time,
+      model, include_ww, hosp_data_real_time, any_of("any_flag"),
       location = location_name,
       forecast_date, site, lab, date, horizon, period,
       quantile_level, predicted, observed

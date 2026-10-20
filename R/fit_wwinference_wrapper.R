@@ -160,7 +160,8 @@ fit_wwinference_wrapper <- function(
         ww_data_eval = ww_data_eval,
         forecast_date = this_forecast_date,
         include_ww = include_ww,
-        hosp_data_real_time = hosp_data_real_time
+        hosp_data_real_time = hosp_data_real_time,
+        any_flag = fit_diagnostics$any_flag
       )
     write_csv(
       ww_quantiles,
