@@ -10,6 +10,7 @@ library(tarchetypes)
 library(wwinference)
 library(dplyr)
 library(ggplot2)
+library(patchwork)
 library(readr)
 library(arrow)
 library(here)
@@ -43,6 +44,7 @@ tar_option_set(
     "tibble",
     "dplyr",
     "ggplot2",
+    "patchwork",
     "arrow",
     "readr",
     "lubridate",

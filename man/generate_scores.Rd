@@ -9,7 +9,8 @@ generate_scores(
   metrics = NULL,
   scale_selected = "log",
   save_scores = FALSE,
-  fp_data = NULL
+  fp_data = NULL,
+  epidemic_phase = NULL
 )
 }
 \arguments{
@@ -25,6 +26,10 @@ on natural or log scale, default is "log".}
 
 \item{fp_data}{Character string indicating file path to save the scores.
 Default is NULL.}
+
+\item{epidemic_phase}{Optional data.frame of epidemic phases by location
+and forecast date (e.g. from \code{get_hosp_phase()}), joined onto the
+scores. Default is NULL.}
 }
 \value{
 a dataframe containing scores for each day of forecasting horizon

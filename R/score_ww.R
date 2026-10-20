@@ -153,12 +153,22 @@ score_ww_quantiles <- function(ww_quantiles, metrics) {
 #' @param ind_filepath Character string of the directory the model run
 #'   outputs were saved to
 #' @param metrics Scoring metrics passed to `scoringutils::score()`
+#' @param hosp_phase Optional data.frame of hospital admissions phases by
+#'   location and forecast date, from `get_hosp_phase()`, joined onto the
+#'   scores
+#' @param ww_phase Optional data.frame of wastewater phases by location,
+#'   forecast date, site and lab, from `get_ww_phase()`, joined onto the
+#'   scores
 #'
 #' @returns Data.frame of scores combined across runs
-#' @importFrom dplyr bind_rows filter distinct
+#' @importFrom dplyr bind_rows filter distinct left_join mutate
 #' @importFrom readr read_csv
 #' @autoglobal
-score_ww_quantile_files <- function(scenarios, ind_filepath, metrics) {
+score_ww_quantile_files <- function(scenarios,
+                                    ind_filepath,
+                                    metrics,
+                                    hosp_phase = NULL,
+                                    ww_phase = NULL) {
   ww_runs <- scenarios |>
     filter(include_ww) |>
     distinct(forecast_date, location_name)
@@ -172,6 +182,27 @@ score_ww_quantile_files <- function(scenarios, ind_filepath, metrics) {
     ww_quantiles <- read_csv(f, show_col_types = FALSE)
     return(score_ww_quantiles(ww_quantiles, metrics = metrics))
   }))
+
+  if (nrow(scores_ww) > 0) {
+    scores_ww <- mutate(
+      scores_ww,
+      forecast_date = as.Date(forecast_date),
+      site = as.character(site),
+      lab = as.character(lab)
+    )
+    if (!is.null(hosp_phase)) {
+      scores_ww <- left_join(
+        scores_ww, hosp_phase,
+        by = c("location", "forecast_date")
+      )
+    }
+    if (!is.null(ww_phase)) {
+      scores_ww <- left_join(
+        scores_ww, ww_phase,
+        by = c("location", "forecast_date", "site", "lab")
+      )
+    }
+  }
 
   return(scores_ww)
 }
