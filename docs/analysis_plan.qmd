@@ -83,9 +83,9 @@ The hospital admissions data provided are indexed by the date of the positive te
 
 We will use a single evaluation dataset from November X, 2025 for both the hospital admissions and wastewater concentration data. It is assume that as of this date, all forecast horizons from the entire period of study (July 1st 2024 to July 7th 2025) will have reached a stable value. We will evaluate all forecasts using the 7-day rolling sum of hospital admissions. Posterior samples of forecasts will be log-transformed, along with the observations the models are evaluated against. Forecasts will be scored using proper scoring rules, with metrics including the weighted interval score (WIS), its component breakdown (underprediction, overprediction, dispersion), interval coverage and bias.
 
-#### Convergence criteria
+### Convergence criteria
 
-To be included in the analysis, both models will need to pass tests for convergnece diagnostics. Any model fits which will result in exclusion of that location-forecast date from the analysis. We will follow the default thresholds in `wwinference`, a model run will be flagged as failing to converge if any of the following hold:
+To be included in the analysis, both models will need to pass tests for convergence diagnostics. Any model fits which fail these criteria will result in exclusion of that location-forecast date from the analysis. We will follow the default thresholds in `wwinference`, a model run will be flagged as failing to converge if any of the following hold:
 
 1.  the number of divergent transitions in any chain is at least 1% of the total number of post-warmup draws across chains,
 2.  the number of transitions hitting the maximum tree depth in any chain is at least 1% of the total number of post-warmup draws across chains,
@@ -95,7 +95,7 @@ To be included in the analysis, both models will need to pass tests for convergn
 We will report the proportion of runs flagged, and as a sensitivity analysis will repeat the comparison including all forecasts even if model convergence criteria were not met.
 
 
-#### Epidemic phase classification
+### Epidemic phase classification
 
 To compare forecast performance across epidemic phases, we will classify each forecast into an epidemic phase based on the change in the final evaluation data over the 28-day forecast period.
 
@@ -107,7 +107,7 @@ For wastewater, we will classify the phase separately for each wastewater treatm
 ### Evaluation of hospital admissions forecasts
 
 
-Head-to-head comparison of hospital admissions forecast performance will include all location-forecast dates for which wastewater is present and up-to-date [consider adding definition of this if defined in code] and both models converge (See Convergence criteria above). This means that the forecast set for each model is exactly identical, which allows us to use summaries of the average WIS overall and across strata without introducing bias due to comparing different sets of forecast problems.
+Head-to-head comparison of hospital admissions forecast performance will include all location-forecast dates for which wastewater data are available and both models converge (See Convergence criteria above). This means that the forecast set for each model is exactly identical, which allows us to use summaries of the average WIS overall and across strata without introducing bias due to comparing different sets of forecast problems.
 
 Visual comparisons of forecasts overlaid with evaluation data will be used to assess the forecast performance of each model for individual locations.
 
@@ -121,7 +121,7 @@ The main text will focus on the head-to-head comparison of the `wwinference` mod
 
 ### Evaluation of wastewater concentration forecasts
 
-The wastewater-informed model produces predictions of the wastewater concentrations at each wastewater treatment plant. We will evaluate these against the final flow-normalised wastewater concentration data, separately for each wastewater treatment plant and lab. Predictions for dates on or before the forecast date which were not available at the time of the forecast, either because they were reported after the forecast date or were added to the data later, are treated as nowcasts, and predictions after the forecast date are treated as forecasts. Observations which were available when the model was fit are not scored. Observations below the limit of quantification are excluded. Since the predictions are on the log scale, the predicted and observed log concentrations are scored directly, using the bias and interval coverage. As the hospital admissions only model does not predict wastewater concentrations, this is an absolute evaluation of the wastewater-informed model rather than a comparison between models. We will summarise performance by epidemic phase (using each site's wastewater phase), over time, and by state.
+The wastewater-informed model produces predictions of the wastewater concentrations at each wastewater treatment plant. We will evaluate these against the final flow-normalised wastewater concentration data, separately for each wastewater treatment plant and lab. Predictions for dates on or before the forecast date which were not available at the time of the forecast, either because they were reported after the forecast date or were added to the data later, are treated as nowcasts, and predictions after the forecast date are treated as forecasts. Observations which were available when the model was fit are not scored. Observations below the limit of quantification are excluded. Since the predictions are on the log scale, the predicted and observed log concentrations are scored directly, using the bias and interval coverage. As the hospital admissions only model does not predict wastewater concentrations, this is an absolute evaluation of the wastewater-informed model rather than a comparison between models. Horizons for the wastewater predictions are defined relative to the forecast date, so nowcasts have horizons of 0 or less and forecasts have positive horizons. In the main text we will summarise performance by epidemic phase (using each site's wastewater phase), by horizon and over forecast dates, averaged across wastewater treatment plants. In the supplement we will summarise interval coverage for each wastewater treatment plant and for each state.
 
 
 ### Model-based evaluation: investigation into drivers of forecast performance and relative forecast performance with wastewater
@@ -138,10 +138,9 @@ To do so, we will model the WIS of the log-transformed predictions and observati
 6.  Number of wastewater treatment plants (sites)
 7.  Population coverage of all the wastewater treatment plants (proportion of the state population on wastewater)
 8.  Average sampling frequency across sites (this is likely very similar so may not be useful)
-9.  Average latency from last collection date to the forecast date
-10.  Minimum latency from last collection date to forecast date
-11. variability in wastewater data as measured by the coefficient of variation across sites and time during the calibration period
-12. Epidemic phase of hospital admissions over the forecast period (increasing, decreasing or stable)
+9.  Minimum latency from last collection date to forecast date across wastewater treatment plants
+10. variability in wastewater data as measured by the coefficient of variation across sites and time during the calibration period
+11. Epidemic phase of hospital admissions over the forecast period (increasing, decreasing or stable)
 
 Resulting in the following model formulation:
 
@@ -153,9 +152,9 @@ $$ \eta_{h,d,l,m} = \log(\mu_{h,d,l,m}) $$
 
 Where the $\eta_{h,d,l,m}$ is modelled as:
 
-$$ \log(\mu_{h,d,l,m}) = \beta_0 + \beta_{ww}d_m + c_p + f(h) + b_l + f(d) + f(pop) + f(n_{sites}) + f(\nu) + f(\rho) + f(\gamma) + f(\phi) + f(\alpha) + d_m \times \left( c^{ww}_p + g(h) + u_l + g(d) + g(pop) + g(n_{sites}) + g(\nu) + g(\rho) + g(\gamma) + g(\phi) + g(\alpha) \right) $$
+$$ \log(\mu_{h,d,l,m}) = \beta_0 + \beta_{ww}d_m + c_p + f(h) + b_l + f(d) + f(pop) + f(n_{sites}) + f(\nu) + f(\gamma) + f(\phi) + f(\alpha) + d_m \times \left( c^{ww}_p + g(h) + u_l + g(d) + g(pop) + g(n_{sites}) + g(\nu) + g(\gamma) + g(\phi) + g(\alpha) \right) $$
 
-Where $d_m$ is an indicator variable for whether wastewater was used to fit the model, $c_p$ is the overall effect of the epidemic phase (with stable as the reference phase), $b_l$, $f(h)$, $f(pop)$, $f(n_{sites})$, $f(\nu)$, $f(\rho)$, and $f(\alpha)$ are the overall effects, respectively, of location, horizon, state population, number of wastewater treatment plants, average wastewater data collection frequency $\nu$, average wastewater latency between latest collection date and forecast date $\rho$, minimum latency between collection date and forecast date $\gamma$, wastewater population coverage $\phi$, and average wastewater data variability $\alpha$. The interaction terms with $d_m$ then reflect the additional effect from incorporating wastewater of each of those variables, after already accounting for the overall impact of that variable on forecast performance across both wastewater and hospital admissions informed models. In particular, $c^{ww}_p$ is the change in the effect of incorporating wastewater in increasing and decreasing phases relative to the stable phase, so that the relative WIS in phase $p$ (at the reference values of the other covariates) is $\exp(\beta_{ww} + c^{ww}_p)$. This allows us to check whether differences in relative WIS by epidemic phase persist after adjusting for the other covariates. The formula passed to `mgcv` is provided below.
+Where $d_m$ is an indicator variable for whether wastewater was used to fit the model, $c_p$ is the overall effect of the epidemic phase (with stable as the reference phase), $b_l$, $f(h)$, $f(pop)$, $f(n_{sites})$, $f(\nu)$, $f(\gamma)$, $f(\phi)$ and $f(\alpha)$ are the overall effects, respectively, of location, horizon, state population, number of wastewater treatment plants, average wastewater data collection frequency $\nu$, minimum latency between the latest collection date and the forecast date $\gamma$, wastewater population coverage $\phi$, and average wastewater data variability $\alpha$. The interaction terms with $d_m$ then reflect the additional effect from incorporating wastewater of each of those variables, after already accounting for the overall impact of that variable on forecast performance across both wastewater and hospital admissions informed models. In particular, $c^{ww}_p$ is the change in the effect of incorporating wastewater in increasing and decreasing phases relative to the stable phase, so that the relative WIS in phase $p$ (at the reference values of the other covariates) is $\exp(\beta_{ww} + c^{ww}_p)$. This allows us to check whether differences in relative WIS by epidemic phase persist after adjusting for the other covariates. The formula passed to `mgcv` is provided below.
 
 ``` r
 gam_fit <- bam(
@@ -170,7 +169,6 @@ gam_fit <- bam(
     s(pop_coverage, k = 5) + s(pop_coverage, k = 5, by = include_ww) +
     s(avg_sampling_freq, k = 5) +
     s(avg_sampling_freq, k = 5, by = include_ww) +
-    s(avg_latency, k = 5) + s(avg_latency, k = 5, by = include_ww) +
     s(min_latency, k = 5) + s(min_latency, k = 5, by = include_ww) +
     s(avg_data_variability, k = 5) +
     s(avg_data_variability, k = 5, by = include_ww),
@@ -183,13 +181,17 @@ gam_fit <- bam(
 
 The estimated $\beta_{ww}$ reflects the adjusted impact of incorporating wastewater on forecast performance in the stable phase, taking into account the other covariates. Because of the log link, $\exp(\beta_{ww})$ is a multiplicative effect on the expected WIS. We will report the relative WIS for each epidemic phase, with 95% intervals computed from the model's linear predictor, and plot the multiplicative effects of the wastewater surveillance characteristics on the relative WIS.
 
-Because epidemic phases occur in runs of consecutive weeks, the forecast date smooth for the wastewater-informed model, $g(d)$, may absorb some of the epidemic phase effect. We will therefore also fit the model with a less flexible forecast date smooth and compare the estimated epidemic phase effects. Latency was high for most locations at the same forecast dates (around the end of December and beginning of January), so the effect of latency may be confounded by forecast date; we will also consider an interaction between minimum latency and forecast date. As there are only 16 locations, the location-level characteristics (population size, number of sites and population coverage) cannot be fully separated from each other or from the location effects.
+Because epidemic phases occur in runs of consecutive weeks, the forecast date smooth for the wastewater-informed model, $g(d)$, may absorb some of the epidemic phase effect. We will therefore also fit the model with a less flexible forecast date smooth and compare the estimated epidemic phase effects. Latency was high for most locations at the same forecast dates (around the end of December and beginning of January). The forecast date smooths account for effects shared by all locations on a forecast date, so the effect of latency is estimated from differences in latency between locations on the same forecast date. We include only the minimum latency, rather than both the minimum and average latency, since the two are correlated. As there are only 16 locations, the location-level characteristics (population size, number of sites and population coverage) cannot be fully separated from each other or from the location effects.
+
+The relative WIS by epidemic phase is therefore estimated in two ways. The bootstrapped relative WIS by epidemic phase (Figure 3) is the primary, unadjusted result. The model-based estimate is adjusted for location, horizon, forecast date and the wastewater surveillance characteristics, and is exploratory. If the two agree, this strengthens the finding; if they differ, this suggests the unadjusted differences between phases are partly explained by the other covariates (for example, if increasing phases are concentrated in particular locations or periods). We will present the two estimates side by side.
 
 These exploratory analyses will be used to generate hypotheses into the impact of the characteristics of wastewater surveillance system on the performance of the `wwinference` model.
 
 # Results
 
 Figure 1. Schematic of the model (A) and of the retrospective production of forecasts and the evaluation procedure (B).
+
+Table 1. Summary of the wastewater surveillance system and the forecasts included for each state: number of wastewater treatment plants, population coverage, average sampling frequency, minimum latency (median and range across forecast dates), variability in wastewater data, and the number of location-forecast dates included, excluded because wastewater data were not available, and excluded because either model failed the convergence criteria.
 
 ## Visual comparison of forecast performance
 
@@ -203,7 +205,7 @@ Statistical significance test results using scoringutils/ mcs R package (same se
 
 Figure 3. Head-to-head comparison of hospital admissions forecasts with and without wastewater, across all locations and forecast dates (the version including the ARIMA baseline is in the supplement). Intervals are bootstrapped 95% intervals.
 
-A. WIS by model, broken down by underprediction, overprediction and dispersion (horizontal bar chart). Bands indicated 95% intervals on overall WIS.
+A. WIS by model, broken down by underprediction, overprediction and dispersion (horizontal bar chart). Bands indicate 95% intervals on overall WIS.
 
 B. Relative WIS by horizon, with bootstrapped intervals.
 
@@ -211,19 +213,19 @@ C. Relative WIS by epidemic phase, with bootstrapped intervals.
 
 D. 50% and 90% interval coverage by horizon for each model.
 
-E. Bias by epidemic phase for each model (dot plot centered around 1).
+E. Bias by epidemic phase for each model (dot plot centered around 0).
 
-F. Heatmap of relative WIS averaged across horizons for each forecast date and location (x-axis = forecast date, y-axis = location, color = relative WIS)
+A heatmap of relative WIS for each forecast date and location is in the supplement.
 
 ## Evaluation of wastewater concentration forecasts
 
 Figure 4. Performance of the wastewater-informed model's nowcasts and forecasts of wastewater concentrations, across all wastewater treatment plants (nowcasts and forecasts shown separately).
 
-A. Bias by wastewater epidemic phase (increasing, decreasing, stable) (do plot centered around 1).
+A. Bias by wastewater epidemic phase (increasing, decreasing, stable) (dot plot centered around 0).
 
 B. Calibration: proportion of observations within each central prediction interval against its nominal coverage
 
-C. 50% and 90% interval coverage by horizon, averaged across wastewater treatment plants and states.
+C. 50% and 90% interval coverage by horizon (including nowcast horizons of 0 or less), averaged across wastewater treatment plants and states.
 
 D. 50% and 90% interval coverage over time, averaged across wastewater treatment plants and states.
 
@@ -231,11 +233,11 @@ D. 50% and 90% interval coverage over time, averaged across wastewater treatment
 
 Figure 5. Exploratory model-based evaluation results.
 
-A. Relative WIS for each epidemic phase, adjusted for the other covariates ($\exp(\beta_{ww} + c^{ww}_p)$), with 95% intervals
+A. Relative WIS for each epidemic phase: the unadjusted estimate with bootstrapped 95% intervals (as in Figure 3) side by side with the estimate adjusted for the other covariates ($\exp(\beta_{ww} + c^{ww}_p)$) with 95% intervals from the model
 
-B. Multiplicative effect on the relative WIS of the wastewater surveillance characteristics (number of sites, population coverage, average sampling frequency, average and minimum latency, variability in wastewater data) and state population size, on a log scale
+B. Multiplicative effect on the relative WIS of the wastewater surveillance characteristics (number of sites, population coverage, average sampling frequency, minimum latency, variability in wastewater data) and state population size, on a log scale
 
-Supplement: location effects, horizon and forecast date smooths, model diagnostics, and the sensitivity analysis with a less flexible forecast date smooth.
+Supplement: scatterplots of the relative WIS against each covariate, location effects, horizon and forecast date smooths, model diagnostics, and the sensitivity analysis with a less flexible forecast date smooth.
 
 ## Extensions to still consider:
 
