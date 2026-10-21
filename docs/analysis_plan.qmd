@@ -1,5 +1,5 @@
 ---
-title: "Evaluating the influence of incorporating wastewater on real-time forecast performance: a case study applied to COVID-19 Hospitalizations in Germany during the 2024-2025 respiratory virus season"
+title: "Evaluating the influence of incorporating wastewater on forecast performance: a case study applied to COVID-19 Hospitalizations in Germany during the 2024-2025 respiratory virus season"
 authors: "Kaitlyn E. Johnson"
 format: docx
 editor: visual
@@ -67,7 +67,7 @@ We will use the following models to produce forecasts of the 7-day rolling sum o
 
 2.  `wwinference` (`hosp only`): This model fits to only to the daily hospital admissions at the state-level. It will be calibrated using the most recent 90 days of data on hospital admissions.
 
-3.  Baseline ARIMA (`arima_baseline`): This model will be fit only to the 7-day rolling sum of hospital admissions at the state level, using the `auto.arima()` function in the `forecast` R package, which will perform an optimization of both the model parameters and the autoregressive order $p$, differencing order $d$ and the moving average order $q$. We intend to use this as a reference point for comparing the magnitude of the absolute scores so that we can put the forecast comparison with and without wastewater in context. It will be calibrated using the entire historical admissions time series. Results compared to the ARIMA will be presented in the supplement.
+3.  Baseline ARIMA (`arima_baseline`): This model will be fit only to the 7-day rolling sum of hospital admissions at the state level, using the `auto.arima()` function in the `forecast` R package, which will perform an optimization of both the model parameters and the autoregressive order $p$, differencing order $d$ and the moving average order $q$. We intend to use this as a reference point for comparing the magnitude of the absolute scores so that we can put the forecast comparison with and without wastewater in context. It will be calibrated using the entire historical admissions time series.
 
 Both semi-mechanistic renewal models, which we refer to as the `wwinference` models, will be implemented using the R package `wwinference`. This model expects the input in terms of daily hospital admissions and returns forecasts of the number of daily hospital admissions and wastewater concentrations. Hospital admissions forecasts will be transformed from daily values to 7-day rolling sums for visualisation and evaluation. Full mathematical details on the model are available in [@wwinference] as well as an abbreviated version provided in S1. Text: Mathematical model.
 

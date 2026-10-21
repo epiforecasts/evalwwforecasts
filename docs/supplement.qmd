@@ -1,5 +1,5 @@
 ---
-title: "Supplement: Evaluating the influence of incorporating wastewater on real-time forecast performance: a case study applied to COVID-19 Hospitalizations in Germany during the 2024-2025 respiratory virus season"
+title: "Supplement: Evaluating the influence of incorporating wastewater on forecast performance: a case study applied to COVID-19 Hospitalizations in Germany during the 2024-2025 respiratory virus season"
 authors: "Kaitlyn E. Johnson"
 format: docx
 editor: visual
