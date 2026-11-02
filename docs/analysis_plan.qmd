@@ -191,52 +191,62 @@ Table 1. Summary of the wastewater surveillance system and the forecasts include
 
 ## Visual comparison of forecast performance
 
-Figure 2. Example forecasts for three location-forecast dates, one each in an increasing, decreasing and stable epidemic phase (columns). Row 1: forecasts of hospital admissions from the `ww + hosp` and `hosp only` models overlaid with the evaluation data, with the background shaded by the hospital admissions epidemic phase. Row 2: WIS of each model by horizon. Row 3: fit and forecast of wastewater concentrations at one wastewater treatment plant in the same location, overlaid with the evaluation data and shaded by that site's epidemic phase.
+Figure 2. Example forecasts for three forecast dates from a single location, one each in an increasing, decreasing and stable epidemic phase (columns). Row 1: fit and forecasts of hospital admissions from the `ww + hosp` and `hosp only` models overlaid with the evaluation data, with the background shaded by the hospital admissions epidemic phase. Row 2: fit and forecast of wastewater concentrations at one wastewater treatment plant in the same location. Column 1: increasing, column 2: decreasing, column 3: stable.
 
 The version of Figure 2 which includes the baseline ARIMA model is in the supplement.
 
 ## Quantitative forecast comparison
 
-Statistical significance test results using scoringutils/ mcs R package (same set of forecasts so can use either of these)
+Uncertainty quantification using block bootstrapping using [Pohle et al.](https://arxiv.org/abs/2605.03997) to define the block length. Create bootstrapped replicates once at the level of nowcasts and then use these samples to compute Bonferroni CIs around the observed metric
 
-Figure 3. Head-to-head comparison of hospital admissions forecasts with and without wastewater, across all locations and forecast dates (the version including the ARIMA baseline is in the supplement). Intervals are bootstrapped 95% intervals.
+Figure 3. Head-to-head comparison of hospital admissions forecasts with and without wastewater, across all locations and forecast dates (the version including the ARIMA baseline is in the supplement). Intervals are Bonferroni 95% CI.
 
 A. WIS by model, broken down by underprediction, overprediction and dispersion (horizontal bar chart). Bands indicate 95% intervals on overall WIS.
 
-B. Relative WIS by horizon, with bootstrapped intervals.
+B. Relative WIS by horizon, with CI.
 
-C. Relative WIS by epidemic phase, with bootstrapped intervals.
+C. Relative WIS by epidemic phase, with CI.
 
 D. 50% and 90% interval coverage by horizon for each model.
 
 E. Bias by epidemic phase for each model (dot plot centered around 0).
 
-A heatmap of relative WIS for each forecast date and location is in the supplement.
+Supplement:
+
+-   A heatmap of relative WIS for each forecast date and location
+
+<!-- -->
+
+-    Histogram of the distribution of rWIS for individual forecast-date locations in
+
+-   scatter plot of WIS ww + hosp vs WIS hosp for individual forecast-date locations
+
+## Investigation into drivers of differences in forecast performance
+
+Figure 4. Exploratory model-based evaluation results.
+
+A. Multiplicative effect of including wastewater on WIS with 95% intervals from model
+
+B. Relative WIS for each epidemic phase: the unadjusted estimate with bootstrapped 95% intervals (as in Figure 3) side by side with the estimate adjusted for the other covariates ($\exp(\beta_{ww} + c^{ww}_p)$) with 95% intervals from the model
+
+B. Multiplicative effect on the relative WIS of the wastewater surveillance characteristics (number of sites, population coverage, average sampling frequency, minimum latency, variability in wastewater data) and state population size, on a log scale (pick a few of these).
+
+Figure out how to arrange this one once we've plotted the effect sizes by these continuous variables and determined which ones are worth showing.
+
+Supplement: scatterplots of the relative WIS against each covariate, location effects, horizon and forecast date smooths, model diagnostics, and the sensitivity analysis with a less flexible forecast date smooth.
 
 ## Evaluation of wastewater concentration forecasts
 
-Figure 4. Performance of the wastewater-informed model's nowcasts and forecasts of wastewater concentrations, across all wastewater treatment plants (nowcasts and forecasts shown separately).
+Figure 5. Performance of the wastewater-informed model's nowcasts and forecasts of wastewater concentrations, across all wastewater treatment plants (nowcasts and forecasts shown separately).
 
 A. Bias by wastewater epidemic phase (increasing, decreasing, stable) (dot plot centered around 0).
 
-B. Calibration: proportion of observations within each central prediction interval against its nominal coverage
+B. Calibration: proportion of observations within each central prediction interval against its nominal coverage (QQ plots)
 
 C. 50% and 90% interval coverage by horizon (including nowcast horizons of 0 or less), averaged across wastewater treatment plants and states.
 
 D. 50% and 90% interval coverage over time, averaged across wastewater treatment plants and states.
 
-## Investigation into drivers of differences in forecast performance with and without wastewater
-
-Figure 5. Exploratory model-based evaluation results.
-
-A. Relative WIS for each epidemic phase: the unadjusted estimate with bootstrapped 95% intervals (as in Figure 3) side by side with the estimate adjusted for the other covariates ($\exp(\beta_{ww} + c^{ww}_p)$) with 95% intervals from the model
-
-B. Multiplicative effect on the relative WIS of the wastewater surveillance characteristics (number of sites, population coverage, average sampling frequency, minimum latency, variability in wastewater data) and state population size, on a log scale
-
-Supplement: scatterplots of the relative WIS against each covariate, location effects, horizon and forecast date smooths, model diagnostics, and the sensitivity analysis with a less flexible forecast date smooth.
-
-## Extensions to still consider:
-
-1.  Evaluation of trend categorisation: We could classify each posterior draw of each forecast as increasing, decreasing, or stable based on the trajectory of hospital admissions, and so each forecast we could assign a probability for each of the three categories. We could then evaluate compared to the later observed data using the Brier score, and compare the Brier scores across different strata (locations, forecast dates, overall).
+Layout: 4 x4 grid
 
 # References
