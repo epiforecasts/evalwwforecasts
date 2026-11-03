@@ -138,7 +138,7 @@ create_permutations_targets <- list(
   ),
   tar_target(
     name = baseline_models,
-    command = tibble(model = "arima_baseline")
+    command = tibble(model = c("arima_baseline", "ww_regression"))
   ),
   # Create the scenarios table for the baseline models models
   tar_group_by(

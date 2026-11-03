@@ -2,25 +2,40 @@
 % Please edit documentation in R/fit_gam.R
 \name{fit_gam_long}
 \alias{fit_gam_long}
-\title{Fit the long-format GAM with wastewater inclusion as a covariate}
+\title{Fit the long-format GAM for one model type, with and without wastewater}
 \usage{
-fit_gam_long(scores_to_model, standardize = FALSE)
+fit_gam_long(
+  scores_long_to_model,
+  model_type = "renewal",
+  standardize = FALSE,
+  k_date = 40
+)
 }
 \arguments{
-\item{scores_to_model}{wide table of scores with wastewater metadata}
+\item{scores_long_to_model}{Long-format scores from
+\code{prep_scores_long_to_model()}}
+
+\item{model_type}{Character string, the model type to fit to. Default
+\code{"renewal"}.}
 
 \item{standardize}{logical, whether to z-score covariates before fitting}
+
+\item{k_date}{Integer, basis dimension of the forecast date smooths.
+Default \code{40}; use a smaller value for the sensitivity analysis with a
+less flexible forecast date smooth.}
 }
 \value{
 GAM object (with scaling attributes if standardize = TRUE)
 }
 \description{
-Stacks the WIS of the hospital-only and wastewater models into one
-response. Every term has a shared smooth, describing how forecast
-difficulty varies for both models, and a difference smooth for the
-wastewater model (\code{by = include_ww}, an ordered factor), describing how
-the effect of including wastewater varies. exp(include_ww coefficient +
-difference smooths) is the relative WIS.
+Stacks the WIS of the model with and without wastewater, for a single
+model type (e.g. the renewal models), into one response. Every term has a
+shared smooth, describing how forecast difficulty varies for both models,
+and a difference smooth for the wastewater model (\code{by = include_ww}, an
+ordered factor), describing how the effect of including wastewater
+varies. exp(include_ww coefficient + difference smooths) is the relative
+WIS, and \code{include_ww:hosp_phase} gives the change in the relative WIS in
+increasing and decreasing phases relative to the stable phase.
 }
 \details{
 Neither model's score appears in a denominator. In an intercept-only

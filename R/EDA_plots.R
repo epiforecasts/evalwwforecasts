@@ -15,7 +15,7 @@
 #' @importFrom glue glue
 #' @importFrom lubridate ymd days
 #' @importFrom ggplot2 ggplot aes geom_line geom_ribbon geom_point xlab
-#'   ylab ggtitle theme_bw
+#'   ylab ggtitle theme_bw facet_wrap
 #' @autoglobal
 plot_forecast_comparison <- function(
   forecasts_w_eval_data,
@@ -58,7 +58,8 @@ plot_forecast_comparison <- function(
     theme_bw() +
     xlab("") +
     ylab("7-day rolling sum of hospital admissions") +
-    ggtitle(glue("Forecast comparison for {this_location}"))
+    ggtitle(glue("Forecast comparison for {this_location}")) +
+    facet_wrap(~ model + include_ww, ncol = 1)
 
   return(p)
 }

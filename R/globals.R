@@ -99,9 +99,26 @@ utils::globalVariables(c(
   "location", # <prep_gam_data>
   "forecast_date", # <prep_gam_data>
   "gam_weight", # <fit_gam>
-  "wis_ww", # <fit_gam_long>
-  "wis_hosp", # <fit_gam_long>
-  "model", # <fit_gam_long>
+  "location", # <prep_scores_long_to_model>
+  "forecast_date", # <prep_scores_long_to_model>
+  "any_flag", # <prep_scores_long_to_model>
+  "model", # <prep_scores_long_to_model>
+  "include_ww", # <prep_scores_long_to_model>
+  "hosp_phase", # <prep_scores_long_to_model>
+  "wis", # <prep_scores_long_to_model>
+  "n_sites", # <prep_scores_long_to_model>
+  "pop_coverage", # <prep_scores_long_to_model>
+  "avg_sampling_freq", # <prep_scores_long_to_model>
+  "min_latency", # <prep_scores_long_to_model>
+  "avg_data_variability", # <prep_scores_long_to_model>
+  "state_pop", # <prep_scores_long_to_model>
+  "horizon", # <prep_scores_long_to_model>
+  "model_type", # <fit_gam_combined>
+  "include_ww", # <fit_gam_combined>
+  "term", # <get_plot_combined_ww_effects>
+  "rel_wis", # <get_plot_combined_ww_effects>
+  "lower", # <get_plot_combined_ww_effects>
+  "upper", # <get_plot_combined_ww_effects>
   ".smooth", # <get_plot_effect_by_location>
   ".estimate", # <get_plot_effect_by_location>
   ".se", # <get_plot_effect_by_location>
@@ -134,6 +151,7 @@ utils::globalVariables(c(
   "exp_conf.high", # <get_glm_coef_table>
   "p.value", # <get_glm_coef_table>
   "include_ww", # <get_plot_gam_diagnostics>
+  "model_type", # <get_plot_gam_diagnostics>
   "horizon", # <get_plot_gam_diagnostics>
   "resid", # <get_plot_gam_diagnostics>
   "model", # <get_plot_gam_diagnostics>
@@ -141,6 +159,16 @@ utils::globalVariables(c(
   "location", # <get_plot_gam_diagnostics>
   "wis_hosp", # <plot_scores_fit_gam>
   "wis_ww", # <plot_scores_fit_gam>
+  "updated_hosp_7d_count", # <fit_ww_regression>
+  "origin", # <fit_ww_regression>
+  "anchor", # <fit_ww_regression>
+  "lab", # <fit_ww_regression>
+  "site", # <fit_ww_regression>
+  ".env", # <fit_ww_regression>
+  "response", # <fit_ww_regression>
+  "hosp_growth", # <fit_ww_regression>
+  "ww_growth", # <fit_ww_regression>
+  "site_pop", # <get_ww_growth>
   "site", # <fit_wwinference_wrapper>
   "lab", # <fit_wwinference_wrapper>
   "log_genome_copies_per_ml", # <fit_wwinference_wrapper>

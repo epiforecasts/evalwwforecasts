@@ -29,7 +29,7 @@ Wastewater surveillance has shown promise for monitoring for presence/absence, f
 
 The goal of these analyses will be to assess, in the context of the 2024-2025 respiratory virus season in Germany using the `wwinference` model:
 
-1.  Quantify the effect of incorporating wastewater data on the performance of hospital admissions forecasts from a semi-mechanistic renewal model in Germany.
+1.  Quantify the effect of incorporating wastewater data on the performance of hospital admissions forecasts from a semi-mechanistic renewal model in Germany, and compare it to the effect of incorporating wastewater into a simple statistical model.
 
 2.  Quantify the model's ability to forecast wastewater concentrations.
 
@@ -37,7 +37,7 @@ The goal of these analyses will be to assess, in the context of the 2024-2025 re
 
 ## What we do here
 
-In this paper, we retrospectively produced 28-day ahead forecasts of the 7-day rolling sum of incident COVID-19 hospital admissions, with and without incorporating wastewater, for each state in Germany from July 2024 to July 2025 using a semi-mechanistic renewal model, `wwinference`. In all cases, we used GitHub's commit history to ensure that we only used the wastewater and hospital admissions data that would have been available as of the forecast date. Hospital admissions and wastewater concentration forecasts were evaluated against a final evaluation dataset using proper scoring metrics. We assess the value of incorporating wastewater by comparing the scores from each model overall, across horizons, locations, forecast dates, and epidemic phase. Forecasts of wastewater concentrations were evaluated using interval coverage and bias metrics. To explore the potential impact of different characteristics of the wastewater surveillance system on forecast performance, we used a generalized additive model (GAM) with all forecast scores as an outcome, with covariates for wastewater presence/absence and other variables we hypothesized may have an impact on forecast performance or the relative forecast performance of incorporating wastewater. We conclude by discussing areas for future development in wastewater-informed forecasting.
+In this paper, we retrospectively produced 28-day ahead forecasts of the 7-day rolling sum of incident COVID-19 hospital admissions, with and without incorporating wastewater, for each state in Germany from July 2024 to July 2025 using a semi-mechanistic renewal model, `wwinference`, and a simple statistical model, giving a 2x2 design of model type (renewal or simple statistical) by data (with or without wastewater). This allows us to assess whether any value of wastewater depends on how it is incorporated, and whether the mechanistic structure of the renewal model adds value beyond a simple statistical model. In all cases, we used GitHub's commit history to ensure that we only used the wastewater and hospital admissions data that would have been available as of the forecast date. Hospital admissions and wastewater concentration forecasts were evaluated against a final evaluation dataset using proper scoring metrics. We assess the value of incorporating wastewater by comparing the scores from each model overall, across horizons, locations, forecast dates, and epidemic phase. Forecasts of wastewater concentrations were evaluated using interval coverage and bias metrics. To explore the potential impact of different characteristics of the wastewater surveillance system on forecast performance, we used generalized additive models (GAMs) with all forecast scores as an outcome, fit separately for each model type and combined across model types, with covariates for wastewater presence/absence and other variables we hypothesized may have an impact on forecast performance or the relative forecast performance of incorporating wastewater. We conclude by discussing areas for future development in wastewater-informed forecasting.
 
 # Methods
 
@@ -55,7 +55,7 @@ The hospital admissions data provided are indexed by the date of the positive te
 
 ### Wastewater data
 
-Data on the measured genome copies per unit volume (concentration) of SARS-CoV-2 are available from individual wastewater treatment plants, which we will refer to as sites, indexed by sample collection date on RKI's GitHub [@RKI_AMELAG]. Flow rates are used to convert the concentration to flow-normalised concentration (genome copies per person) by multiplying the measured concentration by the volume of flow per person on each measured day. Populations sizes within a site are assumed to remain static. Data are also available aggregated at the state-level. However, we do not plan to use the state-level aggregated data, as these end up getting back-corrected because multiple sites contribute with different reporting delays. The `wwinference` model is designed to be able to fit to either the genome copies per unit volume (concentration) or genome copies per person (flow-normalised concentrations) from multiple wastewater treatment plants, grouping observations by wastewater treatment plant and lab. The wastewater data contains an indicator for a change in lab method, which we will use as a way of grouping sets of observations, meaning we will essentially treat each change in lab method as a new "lab". Each wastewater treatment plant is contained within a state, and contains the metadata on the catchment area (population size) served by the wastewater treatment plant. We will assume all individuals served by the wastewater treatment plant reside within the state. We will jointly fit to all wastewater treatment plants and lab methods within a state. Each state's model is fit independently.
+Data on the measured genome copies per unit volume (concentration) of SARS-CoV-2 are available from individual wastewater treatment plants, which we will refer to as sites, indexed by sample collection date on RKI's GitHub [@RKI_AMELAG]. Flow rates are used to convert the concentration to flow-normalised concentration (genome copies per person) by multiplying the measured concentration by the volume of flow per person on each measured day. Populations sizes within a site are assumed to remain static. A population-weighted aggregate across sites is also published, but only at the national level, so we do not use it. The `wwinference` model is designed to be able to fit to either the genome copies per unit volume (concentration) or genome copies per person (flow-normalised concentrations) from multiple wastewater treatment plants, grouping observations by wastewater treatment plant and lab. The wastewater data contains an indicator for a change in lab method, which we will use as a way of grouping sets of observations, meaning we will essentially treat each change in lab method as a new "lab". Each wastewater treatment plant is contained within a state, and contains the metadata on the catchment area (population size) served by the wastewater treatment plant. We will assume all individuals served by the wastewater treatment plant reside within the state. We will jointly fit to all wastewater treatment plants and lab methods within a state. Each state's model is fit independently.
 
 #### Limit of quantification of the wastewater concentrations
 
@@ -65,13 +65,17 @@ In the case where half or fewer than half of the measured genes are below the th
 
 ## Forecasting model specification
 
-We will use the following forecasting models to produce probabilistic predictions of the 7-day rolling sum of COVID-19 hospital admissions for 28 days ahead of the forecast date:
+We will use the following forecasting models to produce probabilistic predictions of the 7-day rolling sum of COVID-19 hospital admissions for 28 days ahead of the forecast date. The four main models form a 2x2 design: two model types, a semi-mechanistic renewal model and a simple statistical model, each fit with and without wastewater. Comparing each model with and without wastewater gives the value of wastewater within that model type, and comparing the two model types shows whether the value of wastewater depends on how it is incorporated.
 
 1.  `wwinference` (`ww + hosp`): This model jointly fits to the daily hospital admissions at the state-level and the wastewater concentration data from the treatment plants within the state. It will be calibrated using the most recent 90 days of data from both wastewater and hospital admissions.
 
 2.  `wwinference` (`hosp only`): This model fits to only to the daily hospital admissions at the state-level. It will be calibrated using the most recent 90 days of data on hospital admissions.
 
-3.  Baseline ARIMA (`arima_baseline`): This model will be fit only to the 7-day rolling sum of hospital admissions at the state level, using the `auto.arima()` function in the `forecast` R package, which will perform an optimization of both the model parameters and the autoregressive order $p$, differencing order $d$ and the moving average order $q$. We intend to use this as a reference point for comparing the magnitude of the absolute scores so that we can put the forecast comparison with and without wastewater in context. It will be calibrated using the entire historical admissions time series.
+3.  Simple statistical model (`ww_regression`, `ww + hosp`): A direct quantile regression of the change in the log 7-day rolling sum of hospital admissions over each forecast horizon on the recent growth in hospital admissions and the recent growth in wastewater concentrations (see Implementation). It does not need wastewater concentrations to be projected forward. It will be calibrated using the entire historical hospital admissions and wastewater time series available as of the forecast date.
+
+4.  Simple statistical model (`ww_regression`, `hosp only`): The same model without the wastewater growth term.
+
+5.  Baseline ARIMA (`arima_baseline`): This model will be fit only to the 7-day rolling sum of hospital admissions at the state level, using the `auto.arima()` function in the `forecast` R package, which will perform an optimization of both the model parameters and the autoregressive order $p$, differencing order $d$ and the moving average order $q$. We intend to use this as a widely used reference point for the magnitude of the absolute scores. It will be calibrated using the entire historical admissions time series.
 
 ## Implementation
 
@@ -79,13 +83,27 @@ Both semi-mechanistic renewal models, which we refer to as the `wwinference` mod
 
 Each `wwinference` model will be fit using 4 chains with 750 warmup and 500 sampling iterations each, an adaptation target acceptance statistic of 0.95 and a maximum tree depth of 12 (the `wwinference` defaults). For each model run we will record MCMC convergence diagnostics: the number of divergent transitions, the number of transitions hitting the maximum tree depth, the Bayesian fraction of missing information (E-BFMI), the potential scale reduction factor ($\hat{R}$) and the bulk and tail effective sample sizes.
 
+### Simple statistical model
+
+The simple statistical model is a direct multi-step forecasting model: rather than projecting forward recursively, a separate model is fit for each forecast horizon, so that only data available on the forecast date are needed [@McDonald2021]. It is fit in two steps.
+
+First, we estimate the growth rate of wastewater concentrations in the state on each date $s$, as the slope $\hat{r}_{ww}(s)$ of a linear regression of log concentration on time, with a fixed effect for each wastewater treatment plant and lab, weighted by the population served by each plant. The fixed effects mean that differences in concentration between plants and changes of lab do not affect the slope, which is estimated only from changes within each plant-lab series. The regression uses all samples collected in the 35 days before $s$ that had been reported by $s$. If these samples span fewer than 14 days, the growth rate is not estimated.
+
+Second, for each horizon $h = 0, \dots, 28$ days after the forecast date, we fit a quantile regression, using the `quantreg` R package, at each of the quantile levels used for evaluation (0.025, 0.05, 0.25, 0.5, 0.75, 0.95, 0.975):
+
+$$ \log(y_{s+h} + 1) - \log(y_{s-L} + 1) = \beta_{0,h} + \beta_{1,h} \hat{r}_{hosp}(s) + \beta_{2,h} \hat{r}_{ww}(s) + \epsilon_h $$
+
+where $y$ is the 7-day rolling sum of hospital admissions, $y_{s-L}$ is the latest value available on date $s$, $L$ is the delay from the latest hospital admissions data to the forecast date, and $\hat{r}_{hosp}(s) = \log(y_{s-L} + 1) - \log(y_{s-L-7} + 1)$ is the growth in hospital admissions over the preceding week. The `hosp only` version drops the $\hat{r}_{ww}$ term.
+
+The model is trained on every past date $s$ for which $y_{s+h}$ is observed in the data available on the forecast date. To mimic the information available in real time, the training data use the same reporting delays as on the forecast date: the hospital admissions are lagged by $L$, and each wastewater treatment plant's samples are only used on date $s$ if they were collected at least as long before $s$ as that plant's latest sample was before the forecast date. Training dates where the wastewater growth rate could not be estimated are excluded. If the wastewater growth rate cannot be estimated on the forecast date, the `ww + hosp` forecast is made without the wastewater term. Forecasts are obtained by adding the predicted quantiles of the change to $\log(y_{s-L} + 1)$ and transforming back to the natural scale, with the quantiles sorted to avoid quantile crossing.
+
 ## Evaluation
 
 We will use a single evaluation dataset from November X, 2025 to evaluate both the hospital admissions and wastewater concentration data. It is assumed that as of this date, all forecast horizons from the entire period of study (July 1st 2024 to July 7th 2025) will have reached a stable value. We will evaluate all forecasts using the 7-day rolling sum of hospital admissions. Posterior samples of forecasts will be log-transformed, along with the observations the models are evaluated against. Forecasts will be scored using proper scoring rules, with metrics including the weighted interval score (WIS), its component breakdown (underprediction, overprediction, dispersion), interval coverage, and bias.
 
 ### Convergence criteria
 
-To be included in the analysis, both `wwinference` models will need to pass tests for convergence diagnostics. Any model fits which fail these criteria will result in exclusion of that location-forecast date from the analysis (removing all three models). We will follow the default thresholds in `wwinference`, a model run will be flagged as failing to converge if any of the following hold:
+To be included in the analysis, both `wwinference` models will need to pass tests for convergence diagnostics. Any model fits which fail these criteria will result in exclusion of that location-forecast date from the analysis (removing all models). We will follow the default thresholds in `wwinference`, a model run will be flagged as failing to converge if any of the following hold:
 
 1.  the number of divergent transitions in any chain is at least 1% of the total number of post-warmup draws across chains,
 2.  the number of transitions hitting the maximum tree depth in any chain is at least 1% of the total number of post-warmup draws across chains,
@@ -104,21 +122,21 @@ For wastewater, we will classify the phase separately for each wastewater treatm
 
 ### Evaluation of hospital admissions forecasts
 
-Head-to-head comparison of hospital admissions forecast performance will include all location-forecast dates for which wastewater data are available and both models converge (See Convergence criteria above). This means that the forecast set for each model is exactly identical, which allows us to use summaries of the average WIS overall and across strata without introducing bias due to comparing different sets of forecast problems.
+Head-to-head comparison of hospital admissions forecast performance will include all location-forecast dates for which wastewater data are available and both `wwinference` models converge (See Convergence criteria above). This means that the forecast set for each model is exactly identical, which allows us to use summaries of the average WIS overall and across strata without introducing bias due to comparing different sets of forecast problems.
 
 Visual comparisons of forecasts overlaid with evaluation data will be used to assess the forecast performance of each model for individual locations.
 
 We will present the results by analysing the overall scores by model and then stratifying by location, forecast date, and horizon.
 
-When comparing hospital admissions forecast performance with and without wastewater, we will compute the relative WIS compared to the hospital admissions only `wwinference` model, as the ratio of the mean WIS of the two models.
+When comparing hospital admissions forecast performance with and without wastewater, we will compute the relative WIS within each model type, compared to the hospital admissions only model of the same type (`wwinference` `ww + hosp` vs `hosp only`, and `ww_regression` `ww + hosp` vs `hosp only`), as the ratio of the mean WIS of the two models. To compare model types, we will also compute the relative WIS of each model compared to the hospital admissions only `wwinference` model.
 
 To quantify uncertainty in the relative WIS, we will use block bootstrapping across blocks of nowcast dates with Bonferroni confidence intervals [@Pohle2026]. Confidence intervals will be presented overall, by horizon, by epidemic phase, and by location.
 
-The main text will focus on the head-to-head comparison of the `wwinference` models with and without wastewater. All results which include the baseline ARIMA model will be presented in the supplement.
+The main text will focus on the 2x2 comparison of the `wwinference` and simple statistical models with and without wastewater. All results which include the baseline ARIMA model will be presented in the supplement.
 
 #### Model-based evaluation: investigation into drivers of forecast performance
 
-In addition to stratifying results by forecast date, location, horizon, and epidemic phase, we perform an exploratory, hypothesis-generating analysis into the factors that may contribute to the forecast performance of both the `ww + hosp` and the `hosp only` model, accounting for variables that impact the forecast performance and including interaction terms which might reveal variables which impact the relative performance of the model with wastewater compared to the model fit without it.
+In addition to stratifying results by forecast date, location, horizon, and epidemic phase, we perform an exploratory, hypothesis-generating analysis into the factors that may contribute to the forecast performance of both the `ww + hosp` and the `hosp only` model, accounting for variables that impact the forecast performance and including interaction terms which might reveal variables which impact the relative performance of the model with wastewater compared to the model fit without it. We do this in two ways: (a) by fitting the same model separately to each model type (the two `wwinference` models, and the two simple statistical models), and (b) by fitting one model combining all four models, to estimate whether the effect of incorporating wastewater differs between model types.
 
 To do so, we will model the WIS of the log-transformed predictions and observations of hospital admissions as outcome variables, and account for the following variables which might impact relative forecast performance:
 
@@ -134,7 +152,9 @@ To do so, we will model the WIS of the log-transformed predictions and observati
 10. variability in wastewater data as measured by the coefficient of variation across sites and time during the calibration period
 11. Epidemic phase of hospital admissions over the forecast period (increasing, decreasing or stable)
 
-Resulting in the following model formulation:
+##### (a) Separate models for each model type
+
+For each model type, we fit the following model to the scores of that model type with and without wastewater:
 
 Let $WIS_{h, d, l, m}$ denote the WIS of the forecast at horizon $h$, forecast date $d$, location $l$, and model type $m$, and let $p = p(d, l)$ denote the hospital admissions epidemic phase for forecast date $d$ and location $l$. The WIS of the log transformed predictions and observations are non-negative and right-skewed so we treat the WIS as Gamma-distributed with a log link, letting the linear predictor $\eta_{h,d,l,m}$ act multiplicatively on the expected score.
 
@@ -177,7 +197,41 @@ Because epidemic phases occur in runs of consecutive weeks, the forecast date sm
 
 The relative WIS by epidemic phase is therefore estimated in two ways. The bootstrapped relative WIS by epidemic phase (Figure 3) is the primary, unadjusted result. The model-based estimate is adjusted for location, horizon, forecast date and the wastewater surveillance characteristics, and is exploratory. If the two agree, this strengthens the finding; if they differ, this suggests the unadjusted differences between phases are partly explained by the other covariates (for example, if increasing phases are concentrated in particular locations or periods). We will present the two estimates side by side.
 
-These exploratory analyses will be used to generate hypotheses into the impact of the characteristics of wastewater surveillance system on the performance of the `wwinference` model.
+Fitting the same model separately to each model type allows the effects of each covariate on the value of incorporating wastewater to be compared between the renewal and simple statistical models, without assuming they are shared.
+
+##### (b) Combined model across model types
+
+To estimate directly whether the effect of incorporating wastewater differs between model types, we fit one model to the scores of all four models. Let $t_m$ be an indicator for the simple statistical model type (with the `wwinference` model as the reference). The model extends the one above with a main effect of model type and its interaction with the wastewater indicator, $\beta_t t_m + \beta_{ww,t} d_m t_m$, and a separate horizon smooth for each of the four models. The effects of the other covariates, and their interactions with $d_m$, are assumed to be shared across model types, to avoid three-way interactions which would be difficult to estimate and interpret. Since all four models forecast the same targets, they share the difficulty of each forecast (for example, if the hospital admissions data available on the forecast date were later revised substantially). We therefore add a random effect $v_{l,d}$ for each location-forecast date, so that the model type and wastewater terms reflect differences between models rather than in the difficulty of the forecast problem. The relative WIS of incorporating wastewater (in the stable phase, at the reference values of the other covariates) is then $\exp(\beta_{ww})$ for the `wwinference` model and $\exp(\beta_{ww} + \beta_{ww,t})$ for the simple statistical model, and $\exp(\beta_{ww,t})$ is the ratio between them. The formula passed to `mgcv` is:
+
+``` r
+gam_fit <- bam(
+  wis ~ include_ww * model_type + include_ww * hosp_phase +
+    # ww_model: the four combinations of model type and include_ww
+    s(horizon, k = 4, by = ww_model) +
+    s(location, bs = "re") + s(location, bs = "re", by = include_ww) +
+    s(loc_date, bs = "re") +
+    s(forecast_date_num, k = 40) +
+    s(forecast_date_num, k = 40, by = include_ww) +
+    s(state_pop, k = 3) + s(state_pop, k = 3, by = include_ww) +
+    s(n_sites, k = 5) + s(n_sites, k = 5, by = include_ww) +
+    s(pop_coverage, k = 5) + s(pop_coverage, k = 5, by = include_ww) +
+    s(avg_sampling_freq, k = 5) +
+    s(avg_sampling_freq, k = 5, by = include_ww) +
+    s(min_latency, k = 5) + s(min_latency, k = 5, by = include_ww) +
+    s(avg_data_variability, k = 5) +
+    s(avg_data_variability, k = 5, by = include_ww),
+  data = data_to_fit,
+  family = Gamma(link = "log"),
+  method = "fREML",
+  discrete = TRUE
+)
+```
+
+As the epidemic phase and the wastewater surveillance characteristics are constant within a location-forecast date, their main effects are partly absorbed by the location-forecast date random effect. Their interactions with $d_m$, which are the terms of interest, vary within a location-forecast date and are not affected.
+
+Both analyses will use the same set of forecasts: location-forecast dates where any `wwinference` model failed the convergence criteria are excluded for all models, and only forecasts scored for all four models are included.
+
+These exploratory analyses will be used to generate hypotheses into the impact of the characteristics of wastewater surveillance system on the performance of the `wwinference` and simple statistical models.
 
 ### Evaluation of wastewater concentration forecasts
 
@@ -191,7 +245,7 @@ Table 1. Summary of the wastewater surveillance system and the forecasts include
 
 ## Visual comparison of forecast performance
 
-Figure 2. Example forecasts for three forecast dates from a single location, one each in an increasing, decreasing and stable epidemic phase (columns). Row 1: fit and forecasts of hospital admissions from the `ww + hosp` and `hosp only` models overlaid with the evaluation data, with the background shaded by the hospital admissions epidemic phase. Row 2: fit and forecast of wastewater concentrations at one wastewater treatment plant in the same location. Column 1: increasing, column 2: decreasing, column 3: stable.
+Figure 2. Example forecasts for three forecast dates from a single location, one each in an increasing, decreasing and stable epidemic phase (columns). Row 1: fit and forecasts of hospital admissions from the `ww + hosp` and `hosp only` `wwinference` models and simple statistical models overlaid with the evaluation data, with the background shaded by the hospital admissions epidemic phase. Row 2: fit and forecast of wastewater concentrations at one wastewater treatment plant in the same location. Column 1: increasing, column 2: decreasing, column 3: stable.
 
 The version of Figure 2 which includes the baseline ARIMA model is in the supplement.
 
@@ -199,13 +253,13 @@ The version of Figure 2 which includes the baseline ARIMA model is in the supple
 
 Uncertainty quantification using block bootstrapping using [Pohle et al.](https://arxiv.org/abs/2605.03997) to define the block length. Create bootstrapped replicates once at the level of nowcasts and then use these samples to compute Bonferroni CIs around the observed metric
 
-Figure 3. Head-to-head comparison of hospital admissions forecasts with and without wastewater, across all locations and forecast dates (the version including the ARIMA baseline is in the supplement). Intervals are Bonferroni 95% CI.
+Figure 3. Head-to-head comparison of hospital admissions forecasts with and without wastewater for each model type, across all locations and forecast dates (the version including the ARIMA baseline is in the supplement). Intervals are Bonferroni 95% CI.
 
-A. WIS by model, broken down by underprediction, overprediction and dispersion (horizontal bar chart). Bands indicate 95% intervals on overall WIS.
+A. WIS by model (the four models of the 2x2 design), broken down by underprediction, overprediction and dispersion (horizontal bar chart). Bands indicate 95% intervals on overall WIS.
 
-B. Relative WIS by horizon, with CI.
+B. Relative WIS of incorporating wastewater by horizon, for each model type, with CI.
 
-C. Relative WIS by epidemic phase, with CI.
+C. Relative WIS of incorporating wastewater by epidemic phase, for each model type, with CI.
 
 D. 50% and 90% interval coverage by horizon for each model.
 
@@ -225,9 +279,9 @@ Supplement:
 
 Figure 4. Exploratory model-based evaluation results.
 
-A. Multiplicative effect of including wastewater on WIS with 95% intervals from model
+A. Multiplicative effect of including wastewater on WIS for each model type with 95% intervals, from the separate models (a) and from the combined model (b), and the ratio between model types from the combined model ($\exp(\beta_{ww,t})$)
 
-B. Relative WIS for each epidemic phase: the unadjusted estimate with bootstrapped 95% intervals (as in Figure 3) side by side with the estimate adjusted for the other covariates ($\exp(\beta_{ww} + c^{ww}_p)$) with 95% intervals from the model
+B. Relative WIS for each epidemic phase and model type: the unadjusted estimate with bootstrapped 95% intervals (as in Figure 3) side by side with the estimate adjusted for the other covariates ($\exp(\beta_{ww} + c^{ww}_p)$) with 95% intervals from the separate models
 
 B. Multiplicative effect on the relative WIS of the wastewater surveillance characteristics (number of sites, population coverage, average sampling frequency, minimum latency, variability in wastewater data) and state population size, on a log scale (pick a few of these).
 

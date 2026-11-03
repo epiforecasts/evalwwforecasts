@@ -105,6 +105,8 @@ format_baseline_forecasts <- function(baseline_forecasts,
   loc <- unique(baseline_forecasts$state)
   forecast_date <- unique(baseline_forecasts$forecast_date)
   real_time_hosp_bool <- unique(baseline_forecasts$hosp_data_real_time)
+  model_name <- unique(baseline_forecasts$model)
+  include_ww_bool <- unique(baseline_forecasts$include_ww)
   # pivot quantiles from wide to long
   bl_to_score <- baseline_forecasts |>
     pivot_longer(
@@ -159,7 +161,10 @@ format_baseline_forecasts <- function(baseline_forecasts,
     bl_to_score,
     file.path(
       full_fp,
-      glue("baseline_quantiles_rt_{real_time_hosp_bool}.csv")
+      glue(
+        "baseline_quantiles_{model_name}_ww_{include_ww_bool}_",
+        "rt_{real_time_hosp_bool}.csv"
+      )
     )
   )
   return(bl_to_score)
