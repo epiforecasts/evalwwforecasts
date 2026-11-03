@@ -12,6 +12,14 @@ analysis_config_targets <- list(
   ),
   tar_target(
     name = scores_fp,
-    command = file.path("output", "overall_data_all_runs", "scores.csv")
+    command = file.path("output", "overall_data_final", "scores.csv")
+  ),
+  tar_target(
+    name = scores_ww_fp,
+    command = file.path("output", "overall_data_final", "scores_ww.csv")
+  ),
+  tar_target(
+    name = diagnostics_fp,
+    command = file.path("output", "overall_data_final", "diagnostics.csv")
   )
 )

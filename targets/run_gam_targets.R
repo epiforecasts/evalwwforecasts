@@ -7,12 +7,38 @@ run_gam_targets <- list(
     name = scores,
     command = convert_to_su_object(scores_raw)
   ),
+  # Exclude location-forecast dates where any model run failed the
+  # convergence checks, for all models. `scores` (all forecasts) is kept for
+  # the sensitivity analysis including all forecasts.
+  tar_target(
+    name = scores_included,
+    command = get_scores_included(scores)
+  ),
+  tar_target(
+    name = diagnostics,
+    command = read_csv(diagnostics_fp)
+  ),
+  tar_target(
+    name = excluded_forecasts,
+    command = check_excluded_forecasts(
+      scores = scores,
+      excluded_forecasts = get_excluded_forecasts(diagnostics)
+    )
+  ),
+  tar_file(
+    name = save_excluded_forecasts,
+    command = save_csv(
+      excluded_forecasts,
+      "excluded_forecasts.csv",
+      path = file.path("output", "tables")
+    )
+  ),
   # Descriptive plots of relationship between performance and wastewater
   # characteristics
   tar_target(
     name = plot_smooth_scores_vs_ww,
     command = exploratory_plot_ww_vs_scores(
-      scores = as.data.frame(scores),
+      scores = as.data.frame(scores_included),
       ww_metadata = ww_metadata,
       plot_type = "continuous",
       fig_file_name = "smooths_score_vs_ww"
@@ -21,7 +47,7 @@ run_gam_targets <- list(
   tar_target(
     name = plot_binned_scores_vs_ww,
     command = exploratory_plot_ww_vs_scores(
-      scores = as.data.frame(scores),
+      scores = as.data.frame(scores_included),
       ww_metadata = ww_metadata,
       plot_type = "discrete",
       fig_file_name = "binned_score_vs_ww"
@@ -34,7 +60,7 @@ run_gam_targets <- list(
   tar_target(
     name = scores_long_to_model,
     command = prep_scores_long_to_model(
-      scores_long = scores,
+      scores_long = scores_included,
       ww_metadata = ww_metadata
     )
   ),

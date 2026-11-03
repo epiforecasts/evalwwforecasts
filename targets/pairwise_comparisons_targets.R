@@ -2,11 +2,11 @@ pairwise_comparisons_targets <- list(
   # Pairwise comparison tests using scoringutils
   tar_target(
     name = scores_for_comparison,
-    command = scores |>
+    command = scores_included |>
       mutate(model = glue::glue("{model}-{include_ww}")) |>
       select(
         -include_ww, -hosp_data_real_time, -scale, -flag_missing_ww,
-        -any_of("any_flag")
+        -any_flag
       )
   ),
   tar_target(

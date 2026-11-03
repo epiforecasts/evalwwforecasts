@@ -2,7 +2,7 @@ analysis_EDA_plot_targets <- list(
   tar_target(
     name = scores_to_plot,
     command = mutate(
-      filter(scores, model != "arima_baseline"),
+      filter(scores_included, model != "arima_baseline"),
       ww_var = ifelse(include_ww, "ww", "hosp")
     )
   ),
