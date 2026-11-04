@@ -604,14 +604,13 @@ get_plot_ww_chars <- function(gam_fit,
       select = glue("s({v}):include_wwTRUE"),
       n = n_grid
     )
-    data.frame(
+    return(data.frame(
       variable = v,
       x = est[[v]],
       effect = exp(est$.estimate),
       est_lower = exp(est$.estimate - z * est$.se),
       est_upper = exp(est$.estimate + z * est$.se)
-    )
-    return(est)
+    ))
   }))
 
   p <- ggplot(smooth_ci, aes(x = x, y = effect)) +
