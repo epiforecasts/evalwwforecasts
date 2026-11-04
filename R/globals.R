@@ -87,7 +87,9 @@ utils::globalVariables(c(
   "location", # <get_scores_included>
   "forecast_date", # <get_scores_included>
   "any_flag", # <get_scores_included>
+  "flag_missing_ww", # <get_scores_included>
   "any_flag", # <get_excluded_forecasts>
+  "flag_missing_ww", # <get_excluded_forecasts>
   "location", # <get_excluded_forecasts>
   "forecast_date", # <get_excluded_forecasts>
   "run", # <get_excluded_forecasts>
@@ -95,11 +97,10 @@ utils::globalVariables(c(
   "flag_too_many_divergences", # <get_excluded_forecasts>
   "flag_high_rhat", # <get_excluded_forecasts>
   "flag_low_ebfmi", # <get_excluded_forecasts>
-  "flag_missing_ww", # <get_excluded_forecasts>
   "any_flag", # <check_excluded_forecasts>
+  "flag_missing_ww", # <check_excluded_forecasts>
   "location", # <check_excluded_forecasts>
   "forecast_date", # <check_excluded_forecasts>
-  "flag_missing_ww", # <check_excluded_forecasts>
   "wis_wwinference_TRUE", # <prep_scores_to_model>
   "wis_wwinference_FALSE", # <prep_scores_to_model>
   "wis_arima_baseline_FALSE", # <prep_scores_to_model>
