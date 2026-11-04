@@ -2,7 +2,7 @@
 % Please edit documentation in R/exclusions.R
 \name{get_excluded_forecasts}
 \alias{get_excluded_forecasts}
-\title{Get the location-forecast dates excluded for failing convergence checks}
+\title{Get the location-forecast dates excluded from the analysis}
 \usage{
 get_excluded_forecasts(diagnostics)
 }
@@ -13,11 +13,11 @@ as saved in \code{diagnostics.csv}}
 \value{
 Data.frame with \code{location}, \code{forecast_date}, \code{flagged_runs}, a
 column for each convergence check that is \code{TRUE} if any run failed it,
-and \code{flag_missing_ww} (\code{TRUE} if the location-forecast date was also
-missing wastewater data)
+\code{flag_missing_ww} (\code{TRUE} if wastewater data were not available) and
+\code{reason}
 }
 \description{
-One row per location-forecast date where any model run was flagged for
-MCMC convergence issues, with the flagged runs and which checks they
-failed.
+One row per location-forecast date excluded because any model run was
+flagged for MCMC convergence issues or because wastewater data were not
+available, with the flagged runs and which checks they failed.
 }

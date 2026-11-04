@@ -16,6 +16,8 @@ forecasts
 }
 \description{
 Excludes every location-forecast date where any model run was flagged for
-MCMC convergence issues (\code{any_flag}), for all models, so that every model
-is evaluated on the same set of forecasts.
+MCMC convergence issues (\code{any_flag}) or where wastewater data were not
+available (\code{flag_missing_ww}, in which case the wastewater model was fit
+to hospital admissions only), for all models, so that every model is
+evaluated on the same set of forecasts.
 }

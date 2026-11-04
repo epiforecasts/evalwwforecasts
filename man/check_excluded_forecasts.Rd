@@ -16,6 +16,6 @@ location, forecast date and target date, including \code{any_flag}}
 \code{excluded_forecasts}, unchanged
 }
 \description{
-Warns if the location-forecast dates flagged in the scores differ from
-those flagged in the diagnostics.
+Warns if the location-forecast dates excluded based on the scores differ
+from those excluded based on the diagnostics.
 }
