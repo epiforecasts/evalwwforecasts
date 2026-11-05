@@ -7,8 +7,7 @@
 get_plot_ww_effect_by_phase(gam_fits, level = 0.95)
 }
 \arguments{
-\item{gam_fits}{List of GAMs from \code{fit_gam_long()} and
-\code{fit_gam_combined()}}
+\item{gam_fits}{List of GAMs from \code{fit_gam_long()}, one per model type}
 
 \item{level}{Numeric, confidence level of the intervals. Default \code{0.95}.}
 }
@@ -17,5 +16,6 @@ ggplot object
 }
 \description{
 One panel per model type, with the estimates from the separate GAM for
-that model type and from the combined GAM.
+that model type (\code{fit_gam_long()}). The combined GAM is not shown because
+it assumes the phase effects are the same for both model types.
 }

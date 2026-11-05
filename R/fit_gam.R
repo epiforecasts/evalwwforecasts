@@ -552,14 +552,13 @@ get_ww_effect_by_phase <- function(gam_fit, level = 0.95) {
 #' Plot the relative WIS of including wastewater by epidemic phase
 #'
 #' One panel per model type, with the estimates from the separate GAM for
-#' that model type and from the combined GAM.
+#' that model type (`fit_gam_long()`). The combined GAM is not shown because
+#' it assumes the phase effects are the same for both model types.
 #'
-#' @param gam_fits List of GAMs from `fit_gam_long()` and
-#'   `fit_gam_combined()`
+#' @param gam_fits List of GAMs from `fit_gam_long()`, one per model type
 #' @inheritParams get_ww_effect_by_phase
 #' @importFrom ggplot2 ggplot aes geom_vline geom_linerange geom_point
-#'   position_dodge scale_x_log10 scale_colour_manual facet_wrap labs
-#'   theme_bw theme element_blank
+#'   scale_x_log10 facet_wrap labs theme_bw theme element_blank
 #' @importFrom dplyr bind_rows mutate
 #' @returns ggplot object
 #' @autoglobal
@@ -576,26 +575,15 @@ get_plot_ww_effect_by_phase <- function(gam_fits, level = 0.95) {
       hosp_phase = factor(
         hosp_phase,
         levels = rev(c("increasing", "stable", "decreasing"))
-      ),
-      gam = factor(
-        gam,
-        levels = c("combined", "separate"),
-        labels = c("Combined GAM", "Separate GAM")
       )
     )
-  dodge <- position_dodge(width = 0.5)
-  p <- ggplot(effects, aes(x = rel_wis, y = hosp_phase, colour = gam)) +
+  p <- ggplot(effects, aes(x = rel_wis, y = hosp_phase)) +
     geom_vline(xintercept = 1, linetype = "dashed", colour = "grey40") +
     geom_linerange(aes(xmin = lower, xmax = upper),
-      linewidth = 0.8, position = dodge
+      linewidth = 0.8, colour = "#2a78d6"
     ) +
-    geom_point(size = 3, position = dodge) +
+    geom_point(size = 3, colour = "#2a78d6") +
     scale_x_log10(breaks = rel_wis_breaks_fine, labels = rel_wis_labels_fine) +
-    scale_colour_manual(
-      values = c("Separate GAM" = "#2a78d6", "Combined GAM" = "#8a8a85"),
-      breaks = c("Separate GAM", "Combined GAM"),
-      name = NULL
-    ) +
     facet_wrap(~model_type) +
     labs(
       x = "Relative WIS of including wastewater (adjusted)",
@@ -606,10 +594,7 @@ get_plot_ww_effect_by_phase <- function(gam_fits, level = 0.95) {
       )
     ) +
     theme_bw() +
-    theme(
-      panel.grid.minor = element_blank(),
-      legend.position = "top"
-    )
+    theme(panel.grid.minor = element_blank())
   # Keep the GAMs out of the plot environment
   rm(gam_fits)
   return(p)
