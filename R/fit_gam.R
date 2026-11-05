@@ -456,6 +456,117 @@ get_plot_combined_ww_effects <- function(gam_fit, level = 0.95) {
   return(p)
 }
 
+#' Relative WIS of including wastewater by epidemic phase
+#'
+#' Computes the relative WIS of including wastewater in each hospital
+#' admissions epidemic phase, at the reference values of the other
+#' covariates, as exp(include_ww + include_ww:hosp_phase), with intervals
+#' from the coefficient covariance matrix. For the combined GAM the
+#' `include_ww:model_type` term is added for the non-reference model type.
+#'
+#' @param gam_fit GAM from `fit_gam_long()` or `fit_gam_combined()`
+#' @param level Numeric, confidence level of the intervals. Default `0.95`.
+#'
+#' @returns Data.frame with `model_type`, `hosp_phase`, `gam`, `rel_wis`,
+#'   `lower` and `upper`
+#' @importFrom stats coef vcov qnorm
+#' @autoglobal
+get_ww_effect_by_phase <- function(gam_fit, level = 0.95) {
+  z <- qnorm(1 - (1 - level) / 2)
+  b <- coef(gam_fit)
+  v <- vcov(gam_fit)
+  phases <- levels(gam_fit$model$hosp_phase)
+  combined <- "model_type" %in% names(gam_fit$model)
+  types <- if (combined) {
+    levels(gam_fit$model$model_type)
+  } else {
+    gam_fit$model_type
+  }
+  effects <- expand.grid(
+    model_type = types, hosp_phase = phases,
+    stringsAsFactors = FALSE
+  )
+  est <- lapply(seq_len(nrow(effects)), function(i) {
+    w <- stats::setNames(rep(0, length(b)), names(b))
+    w["include_wwTRUE"] <- 1
+    phase_term <- glue("include_wwTRUE:hosp_phase{effects$hosp_phase[i]}")
+    if (phase_term %in% names(w)) w[phase_term] <- 1
+    type_term <- glue("include_wwTRUE:model_type{effects$model_type[i]}")
+    if (combined && type_term %in% names(w)) w[type_term] <- 1
+    return(c(sum(w * b), sqrt(as.numeric(t(w) %*% v %*% w))))
+  })
+  est <- do.call(rbind, est)
+  effects$gam <- if (combined) "combined" else "separate"
+  effects$rel_wis <- exp(est[, 1])
+  effects$lower <- exp(est[, 1] - z * est[, 2])
+  effects$upper <- exp(est[, 1] + z * est[, 2])
+  return(effects)
+}
+
+#' Plot the relative WIS of including wastewater by epidemic phase
+#'
+#' One panel per model type, with the estimates from the separate GAM for
+#' that model type and from the combined GAM.
+#'
+#' @param gam_fits List of GAMs from `fit_gam_long()` and
+#'   `fit_gam_combined()`
+#' @inheritParams get_ww_effect_by_phase
+#' @importFrom ggplot2 ggplot aes geom_vline geom_linerange geom_point
+#'   position_dodge scale_x_log10 scale_colour_manual facet_wrap labs
+#'   theme_bw theme element_blank
+#' @importFrom dplyr bind_rows mutate
+#' @returns ggplot object
+#' @autoglobal
+get_plot_ww_effect_by_phase <- function(gam_fits, level = 0.95) {
+  effects <- bind_rows(lapply(gam_fits, get_ww_effect_by_phase,
+    level = level
+  )) |>
+    mutate(
+      model_type = factor(
+        model_type,
+        levels = c("renewal", "statistical"),
+        labels = c("Renewal model", "Simple statistical model")
+      ),
+      hosp_phase = factor(
+        hosp_phase,
+        levels = rev(c("increasing", "stable", "decreasing"))
+      ),
+      gam = factor(
+        gam,
+        levels = c("combined", "separate"),
+        labels = c("Combined GAM", "Separate GAM")
+      )
+    )
+  dodge <- position_dodge(width = 0.5)
+  p <- ggplot(effects, aes(x = rel_wis, y = hosp_phase, colour = gam)) +
+    geom_vline(xintercept = 1, linetype = "dashed", colour = "grey40") +
+    geom_linerange(aes(xmin = lower, xmax = upper),
+      linewidth = 0.8, position = dodge
+    ) +
+    geom_point(size = 3, position = dodge) +
+    scale_x_log10(breaks = rel_wis_breaks, labels = rel_wis_labels) +
+    scale_colour_manual(
+      values = c("Separate GAM" = "#2a78d6", "Combined GAM" = "#8a8a85"),
+      breaks = c("Separate GAM", "Combined GAM"),
+      name = NULL
+    ) +
+    facet_wrap(~model_type) +
+    labs(
+      x = "Relative WIS of including wastewater (adjusted)",
+      y = "Hospital admissions epidemic phase",
+      caption = glue(
+        "Points and {level * 100}% intervals at the reference values of ",
+        "the other covariates. Below 1: wastewater improves the forecast."
+      )
+    ) +
+    theme_bw() +
+    theme(
+      panel.grid.minor = element_blank(),
+      legend.position = "top"
+    )
+  return(p)
+}
+
 #' Get plot of location specific multiplicative effect
 #'
 #' @param gam_fit long-format GAM fit from `fit_gam_long()`

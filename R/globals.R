@@ -136,6 +136,11 @@ utils::globalVariables(c(
   "rel_wis", # <get_plot_combined_ww_effects>
   "lower", # <get_plot_combined_ww_effects>
   "upper", # <get_plot_combined_ww_effects>
+  "model_type", # <get_plot_ww_effect_by_phase>
+  "hosp_phase", # <get_plot_ww_effect_by_phase>
+  "rel_wis", # <get_plot_ww_effect_by_phase>
+  "lower", # <get_plot_ww_effect_by_phase>
+  "upper", # <get_plot_ww_effect_by_phase>
   ".smooth", # <get_plot_effect_by_location>
   ".estimate", # <get_plot_effect_by_location>
   ".se", # <get_plot_effect_by_location>

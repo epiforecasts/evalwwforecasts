@@ -103,6 +103,30 @@ run_gam_targets <- list(
     command = get_plot_gam_diagnostics(gam_results_combined),
     format = "rds"
   ),
+  # Relative WIS of including wastewater by epidemic phase, for each model
+  # type, from the separate and combined GAMs
+  tar_target(
+    name = ww_effect_by_phase,
+    command = bind_rows(
+      lapply(
+        list(
+          gam_results_long, gam_results_long_statistical,
+          gam_results_combined
+        ),
+        get_ww_effect_by_phase
+      )
+    )
+  ),
+  tar_target(
+    name = plot_ww_effect_by_phase,
+    command = get_plot_ww_effect_by_phase(
+      list(
+        gam_results_long, gam_results_long_statistical,
+        gam_results_combined
+      )
+    ),
+    format = "rds"
+  ),
   # Plots for each of the separate GAMs
   tar_target(
     name = gam_by_model_type,
