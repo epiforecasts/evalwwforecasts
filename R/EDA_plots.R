@@ -15,7 +15,7 @@
 #' @importFrom glue glue
 #' @importFrom lubridate ymd days
 #' @importFrom ggplot2 ggplot aes geom_line geom_ribbon geom_point xlab
-#'   ylab ggtitle theme_bw
+#'   ylab ggtitle theme_bw facet_wrap
 #' @autoglobal
 plot_forecast_comparison <- function(
   forecasts_w_eval_data,
@@ -58,7 +58,8 @@ plot_forecast_comparison <- function(
     theme_bw() +
     xlab("") +
     ylab("7-day rolling sum of hospital admissions") +
-    ggtitle(glue("Forecast comparison for {this_location}"))
+    ggtitle(glue("Forecast comparison for {this_location}")) +
+    facet_wrap(~ model + include_ww, ncol = 1)
 
   return(p)
 }
@@ -818,5 +819,211 @@ get_plot_epidemic_phase <- function(hosp_phase,
     width = 12, height = 3.5 + 1.8 * n_rows, dpi = 120, limitsize = FALSE
   )
 
+  return(p)
+}
+
+#' Labels for the five models, in the order they are shown
+#' @keywords internal
+model_labels <- c(
+  wwinference_TRUE = "Renewal + ww",
+  wwinference_FALSE = "Renewal, hosp only",
+  ww_regression_TRUE = "Statistical + ww",
+  ww_regression_FALSE = "Statistical, hosp only",
+  arima_baseline_FALSE = "ARIMA"
+)
+
+#' Colours for the five models, matching `model_labels`
+#' @keywords internal
+model_colours <- stats::setNames(
+  c("#2a78d6", "#86b6ef", "#eb6834", "#f4ab8c", "#8a8a85"),
+  model_labels
+)
+
+#' Get the log-scale scores of the forecasts made by every model
+#'
+#' Keeps the log-scale scores of the forecasts (location, forecast date and
+#' horizon) scored for every model, so that all models are compared on the
+#' same forecasts, and adds a `model_lab` label for each model and
+#' wastewater inclusion and `horizon_week` (horizon 0 counts as week 1).
+#'
+#' @param scores Scores object of the included forecasts, from
+#'   `get_scores_included()`
+#'
+#' @returns Data.frame of scores with `model_lab` and `horizon_week`
+#' @importFrom dplyr filter group_by ungroup mutate n n_distinct
+#' @autoglobal
+get_scores_all_models <- function(scores) {
+  scores_df <- as.data.frame(scores) |>
+    filter(scale == "log") |>
+    mutate(model_ww = paste(model, include_ww, sep = "_"))
+  n_models <- n_distinct(scores_df$model_ww)
+  scores_all <- scores_df |>
+    group_by(location, forecast_date, horizon) |>
+    filter(n() == n_models) |>
+    ungroup() |>
+    mutate(
+      model_lab = factor(model_labels[model_ww], levels = model_labels),
+      horizon_week = factor(
+        pmin(ceiling(pmax(horizon, 1) / 7), 4),
+        levels = 1:4, labels = paste("Week", 1:4)
+      )
+    )
+  return(scores_all)
+}
+
+#' Bar chart of the mean WIS of every model by component
+#'
+#' @param scores_all_models Scores from `get_scores_all_models()`
+#'
+#' @returns ggplot object
+#' @importFrom dplyr group_by summarise across
+#' @importFrom tidyr pivot_longer
+#' @importFrom ggplot2 ggplot aes geom_col geom_text position_stack
+#'   scale_fill_manual scale_x_continuous expansion labs theme_minimal theme
+#'   element_blank
+#' @autoglobal
+get_bar_chart_wis_components <- function(scores_all_models) {
+  components <- scores_all_models |>
+    group_by(model_lab) |>
+    summarise(
+      across(c(wis, overprediction, underprediction, dispersion), mean),
+      .groups = "drop"
+    ) |>
+    mutate(model_lab = factor(model_lab, levels = rev(model_labels)))
+  components_long <- components |>
+    pivot_longer(
+      c(dispersion, overprediction, underprediction),
+      names_to = "component"
+    ) |>
+    mutate(component = factor(
+      component,
+      levels = c("underprediction", "dispersion", "overprediction")
+    ))
+  p <- ggplot(
+    components_long,
+    aes(x = value, y = model_lab, fill = component)
+  ) +
+    geom_col(
+      width = 0.6, colour = "white", linewidth = 0.5,
+      position = position_stack(reverse = TRUE)
+    ) +
+    geom_text(
+      data = components,
+      aes(x = wis, y = model_lab, label = sprintf("%.3f", wis)),
+      inherit.aes = FALSE, hjust = -0.15, size = 3.8
+    ) +
+    scale_fill_manual(
+      values = c(
+        underprediction = "#2a78d6", dispersion = "#c9c8c4",
+        overprediction = "#eb6834"
+      ),
+      name = NULL
+    ) +
+    scale_x_continuous(expand = expansion(mult = c(0, 0.12))) +
+    labs(
+      x = "Mean WIS (log scale scores)", y = NULL,
+      title = "Overall WIS by model and component"
+    ) +
+    theme_minimal(base_size = 13) +
+    theme(
+      panel.grid.major.y = element_blank(),
+      panel.grid.minor = element_blank(),
+      legend.position = "top"
+    )
+  return(p)
+}
+
+#' Plot the relative WIS of including wastewater for each model type
+#'
+#' The ratio of the mean WIS with wastewater to the mean WIS without, for
+#' each model type, overall and by horizon week.
+#'
+#' @inheritParams get_bar_chart_wis_components
+#'
+#' @returns ggplot object
+#' @importFrom dplyr filter mutate bind_rows group_by summarise
+#' @importFrom ggplot2 ggplot aes geom_hline geom_linerange geom_point
+#'   geom_text position_dodge scale_colour_manual scale_y_continuous
+#'   expansion labs theme_minimal theme element_blank element_line
+#' @autoglobal
+get_plot_rel_wis_by_type <- function(scores_all_models) {
+  scores_types <- filter(scores_all_models, model != "arima_baseline")
+  periods <- c("Overall", paste("Week", 1:4))
+  rel_wis <- scores_types |>
+    mutate(period = as.character(horizon_week)) |>
+    bind_rows(mutate(scores_types, period = "Overall")) |>
+    mutate(period = factor(period, levels = periods)) |>
+    group_by(model, period) |>
+    summarise(
+      rel_wis = mean(wis[include_ww]) / mean(wis[!include_ww]),
+      .groups = "drop"
+    ) |>
+    mutate(model_type = ifelse(
+      model == "wwinference", "Renewal", "Statistical"
+    ))
+  dodge <- position_dodge(width = 0.5)
+  p <- ggplot(rel_wis, aes(x = period, y = rel_wis, colour = model_type)) +
+    geom_hline(yintercept = 1, linetype = "dashed", colour = "grey40") +
+    geom_linerange(aes(ymin = 1, ymax = rel_wis),
+      position = dodge, linewidth = 1.2
+    ) +
+    geom_point(position = dodge, size = 3.5) +
+    geom_text(
+      aes(
+        group = model_type, label = sprintf("%.3f", rel_wis),
+        vjust = ifelse(rel_wis > 1, -1, 2)
+      ),
+      position = dodge, size = 3.4, colour = "grey20"
+    ) +
+    scale_colour_manual(
+      values = c(Renewal = "#2a78d6", Statistical = "#eb6834"),
+      name = NULL
+    ) +
+    # Room for the value labels above and below the points
+    scale_y_continuous(expand = expansion(mult = 0.15)) +
+    labs(
+      x = NULL, y = "Relative WIS of including wastewater",
+      title = "Effect of including wastewater, by model type",
+      subtitle = "Below 1: wastewater improves the forecast"
+    ) +
+    theme_minimal(base_size = 13) +
+    theme(
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor = element_blank(),
+      panel.grid.major.y = element_line(colour = "grey92"),
+      legend.position = "top"
+    )
+  return(p)
+}
+
+#' Bar chart of the mean WIS of every model by horizon week
+#'
+#' @inheritParams get_bar_chart_wis_components
+#'
+#' @returns ggplot object
+#' @importFrom dplyr group_by summarise
+#' @importFrom ggplot2 ggplot aes geom_col position_dodge scale_fill_manual
+#'   labs theme_minimal theme element_blank element_line guides
+#'   guide_legend
+#' @autoglobal
+get_bar_chart_wis_by_horizon <- function(scores_all_models) {
+  by_horizon <- scores_all_models |>
+    group_by(model_lab, horizon_week) |>
+    summarise(wis = mean(wis), .groups = "drop")
+  p <- ggplot(by_horizon, aes(x = horizon_week, y = wis, fill = model_lab)) +
+    geom_col(
+      position = position_dodge(width = 0.85), width = 0.8,
+      colour = "white", linewidth = 0.4
+    ) +
+    scale_fill_manual(values = model_colours, name = NULL) +
+    labs(x = NULL, y = "Mean WIS", title = "WIS by forecast horizon") +
+    theme_minimal(base_size = 13) +
+    theme(
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor = element_blank(),
+      panel.grid.major.y = element_line(colour = "grey92"),
+      legend.position = "top"
+    ) +
+    guides(fill = guide_legend(nrow = 2))
   return(p)
 }

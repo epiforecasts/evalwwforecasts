@@ -77,6 +77,28 @@ utils::globalVariables(c(
   "phase", # <get_plot_epidemic_phase>
   "updated_hosp_7d_count", # <get_plot_epidemic_phase>
   "log_genome_copies_per_ml", # <get_plot_epidemic_phase>
+  "model", # <get_scores_all_models>
+  "include_ww", # <get_scores_all_models>
+  "location", # <get_scores_all_models>
+  "forecast_date", # <get_scores_all_models>
+  "horizon", # <get_scores_all_models>
+  "model_ww", # <get_scores_all_models>
+  "model_lab", # <get_bar_chart_wis_components>
+  "wis", # <get_bar_chart_wis_components>
+  "overprediction", # <get_bar_chart_wis_components>
+  "underprediction", # <get_bar_chart_wis_components>
+  "dispersion", # <get_bar_chart_wis_components>
+  "component", # <get_bar_chart_wis_components>
+  "value", # <get_bar_chart_wis_components>
+  "model", # <get_plot_rel_wis_by_type>
+  "horizon_week", # <get_plot_rel_wis_by_type>
+  "period", # <get_plot_rel_wis_by_type>
+  "wis", # <get_plot_rel_wis_by_type>
+  "include_ww", # <get_plot_rel_wis_by_type>
+  "model_type", # <get_plot_rel_wis_by_type>
+  "model_lab", # <get_bar_chart_wis_by_horizon>
+  "horizon_week", # <get_bar_chart_wis_by_horizon>
+  "wis", # <get_bar_chart_wis_by_horizon>
   "site", # <get_ww_phase>
   "lab", # <get_ww_phase>
   "log_genome_copies_per_ml", # <get_ww_phase>
@@ -84,6 +106,23 @@ utils::globalVariables(c(
   "log_conc_start", # <get_ww_phase>
   "ww_pct_change", # <get_ww_phase>
   "location", # <get_ww_phase>
+  "location", # <get_scores_included>
+  "forecast_date", # <get_scores_included>
+  "any_flag", # <get_scores_included>
+  "flag_missing_ww", # <get_scores_included>
+  "any_flag", # <get_excluded_forecasts>
+  "flag_missing_ww", # <get_excluded_forecasts>
+  "location", # <get_excluded_forecasts>
+  "forecast_date", # <get_excluded_forecasts>
+  "run", # <get_excluded_forecasts>
+  "flag_high_max_treedepth", # <get_excluded_forecasts>
+  "flag_too_many_divergences", # <get_excluded_forecasts>
+  "flag_high_rhat", # <get_excluded_forecasts>
+  "flag_low_ebfmi", # <get_excluded_forecasts>
+  "any_flag", # <check_excluded_forecasts>
+  "flag_missing_ww", # <check_excluded_forecasts>
+  "location", # <check_excluded_forecasts>
+  "forecast_date", # <check_excluded_forecasts>
   "wis_wwinference_TRUE", # <prep_scores_to_model>
   "wis_wwinference_FALSE", # <prep_scores_to_model>
   "wis_arima_baseline_FALSE", # <prep_scores_to_model>
@@ -99,20 +138,45 @@ utils::globalVariables(c(
   "location", # <prep_gam_data>
   "forecast_date", # <prep_gam_data>
   "gam_weight", # <fit_gam>
-  "wis_ww", # <fit_gam_long>
-  "wis_hosp", # <fit_gam_long>
-  "model", # <fit_gam_long>
-  ".smooth", # <get_plot_effect_by_location>
-  ".estimate", # <get_plot_effect_by_location>
-  ".se", # <get_plot_effect_by_location>
-  "est", # <get_plot_effect_by_location>
-  "se", # <get_plot_effect_by_location>
-  "ci_lower", # <get_plot_effect_by_location>
-  "ci_upper", # <get_plot_effect_by_location>
-  "effect", # <get_plot_effect_by_location>
-  "location", # <get_plot_effect_by_location>
-  "est_lower", # <get_plot_effect_by_location>
-  "est_upper", # <get_plot_effect_by_location>
+  "location", # <prep_scores_long_to_model>
+  "forecast_date", # <prep_scores_long_to_model>
+  "any_flag", # <prep_scores_long_to_model>
+  "model", # <prep_scores_long_to_model>
+  "include_ww", # <prep_scores_long_to_model>
+  "hosp_phase", # <prep_scores_long_to_model>
+  "wis", # <prep_scores_long_to_model>
+  "n_sites", # <prep_scores_long_to_model>
+  "pop_coverage", # <prep_scores_long_to_model>
+  "avg_sampling_freq", # <prep_scores_long_to_model>
+  "min_latency", # <prep_scores_long_to_model>
+  "avg_data_variability", # <prep_scores_long_to_model>
+  "state_pop", # <prep_scores_long_to_model>
+  "horizon", # <prep_scores_long_to_model>
+  "model_type", # <fit_gam_combined>
+  "include_ww", # <fit_gam_combined>
+  "term", # <get_plot_combined_ww_effects>
+  "rel_wis", # <get_plot_combined_ww_effects>
+  "lower", # <get_plot_combined_ww_effects>
+  "upper", # <get_plot_combined_ww_effects>
+  "model_type", # <get_plot_ww_effect_by_phase>
+  "hosp_phase", # <get_plot_ww_effect_by_phase>
+  "rel_wis", # <get_plot_ww_effect_by_phase>
+  "lower", # <get_plot_ww_effect_by_phase>
+  "upper", # <get_plot_ww_effect_by_phase>
+  "location", # <get_ww_effect_by_location>
+  "wis", # <get_ww_effect_by_location>
+  "include_ww", # <get_ww_effect_by_location>
+  "model_type", # <get_plot_ww_effect_by_location>
+  "rel_wis", # <get_plot_ww_effect_by_location>
+  "location", # <get_plot_ww_effect_by_location>
+  "lower", # <get_plot_ww_effect_by_location>
+  "upper", # <get_plot_ww_effect_by_location>
+  "rel_wis_unadj", # <get_plot_ww_effect_by_location>
+  "model_type", # <get_plot_ww_location_re>
+  "rel_wis", # <get_plot_ww_location_re>
+  "location", # <get_plot_ww_location_re>
+  "lower", # <get_plot_ww_location_re>
+  "upper", # <get_plot_ww_location_re>
   "term", # <get_plot_effect_ww>
   "effect", # <get_plot_effect_ww>
   "est_lower", # <get_plot_effect_ww>
@@ -134,6 +198,7 @@ utils::globalVariables(c(
   "exp_conf.high", # <get_glm_coef_table>
   "p.value", # <get_glm_coef_table>
   "include_ww", # <get_plot_gam_diagnostics>
+  "model_type", # <get_plot_gam_diagnostics>
   "horizon", # <get_plot_gam_diagnostics>
   "resid", # <get_plot_gam_diagnostics>
   "model", # <get_plot_gam_diagnostics>
@@ -141,6 +206,16 @@ utils::globalVariables(c(
   "location", # <get_plot_gam_diagnostics>
   "wis_hosp", # <plot_scores_fit_gam>
   "wis_ww", # <plot_scores_fit_gam>
+  "updated_hosp_7d_count", # <fit_ww_regression>
+  "origin", # <fit_ww_regression>
+  "anchor", # <fit_ww_regression>
+  "lab", # <fit_ww_regression>
+  "site", # <fit_ww_regression>
+  ".env", # <fit_ww_regression>
+  "response", # <fit_ww_regression>
+  "hosp_growth", # <fit_ww_regression>
+  "ww_growth", # <fit_ww_regression>
+  "site_pop", # <get_ww_growth>
   "site", # <fit_wwinference_wrapper>
   "lab", # <fit_wwinference_wrapper>
   "log_genome_copies_per_ml", # <fit_wwinference_wrapper>

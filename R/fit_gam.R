@@ -184,14 +184,123 @@ fit_glm <- function(scores_to_model, standardize = TRUE) {
 }
 
 
-#' Fit the long-format GAM with wastewater inclusion as a covariate
+#' Prepare the long-format scores for the GAMs
 #'
-#' Stacks the WIS of the hospital-only and wastewater models into one
-#' response. Every term has a shared smooth, describing how forecast
-#' difficulty varies for both models, and a difference smooth for the
-#' wastewater model (`by = include_ww`, an ordered factor), describing how
-#' the effect of including wastewater varies. exp(include_ww coefficient +
-#' difference smooths) is the relative WIS.
+#' Keeps the log-scale scores of the models in `models`, excludes
+#' location-forecast dates where any model run was flagged for convergence
+#' issues (if `exclude_flagged`), joins the wastewater metadata and keeps
+#' only forecasts (location, forecast date and horizon) for which every
+#' model, with and without wastewater, has a score, so that every model is
+#' evaluated on the same set of forecasts.
+#'
+#' @param scores_long Long-format scores with one row per model, wastewater
+#'   inclusion, location, forecast date and horizon, including `hosp_phase`
+#' @param ww_metadata Metadata on wastewater at the location and forecast
+#'   date level
+#' @param models Named character vector of the models to include; names are
+#'   the model types used in the GAMs. Default renewal (`wwinference`) and
+#'   statistical (`ww_regression`). The first is the reference level.
+#' @param exclude_flagged Logical, whether to exclude location-forecast dates
+#'   where any model run failed the convergence checks (`any_flag`). Default
+#'   `TRUE`.
+#'
+#' @returns Data.frame with one row per score, with `include_ww` an ordered
+#'   factor, `model_type` and `hosp_phase` factors (stable as the reference
+#'   phase) and `loc_date` a factor for each location-forecast date
+#' @importFrom dplyr filter mutate left_join group_by ungroup n_distinct
+#' @autoglobal
+prep_scores_long_to_model <- function(scores_long,
+                                      ww_metadata,
+                                      models = c(
+                                        renewal = "wwinference",
+                                        statistical = "ww_regression"
+                                      ),
+                                      exclude_flagged = TRUE) {
+  scores <- as.data.frame(scores_long)
+  if ("scale" %in% names(scores)) {
+    scores <- filter(scores, scale == "log")
+  }
+  if (isTRUE(exclude_flagged) && "any_flag" %in% names(scores)) {
+    scores <- scores |>
+      group_by(location, forecast_date) |>
+      filter(!any(any_flag, na.rm = TRUE)) |>
+      ungroup()
+  }
+  n_model_runs <- 2 * length(models)
+  scores <- scores |>
+    filter(model %in% models) |>
+    left_join(ww_metadata, by = c(
+      location = "location_name",
+      "forecast_date"
+    )) |>
+    mutate(
+      model_type = factor(
+        names(models)[match(model, models)],
+        levels = names(models)
+      ),
+      include_ww = ordered(include_ww, levels = c(FALSE, TRUE)),
+      hosp_phase = factor(
+        hosp_phase,
+        levels = c("stable", "increasing", "decreasing")
+      )
+    ) |>
+    # GAM requires complete cases on all covariates
+    filter(
+      !is.na(wis), !is.na(hosp_phase),
+      !is.na(n_sites), !is.na(pop_coverage),
+      !is.na(avg_sampling_freq), !is.na(min_latency),
+      !is.na(avg_data_variability), !is.na(state_pop)
+    ) |>
+    # Same set of forecasts for every model
+    group_by(location, forecast_date, horizon) |>
+    filter(n_distinct(model, include_ww) == n_model_runs) |>
+    ungroup() |>
+    mutate(
+      horizon_weeks = ceiling(horizon / 7),
+      loc_date = factor(paste(location, forecast_date))
+    )
+  return(as.data.frame(scores))
+}
+
+#' Weighted effect coding for epidemic phase
+#'
+#' Sets the contrasts of `hosp_phase` so that each phase coefficient is the
+#' deviation from the average over forecasts, weighted by the number of
+#' forecasts in each phase. The main effect of a term interacting with
+#' `hosp_phase` (e.g. `include_ww`) is then its average effect across
+#' phases rather than its effect in the reference phase. The first level
+#' (stable) has no coefficient: its deviation is minus the weighted sum of
+#' the others' deviations divided by its count.
+#'
+#' @param data Data.frame with a factor `hosp_phase`
+#'
+#' @returns `data` with weighted effect contrasts on `hosp_phase`
+#' @importFrom stats contrasts<-
+set_phase_weighted_coding <- function(data) {
+  n_phase <- table(data$hosp_phase)
+  if (any(n_phase == 0)) {
+    cli::cli_abort("Every epidemic phase must have at least one forecast.")
+  }
+  wec <- diag(length(n_phase))[, -1, drop = FALSE]
+  wec[1, ] <- -n_phase[-1] / n_phase[1]
+  dimnames(wec) <- list(names(n_phase), names(n_phase)[-1])
+  contrasts(data$hosp_phase) <- wec
+  return(data)
+}
+
+#' Fit the long-format GAM for one model type, with and without wastewater
+#'
+#' Stacks the WIS of the model with and without wastewater, for a single
+#' model type (e.g. the renewal models), into one response. Every term has a
+#' shared smooth, describing how forecast difficulty varies for both models,
+#' and a difference smooth for the wastewater model (`by = include_ww`, an
+#' ordered factor), describing how the effect of including wastewater
+#' varies. exp(include_ww coefficient + difference smooths) is the relative
+#' WIS. `hosp_phase` has weighted effect coding
+#' (`set_phase_weighted_coding()`), so the include_ww coefficient is the
+#' effect of wastewater averaged across phases (weighted by the number of
+#' forecasts in each) and `include_ww:hosp_phase` the deviation from it in
+#' the increasing and decreasing phases.
 #'
 #' Neither model's score appears in a denominator. In an intercept-only
 #' version, exp(include_ww coefficient) is exactly the ratio of mean scores.
@@ -199,116 +308,512 @@ fit_glm <- function(scores_to_model, standardize = TRUE) {
 #' standard errors on the difference smooths are likely conservative and
 #' those on the shared smooths anti-conservative.
 #'
-#' @param scores_to_model wide table of scores with wastewater metadata
+#' @param scores_long_to_model Long-format scores from
+#'   `prep_scores_long_to_model()`
+#' @param model_type Character string, the model type to fit to. Default
+#'   `"renewal"`.
 #' @param standardize logical, whether to z-score covariates before fitting
+#' @param k_date Integer, basis dimension of the forecast date smooths.
+#'   Default `40`; use a smaller value for the sensitivity analysis with a
+#'   less flexible forecast date smooth.
 #' @importFrom mgcv bam
-#' @importFrom tidyr pivot_longer
 #' @importFrom stats contrasts<-
 #' @returns GAM object (with scaling attributes if standardize = TRUE)
 #' @autoglobal
-fit_gam_long <- function(scores_to_model, standardize = FALSE) {
-  prepped <- prep_gam_data(scores_to_model, standardize)
-  data_to_fit <- prepped$data |>
-    pivot_longer(
-      c(wis_ww, wis_hosp),
-      names_to = "model",
-      values_to = "wis"
-    ) |>
-    mutate(include_ww = ordered(model == "wis_ww", levels = c(FALSE, TRUE)))
+fit_gam_long <- function(scores_long_to_model,
+                         model_type = "renewal",
+                         standardize = FALSE,
+                         k_date = 40) {
+  data_type <- scores_long_to_model[
+    scores_long_to_model$model_type == model_type,
+  ]
+  prepped <- prep_gam_data(data_type, standardize)
+  data_to_fit <- prepped$data
   # Ordered so `by = include_ww` gives difference smooths, but treatment
   # contrasts so the parametric include_ww term is the log relative WIS
   contrasts(data_to_fit$include_ww) <- "contr.treatment"
+  # Phase effects as deviations from the average over forecasts, so the
+  # include_ww term is the effect of wastewater averaged across phases
+  data_to_fit <- set_phase_weighted_coding(data_to_fit)
 
   gam_fit <- bam(
-    wis ~ include_ww +
+    wis ~ include_ww * hosp_phase +
       s(horizon, k = 4) + s(horizon, k = 4, by = include_ww) +
       s(location, bs = "re") + s(location, bs = "re", by = include_ww) +
-      s(forecast_date_num, k = 40) +
-      s(forecast_date_num, k = 40, by = include_ww) +
+      s(forecast_date_num, k = k_date) +
+      s(forecast_date_num, k = k_date, by = include_ww) +
       # One value per state, so keep this smooth simple
       s(state_pop, k = 3) + s(state_pop, k = 3, by = include_ww) +
       s(n_sites, k = 5) + s(n_sites, k = 5, by = include_ww) +
       s(pop_coverage, k = 5) + s(pop_coverage, k = 5, by = include_ww) +
       s(avg_sampling_freq, k = 5) +
       s(avg_sampling_freq, k = 5, by = include_ww) +
-      s(avg_latency, k = 5) + s(avg_latency, k = 5, by = include_ww) +
       s(min_latency, k = 5) + s(min_latency, k = 5, by = include_ww) +
       s(avg_data_variability, k = 5) +
       s(avg_data_variability, k = 5, by = include_ww),
     data = data_to_fit,
     family = Gamma(link = "log"),
     method = "fREML",
-    discrete = TRUE
+    # Not discretised, so the smooths are centred over the forecasts rather
+    # than over the unique covariate values
+    discrete = FALSE
   )
 
   gam_fit <- add_gam_metadata(gam_fit, prepped)
   gam_fit$weighted <- FALSE
   gam_fit$long_format <- TRUE
+  gam_fit$model_type <- model_type
+  gam_fit$phase_contrasts <- contrasts(data_to_fit$hosp_phase)
 
   return(gam_fit)
 }
 
-#' Get plot of location specific multiplicative effect
+#' Fit the combined GAM across model types, with and without wastewater
 #'
-#' @param gam_fit long-format GAM fit from `fit_gam_long()`
-#' @importFrom mgcv gam.check
-#' @importFrom ggplot2 geom_errorbar coord_flip scale_x_discrete
+#' Fits all four models (each model type with and without wastewater) in one
+#' GAM. `include_ww:model_type` is the difference in the effect of including
+#' wastewater between model types, so that the relative WIS of including
+#' wastewater is exp(include_ww) for the reference model type and
+#' exp(include_ww + include_ww:model_type) for the other, averaged
+#' across epidemic phases (weighted effect coding, as in `fit_gam_long()`).
+#' Each model has its own horizon smooth. The effects of the
+#' wastewater surveillance characteristics, location, forecast date and
+#' epidemic phase on the relative WIS are assumed to be shared across model
+#' types. There is no random effect for each location-forecast date: with a
+#' log link it would divide each forecast's weight by its difficulty, so
+#' that hard forecasts count for less than in the relative WIS (ratio of
+#' mean WIS). As in `fit_gam_long()`, the pairing of the scores for the same
+#' forecast is not modelled, so standard errors are approximate.
+#'
+#' @inheritParams fit_gam_long
+#' @importFrom mgcv bam
+#' @importFrom stats contrasts<-
+#' @returns GAM object
+#' @autoglobal
+fit_gam_combined <- function(scores_long_to_model,
+                             standardize = FALSE,
+                             k_date = 40) {
+  prepped <- prep_gam_data(scores_long_to_model, standardize)
+  data_to_fit <- prepped$data |>
+    mutate(ww_model = interaction(model_type, include_ww, drop = TRUE))
+  contrasts(data_to_fit$include_ww) <- "contr.treatment"
+  data_to_fit <- set_phase_weighted_coding(data_to_fit)
+
+  gam_fit <- bam(
+    wis ~ include_ww * model_type + include_ww * hosp_phase +
+      s(horizon, k = 4, by = ww_model) +
+      s(location, bs = "re") + s(location, bs = "re", by = include_ww) +
+      s(forecast_date_num, k = k_date) +
+      s(forecast_date_num, k = k_date, by = include_ww) +
+      s(state_pop, k = 3) + s(state_pop, k = 3, by = include_ww) +
+      s(n_sites, k = 5) + s(n_sites, k = 5, by = include_ww) +
+      s(pop_coverage, k = 5) + s(pop_coverage, k = 5, by = include_ww) +
+      s(avg_sampling_freq, k = 5) +
+      s(avg_sampling_freq, k = 5, by = include_ww) +
+      s(min_latency, k = 5) + s(min_latency, k = 5, by = include_ww) +
+      s(avg_data_variability, k = 5) +
+      s(avg_data_variability, k = 5, by = include_ww),
+    data = data_to_fit,
+    family = Gamma(link = "log"),
+    method = "fREML",
+    # Not discretised, so the smooths are centred over the forecasts rather
+    # than over the unique covariate values
+    discrete = FALSE
+  )
+
+  gam_fit <- add_gam_metadata(gam_fit, prepped)
+  gam_fit$weighted <- FALSE
+  gam_fit$long_format <- TRUE
+  gam_fit$model_type <- "combined"
+  gam_fit$phase_contrasts <- contrasts(data_to_fit$hosp_phase)
+
+  return(gam_fit)
+}
+
+#' Relative WIS of including wastewater for each model type
+#'
+#' From the combined GAM (`fit_gam_combined()`), computes the relative WIS
+#' of including wastewater for each model type averaged across epidemic
+#' phases, and the
+#' ratio between model types (the `include_ww:model_type` interaction).
+#'
+#' @param gam_fit GAM from `fit_gam_combined()`
+#' @param level Numeric, confidence level of the intervals. Default `0.95`.
+#'
+#' @returns Data.frame with `term`, `rel_wis`, `lower` and `upper`
+#' @importFrom stats coef vcov qnorm
+#' @autoglobal
+get_combined_ww_effects <- function(gam_fit, level = 0.95) {
+  z <- qnorm(1 - (1 - level) / 2)
+  b <- coef(gam_fit)
+  v <- vcov(gam_fit)
+  types <- levels(gam_fit$model$model_type)
+  interaction_name <- glue("include_wwTRUE:model_type{types[2]}")
+  contrasts_list <- list(
+    c(include_wwTRUE = 1),
+    c(include_wwTRUE = 1, stats::setNames(1, interaction_name)),
+    stats::setNames(1, interaction_name)
+  )
+  term_labels <- c(
+    glue("Including wastewater, {types[1]} model"),
+    glue("Including wastewater, {types[2]} model"),
+    glue("Ratio, {types[2]} vs {types[1]}")
+  )
+  ww_effects <- bind_rows(lapply(seq_along(contrasts_list), function(i) {
+    w <- rep(0, length(b))
+    names(w) <- names(b)
+    w[names(contrasts_list[[i]])] <- contrasts_list[[i]]
+    est <- sum(w * b)
+    se <- sqrt(as.numeric(t(w) %*% v %*% w))
+    return(data.frame(
+      term = term_labels[i],
+      rel_wis = exp(est),
+      lower = exp(est - z * se),
+      upper = exp(est + z * se)
+    ))
+  }))
+  return(ww_effects)
+}
+
+#' Plot the relative WIS of including wastewater for each model type
+#'
+#' @inheritParams get_combined_ww_effects
+#' @importFrom ggplot2 ggplot aes geom_errorbar geom_point geom_hline
+#'   scale_y_log10 labs theme_bw coord_flip
 #' @returns ggplot object
 #' @autoglobal
-get_plot_effect_by_location <- function(gam_fit) {
-  # Tables and plots that I will export to separate figures
-  par(mfrow = c(2, 2))
-  gam.check(gam_fit)
-  par(mfrow = c(1, 1))
-
-  estimates <- smooth_estimates(gam_fit)
-
-  make_ci_table <- function(smooth_name, group_var) {
-    cis <- estimates |>
-      filter(.smooth == smooth_name) |>
-      select(.smooth, {{ group_var }}, .estimate, .se) |>
-      rename(est = .estimate, se = .se) |>
-      mutate(
-        ci_lower = est - 1.96 * se,
-        ci_upper = est + 1.96 * se,
-        effect = exp(est),
-        est_lower = exp(ci_lower),
-        est_upper = exp(ci_upper),
-        excludes_zero = ci_lower > 0 | ci_upper < 0
-      ) |>
-      arrange(effect)
-    return(cis)
-  }
-
-  location_ci <- make_ci_table("s(location):include_wwTRUE", location)
-
-  knitr::kable(select(location_ci, -.smooth))
-
-  p <- ggplot(
-    location_ci,
-    aes(x = reorder(location, -effect), y = effect)
-  ) +
-    geom_errorbar(aes(ymin = est_lower, ymax = est_upper), width = 0.2) +
+get_plot_combined_ww_effects <- function(gam_fit, level = 0.95) {
+  ww_effects <- get_combined_ww_effects(gam_fit, level)
+  p <- ggplot(ww_effects, aes(x = term, y = rel_wis)) +
+    geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.1) +
     geom_point(color = "seagreen", size = 5) +
     geom_hline(yintercept = 1, linetype = "dashed", linewidth = 1) +
-    scale_y_log10(breaks = rel_wis_breaks, labels = rel_wis_labels) +
+    scale_y_log10(breaks = rel_wis_breaks_fine, labels = rel_wis_labels_fine) +
     labs(
-      y = "Multiplicative effect on WIS of including wastewater",
-      x = "Location"
+      y = "Relative WIS (adjusted)",
+      x = NULL
     ) +
     theme_bw() +
-    coord_flip() +
-    theme(
-      text            = element_text(size = 27),
-      axis.text.x     = element_text(size = 24),
-      axis.text.y     = element_text(size = 24),
-      axis.title      = element_text(size = 27),
-      legend.text     = element_text(size = 24),
-      legend.title    = element_text(size = 25.5),
-      strip.text      = element_text(size = 25.5)
-    ) +
-    scale_x_discrete(labels = function(x) gsub("-", "-\n", x)) # nolint
+    coord_flip()
+  # Keep the GAM out of the plot environment
+  rm(gam_fit)
+  return(p)
+}
 
+#' Relative WIS of including wastewater by epidemic phase
+#'
+#' Computes the relative WIS of including wastewater in each hospital
+#' admissions epidemic phase, as exp(include_ww + the phase deviation),
+#' where the deviation is the phase's row of the `hosp_phase` contrasts
+#' times the `include_ww:hosp_phase` coefficients, with intervals from the
+#' coefficient covariance matrix. The smooths are at zero, i.e. averaged
+#' over the forecasts they are centred over. For the combined GAM the
+#' `include_ww:model_type` term is added for the non-reference model type.
+#'
+#' @param gam_fit GAM from `fit_gam_long()` or `fit_gam_combined()`
+#' @param level Numeric, confidence level of the intervals. Default `0.95`.
+#'
+#' @returns Data.frame with `model_type`, `hosp_phase`, `gam`, `rel_wis`,
+#'   `lower` and `upper`
+#' @importFrom stats coef vcov qnorm
+#' @autoglobal
+get_ww_effect_by_phase <- function(gam_fit, level = 0.95) {
+  z <- qnorm(1 - (1 - level) / 2)
+  b <- coef(gam_fit)
+  v <- vcov(gam_fit)
+  phases <- levels(gam_fit$model$hosp_phase)
+  combined <- "model_type" %in% names(gam_fit$model)
+  types <- if (combined) {
+    levels(gam_fit$model$model_type)
+  } else {
+    gam_fit$model_type
+  }
+  ww_effects <- expand.grid(
+    model_type = types, hosp_phase = phases,
+    stringsAsFactors = FALSE
+  )
+  est <- lapply(seq_len(nrow(ww_effects)), function(i) {
+    w <- stats::setNames(rep(0, length(b)), names(b))
+    w["include_wwTRUE"] <- 1
+    contr <- gam_fit$phase_contrasts
+    phase_terms <- paste0("include_wwTRUE:hosp_phase", colnames(contr))
+    w[phase_terms] <- contr[ww_effects$hosp_phase[i], ]
+    type_term <- glue("include_wwTRUE:model_type{ww_effects$model_type[i]}")
+    if (combined && type_term %in% names(w)) w[type_term] <- 1
+    return(c(sum(w * b), sqrt(as.numeric(t(w) %*% v %*% w))))
+  })
+  est <- do.call(rbind, est)
+  ww_effects$gam <- if (combined) "combined" else "separate"
+  ww_effects$rel_wis <- exp(est[, 1])
+  ww_effects$lower <- exp(est[, 1] - z * est[, 2])
+  ww_effects$upper <- exp(est[, 1] + z * est[, 2])
+  return(ww_effects)
+}
+
+#' Plot the relative WIS of including wastewater by epidemic phase
+#'
+#' One panel per model type, with the estimates from the separate GAM for
+#' that model type (`fit_gam_long()`). The combined GAM is not shown because
+#' it assumes the phase effects are the same for both model types.
+#'
+#' @param gam_fits List of GAMs from `fit_gam_long()`, one per model type
+#' @inheritParams get_ww_effect_by_phase
+#' @importFrom ggplot2 ggplot aes geom_vline geom_linerange geom_point
+#'   scale_x_log10 facet_wrap labs theme_bw theme element_blank
+#' @importFrom dplyr bind_rows mutate
+#' @returns ggplot object
+#' @autoglobal
+get_plot_ww_effect_by_phase <- function(gam_fits, level = 0.95) {
+  ww_effects <- bind_rows(lapply(gam_fits, get_ww_effect_by_phase,
+    level = level
+  )) |>
+    mutate(
+      model_type = factor(
+        model_type,
+        levels = c("renewal", "statistical"),
+        labels = c("Renewal model", "Simple statistical model")
+      ),
+      hosp_phase = factor(
+        hosp_phase,
+        levels = rev(c("increasing", "stable", "decreasing"))
+      )
+    )
+  p <- ggplot(ww_effects, aes(x = rel_wis, y = hosp_phase)) +
+    geom_vline(xintercept = 1, linetype = "dashed", colour = "grey40") +
+    geom_linerange(aes(xmin = lower, xmax = upper),
+      linewidth = 0.8, colour = "#2a78d6"
+    ) +
+    geom_point(size = 3, colour = "#2a78d6") +
+    scale_x_log10(breaks = rel_wis_breaks_fine, labels = rel_wis_labels_fine) +
+    facet_wrap(~model_type) +
+    labs(
+      x = "Relative WIS of including wastewater (adjusted)",
+      y = "Hospital admissions epidemic phase",
+      caption = glue(
+        "Points and {level * 100}% intervals, with the other covariates ",
+        "at their average effect. Below 1: wastewater improves the forecast."
+      )
+    ) +
+    theme_bw() +
+    theme(panel.grid.minor = element_blank())
+  # Keep the GAMs out of the plot environment
+  rm(gam_fits)
+  return(p)
+}
+
+#' Get the relative WIS of including wastewater in each location
+#'
+#' For each location, the GAM-estimated relative WIS of including
+#' wastewater, exp of the mean over that location's forecasts of the
+#' difference in the linear predictor with and without wastewater. This
+#' includes every term that differs by wastewater inclusion (epidemic phase,
+#' horizon, forecast date, wastewater surveillance characteristics and the
+#' location random effect), evaluated at that location's own forecasts, so
+#' it is the model-smoothed counterpart of the unadjusted ratio of mean WIS,
+#' which is also returned.
+#'
+#' @param gam_fit GAM from `fit_gam_long()`
+#' @param level Numeric, confidence level of the intervals. Default `0.95`.
+#'
+#' @returns Data.frame with `model_type`, `location`, `rel_wis`, `lower`,
+#'   `upper` and `rel_wis_unadj` (mean WIS with wastewater over mean WIS
+#'   without, across the location's forecasts)
+#' @importFrom stats coef vcov qnorm predict
+#' @importFrom dplyr group_by summarise left_join
+#' @autoglobal
+get_ww_effect_by_location <- function(gam_fit, level = 0.95) {
+  z <- qnorm(1 - (1 - level) / 2)
+  mf <- gam_fit$model
+  nd_hosp <- mf[mf$include_ww == "FALSE", ]
+  nd_ww <- nd_hosp
+  nd_ww$include_ww[] <- "TRUE"
+  diff_lp <- predict(gam_fit, newdata = nd_ww, type = "lpmatrix") -
+    predict(gam_fit, newdata = nd_hosp, type = "lpmatrix")
+  loc <- as.character(nd_hosp$location)
+  avg_diff <- rowsum(diff_lp, loc) / as.vector(table(loc)[unique(sort(loc))])
+  est <- as.vector(avg_diff %*% coef(gam_fit))
+  se <- sqrt(rowSums((avg_diff %*% vcov(gam_fit)) * avg_diff))
+  unadj <- mf |>
+    group_by(location = as.character(location)) |>
+    summarise(
+      rel_wis_unadj = mean(wis[include_ww == "TRUE"]) /
+        mean(wis[include_ww == "FALSE"])
+    )
+  ww_effects <- data.frame(
+    model_type = gam_fit$model_type,
+    location = rownames(avg_diff),
+    rel_wis = exp(est),
+    lower = exp(est - z * se),
+    upper = exp(est + z * se)
+  ) |>
+    left_join(unadj, by = "location")
+  return(ww_effects)
+}
+
+#' Plot the relative WIS of including wastewater by location
+#'
+#' One panel per model type, with the GAM-estimated relative WIS of
+#' including wastewater in each location (from `get_ww_effect_by_location()`)
+#' and the unadjusted ratio of mean WIS. Locations are ordered by the
+#' estimate for the first model type, in the same order in every panel.
+#'
+#' @param gam_fits List of GAMs from `fit_gam_long()`, one per model type
+#' @inheritParams get_ww_effect_by_location
+#' @importFrom ggplot2 ggplot aes geom_vline geom_linerange geom_point
+#'   scale_x_log10 scale_colour_manual scale_shape_manual facet_wrap labs
+#'   theme_bw theme element_blank
+#' @importFrom dplyr bind_rows mutate filter arrange pull
+#' @returns ggplot object
+#' @autoglobal
+get_plot_ww_effect_by_location <- function(gam_fits, level = 0.95) {
+  ww_effects <- bind_rows(lapply(gam_fits, get_ww_effect_by_location,
+    level = level
+  ))
+  loc_order <- ww_effects |>
+    filter(model_type == ww_effects$model_type[1]) |>
+    arrange(rel_wis) |>
+    pull(location)
+  ww_effects <- ww_effects |>
+    mutate(
+      model_type = factor(
+        model_type,
+        levels = c("renewal", "statistical"),
+        labels = c("Renewal model", "Simple statistical model")
+      ),
+      location = factor(location, levels = rev(loc_order))
+    )
+  p <- ggplot(ww_effects, aes(y = location)) +
+    geom_vline(xintercept = 1, linetype = "dashed", colour = "grey40") +
+    geom_linerange(aes(xmin = lower, xmax = upper),
+      linewidth = 0.8, colour = "#2a78d6"
+    ) +
+    geom_point(
+      aes(x = rel_wis, colour = "GAM estimate", shape = "GAM estimate"),
+      size = 3
+    ) +
+    geom_point(
+      aes(
+        x = rel_wis_unadj, colour = "Unadjusted", shape = "Unadjusted"
+      ),
+      size = 2.5
+    ) +
+    scale_x_log10(breaks = rel_wis_breaks, labels = rel_wis_labels) +
+    scale_colour_manual(
+      values = c("GAM estimate" = "#2a78d6", Unadjusted = "#8a8a85"),
+      name = NULL
+    ) +
+    scale_shape_manual(
+      values = c("GAM estimate" = 16, Unadjusted = 4),
+      name = NULL
+    ) +
+    facet_wrap(~model_type) +
+    labs(
+      x = "Relative WIS of including wastewater",
+      y = NULL,
+      caption = glue(
+        "GAM estimate: mean over the location's forecasts, with ",
+        "{level * 100}% interval. Unadjusted: ratio of mean WIS. ",
+        "Below 1: wastewater improves the forecast."
+      )
+    ) +
+    theme_bw() +
+    theme(
+      panel.grid.minor = element_blank(),
+      legend.position = "top"
+    )
+  # Keep the GAMs out of the plot environment
+  rm(gam_fits)
+  return(p)
+}
+
+#' Get the location random effect on the relative WIS of including wastewater
+#'
+#' exp(u_l), the location random effect of the wastewater difference
+#' (`s(location, bs = "re", by = include_ww)`): how much better (below 1) or
+#' worse (above 1) including wastewater does in a location than in an
+#' average location, after accounting for the other covariates, including
+#' the location's wastewater surveillance characteristics. Intervals are
+#' from the coefficient covariance matrix.
+#'
+#' @param gam_fit GAM from `fit_gam_long()`
+#' @param level Numeric, confidence level of the intervals. Default `0.95`.
+#'
+#' @returns Data.frame with `model_type`, `location`, `rel_wis`, `lower` and
+#'   `upper`
+#' @importFrom stats coef vcov qnorm
+#' @autoglobal
+get_ww_location_random_effect <- function(gam_fit, level = 0.95) {
+  z <- qnorm(1 - (1 - level) / 2)
+  sm <- Filter(
+    function(x) x$label == "s(location):include_wwTRUE",
+    gam_fit$smooth
+  )[[1]]
+  idx <- sm$first.para:sm$last.para
+  est <- coef(gam_fit)[idx]
+  se <- sqrt(diag(vcov(gam_fit))[idx])
+  ww_effects <- data.frame(
+    model_type = gam_fit$model_type,
+    location = levels(gam_fit$model$location),
+    rel_wis = exp(est),
+    lower = exp(est - z * se),
+    upper = exp(est + z * se),
+    row.names = NULL
+  )
+  return(ww_effects)
+}
+
+#' Plot the location random effect on the relative WIS of including
+#' wastewater
+#'
+#' One panel per model type, with exp(u_l) from
+#' `get_ww_location_random_effect()`. Locations are ordered by the estimate
+#' for the first model type, in the same order in every panel.
+#'
+#' @param gam_fits List of GAMs from `fit_gam_long()`, one per model type
+#' @inheritParams get_ww_location_random_effect
+#' @importFrom ggplot2 ggplot aes geom_vline geom_linerange geom_point
+#'   scale_x_log10 facet_wrap labs theme_bw theme element_blank
+#' @importFrom dplyr bind_rows mutate filter arrange pull
+#' @returns ggplot object
+#' @autoglobal
+get_plot_ww_location_re <- function(gam_fits, level = 0.95) {
+  ww_effects <- bind_rows(lapply(gam_fits, get_ww_location_random_effect,
+    level = level
+  ))
+  loc_order <- ww_effects |>
+    filter(model_type == ww_effects$model_type[1]) |>
+    arrange(rel_wis) |>
+    pull(location)
+  ww_effects <- ww_effects |>
+    mutate(
+      model_type = factor(
+        model_type,
+        levels = c("renewal", "statistical"),
+        labels = c("Renewal model", "Simple statistical model")
+      ),
+      location = factor(location, levels = rev(loc_order))
+    )
+  p <- ggplot(ww_effects, aes(x = rel_wis, y = location)) +
+    geom_vline(xintercept = 1, linetype = "dashed", colour = "grey40") +
+    geom_linerange(aes(xmin = lower, xmax = upper),
+      linewidth = 0.8, colour = "#2a78d6"
+    ) +
+    geom_point(size = 3, colour = "#2a78d6") +
+    scale_x_log10(breaks = rel_wis_breaks, labels = rel_wis_labels) +
+    facet_wrap(~model_type) +
+    labs(
+      x = "Location effect on the relative WIS of including wastewater",
+      y = NULL,
+      caption = glue(
+        "exp(location random effect) with {level * 100}% interval: relative ",
+        "WIS compared with an average location,\nafter adjusting for the ",
+        "other covariates. Below 1: wastewater helps more than average."
+      )
+    ) +
+    theme_bw() +
+    theme(panel.grid.minor = element_blank())
+  # Keep the GAMs out of the plot environment
+  rm(gam_fits)
   return(p)
 }
 
@@ -396,14 +901,13 @@ get_plot_ww_chars <- function(gam_fit,
       select = glue("s({v}):include_wwTRUE"),
       n = n_grid
     )
-    data.frame(
+    return(data.frame(
       variable = v,
       x = est[[v]],
       effect = exp(est$.estimate),
       est_lower = exp(est$.estimate - z * est$.se),
       est_upper = exp(est$.estimate + z * est$.se)
-    )
-    return(est)
+    ))
   }))
 
   p <- ggplot(smooth_ci, aes(x = x, y = effect)) +
@@ -436,6 +940,9 @@ rel_wis_breaks <- c(1 / 3, 0.5, 2 / 3, 0.8, 0.9, 1, 1 / 0.9, 1.25, 1.5, 2, 3)
 rel_wis_labels <- c(
   "0.33", "0.5", "0.67", "0.8", "0.9", "1", "1.11", "1.25", "1.5", "2", "3"
 )
+# Finer breaks for effects close to 1
+rel_wis_breaks_fine <- c(0.9, 0.95, 0.97, 1, 1 / 0.97, 1 / 0.95, 1 / 0.9)
+rel_wis_labels_fine <- c("0.9", "0.95", "0.97", "1", "1.03", "1.05", "1.11")
 
 #' Convert a GAM covariate back to its original scale
 #'
@@ -472,6 +979,15 @@ get_gam_newdata <- function(gam_fit, n) {
     return(median(x))
   })
   names(newdata) <- vars
+  # Parametric factors (e.g. epidemic phase, model type) at their first
+  # level; whether their interactions with include_ww are used is decided
+  # by get_rel_wis_lpmatrix
+  for (v in setdiff(names(gam_fit$model), c(vars, "wis", "include_ww"))) {
+    x <- gam_fit$model[[v]]
+    if (is.factor(x)) {
+      newdata[[v]] <- factor(levels(x)[1], levels = levels(x))
+    }
+  }
   newdata <- as.data.frame(newdata)[rep(1, n), , drop = FALSE]
   newdata$wis_hosp <- 1
   return(newdata)
@@ -514,7 +1030,9 @@ get_rel_wis_lpmatrix <- function(gam_fit, var, values) {
     keep_smooth <- function(sm) {
       return(sm$term == var && sm$by == "include_ww")
     }
+    # Phase deviations are dropped, so the effect is averaged across phases
     keep_param <- grep("^include_ww", colnames(lp), value = TRUE)
+    keep_param <- keep_param[!grepl("hosp_phase", keep_param, fixed = TRUE)]
   } else {
     lp <- predict(gam_fit, newdata = newdata, type = "lpmatrix")
     keep_smooth <- function(sm) {
@@ -543,7 +1061,7 @@ get_rel_wis_lpmatrix <- function(gam_fit, var, values) {
 #' @autoglobal
 get_gam_avg_rel_wis <- function(gam_fit) {
   term <- if (isTRUE(gam_fit$long_format)) {
-    grep("^include_ww", names(coef(gam_fit)), value = TRUE)
+    "include_wwTRUE"
   } else {
     "(Intercept)"
   }
@@ -702,6 +1220,8 @@ get_plot_gam_diagnostics <- function(gam_fit) {
   print(k.check(gam_fit))
 
   long_format <- isTRUE(gam_fit$long_format)
+  # Residuals can only be paired by forecast for a single model type
+  paired_resid <- long_format && !"model_type" %in% names(gam_fit$model)
   horizon_var <- intersect(c("horizon", "horizon_weeks"), names(gam_fit$model))
   resid_data <- gam_fit$model |>
     mutate(
@@ -709,7 +1229,8 @@ get_plot_gam_diagnostics <- function(gam_fit) {
       fitted = fitted(gam_fit),
       horizon = .data[[horizon_var[1]]],
       model = if (long_format) {
-        ifelse(include_ww == "TRUE", "wastewater", "hospital only")
+        ww_label <- ifelse(include_ww == "TRUE", "wastewater", "hospital only")
+        if (paired_resid) ww_label else paste(model_type, ww_label)
       } else {
         "wastewater vs hospital only"
       }
@@ -739,7 +1260,7 @@ get_plot_gam_diagnostics <- function(gam_fit) {
 
   plots <- list(p_horizon, p_date)
 
-  if (long_format) {
+  if (paired_resid) {
     paired <- resid_data |>
       select(location, forecast_date_num, horizon, model, resid) |>
       pivot_wider(names_from = model, values_from = resid)
