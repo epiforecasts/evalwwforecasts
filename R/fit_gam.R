@@ -378,9 +378,11 @@ fit_gam_long <- function(scores_long_to_model,
 #' across epidemic phases (weighted effect coding, as in `fit_gam_long()`). Each model has its own horizon smooth. The effects of the
 #' wastewater surveillance characteristics, location, forecast date and
 #' epidemic phase on the relative WIS are assumed to be shared across model
-#' types. A random effect for each location-forecast date absorbs the
-#' difficulty of each forecast that is shared by all models, e.g. from
-#' revisions to the hospital admissions data.
+#' types. There is no random effect for each location-forecast date: with a
+#' log link it would divide each forecast's weight by its difficulty, so
+#' that hard forecasts count for less than in the relative WIS (ratio of
+#' mean WIS). As in `fit_gam_long()`, the pairing of the scores for the same
+#' forecast is not modelled, so standard errors are approximate.
 #'
 #' @inheritParams fit_gam_long
 #' @importFrom mgcv bam
@@ -400,7 +402,6 @@ fit_gam_combined <- function(scores_long_to_model,
     wis ~ include_ww * model_type + include_ww * hosp_phase +
       s(horizon, k = 4, by = ww_model) +
       s(location, bs = "re") + s(location, bs = "re", by = include_ww) +
-      s(loc_date, bs = "re") +
       s(forecast_date_num, k = k_date) +
       s(forecast_date_num, k = k_date, by = include_ww) +
       s(state_pop, k = 3) + s(state_pop, k = 3, by = include_ww) +

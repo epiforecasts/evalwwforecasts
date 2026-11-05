@@ -28,7 +28,9 @@ exp(include_ww + include_ww:model_type) for the other, averaged
 across epidemic phases (weighted effect coding, as in \code{fit_gam_long()}). Each model has its own horizon smooth. The effects of the
 wastewater surveillance characteristics, location, forecast date and
 epidemic phase on the relative WIS are assumed to be shared across model
-types. A random effect for each location-forecast date absorbs the
-difficulty of each forecast that is shared by all models, e.g. from
-revisions to the hospital admissions data.
+types. There is no random effect for each location-forecast date: with a
+log link it would divide each forecast's weight by its difficulty, so
+that hard forecasts count for less than in the relative WIS (ratio of
+mean WIS). As in \code{fit_gam_long()}, the pairing of the scores for the same
+forecast is not modelled, so standard errors are approximate.
 }
