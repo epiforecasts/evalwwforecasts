@@ -127,6 +127,20 @@ run_gam_targets <- list(
     ),
     format = "rds"
   ),
+  tar_target(
+    name = ww_effect_by_location,
+    command = bind_rows(lapply(
+      list(gam_results_long, gam_results_long_statistical),
+      get_ww_effect_by_location
+    ))
+  ),
+  tar_target(
+    name = plot_ww_effect_by_location,
+    command = get_plot_ww_effect_by_location(
+      list(gam_results_long, gam_results_long_statistical)
+    ),
+    format = "rds"
+  ),
   # Plots for each of the separate GAMs
   tar_target(
     name = gam_by_model_type,

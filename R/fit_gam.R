@@ -564,6 +564,133 @@ get_plot_ww_effect_by_phase <- function(gam_fits, level = 0.95) {
       panel.grid.minor = element_blank(),
       legend.position = "top"
     )
+  # Keep the GAMs out of the plot environment
+  rm(gam_fits)
+  return(p)
+}
+
+#' Get the relative WIS of including wastewater in each location
+#'
+#' For each location, the GAM-estimated relative WIS of including
+#' wastewater, exp of the mean over that location's forecasts of the
+#' difference in the linear predictor with and without wastewater. This
+#' includes every term that differs by wastewater inclusion (epidemic phase,
+#' horizon, forecast date, wastewater surveillance characteristics and the
+#' location random effect), evaluated at that location's own forecasts, so
+#' it is the model-smoothed counterpart of the unadjusted ratio of mean WIS,
+#' which is also returned.
+#'
+#' @param gam_fit GAM from `fit_gam_long()`
+#' @param level Numeric, confidence level of the intervals. Default `0.95`.
+#'
+#' @returns Data.frame with `model_type`, `location`, `rel_wis`, `lower`,
+#'   `upper` and `rel_wis_unadj` (mean WIS with wastewater over mean WIS
+#'   without, across the location's forecasts)
+#' @importFrom stats coef vcov qnorm predict
+#' @importFrom dplyr group_by summarise left_join
+#' @autoglobal
+get_ww_effect_by_location <- function(gam_fit, level = 0.95) {
+  z <- qnorm(1 - (1 - level) / 2)
+  mf <- gam_fit$model
+  nd_hosp <- mf[mf$include_ww == "FALSE", ]
+  nd_ww <- nd_hosp
+  nd_ww$include_ww[] <- "TRUE"
+  diff_lp <- predict(gam_fit, newdata = nd_ww, type = "lpmatrix") -
+    predict(gam_fit, newdata = nd_hosp, type = "lpmatrix")
+  loc <- as.character(nd_hosp$location)
+  avg_diff <- rowsum(diff_lp, loc) / as.vector(table(loc)[unique(sort(loc))])
+  est <- as.vector(avg_diff %*% coef(gam_fit))
+  se <- sqrt(rowSums((avg_diff %*% vcov(gam_fit)) * avg_diff))
+  unadj <- mf |>
+    group_by(location = as.character(location)) |>
+    summarise(
+      rel_wis_unadj = mean(wis[include_ww == "TRUE"]) /
+        mean(wis[include_ww == "FALSE"])
+    )
+  effects <- data.frame(
+    model_type = gam_fit$model_type,
+    location = rownames(avg_diff),
+    rel_wis = exp(est),
+    lower = exp(est - z * se),
+    upper = exp(est + z * se)
+  ) |>
+    left_join(unadj, by = "location")
+  return(effects)
+}
+
+#' Plot the relative WIS of including wastewater by location
+#'
+#' One panel per model type, with the GAM-estimated relative WIS of
+#' including wastewater in each location (from `get_ww_effect_by_location()`)
+#' and the unadjusted ratio of mean WIS. Locations are ordered by the
+#' estimate for the first model type, in the same order in every panel.
+#'
+#' @param gam_fits List of GAMs from `fit_gam_long()`, one per model type
+#' @inheritParams get_ww_effect_by_location
+#' @importFrom ggplot2 ggplot aes geom_vline geom_linerange geom_point
+#'   scale_x_log10 scale_colour_manual scale_shape_manual facet_wrap labs
+#'   theme_bw theme element_blank
+#' @importFrom dplyr bind_rows mutate filter arrange pull
+#' @returns ggplot object
+#' @autoglobal
+get_plot_ww_effect_by_location <- function(gam_fits, level = 0.95) {
+  effects <- bind_rows(lapply(gam_fits, get_ww_effect_by_location,
+    level = level
+  ))
+  loc_order <- effects |>
+    filter(model_type == effects$model_type[1]) |>
+    arrange(rel_wis) |>
+    pull(location)
+  effects <- effects |>
+    mutate(
+      model_type = factor(
+        model_type,
+        levels = c("renewal", "statistical"),
+        labels = c("Renewal model", "Simple statistical model")
+      ),
+      location = factor(location, levels = rev(loc_order))
+    )
+  p <- ggplot(effects, aes(y = location)) +
+    geom_vline(xintercept = 1, linetype = "dashed", colour = "grey40") +
+    geom_linerange(aes(xmin = lower, xmax = upper),
+      linewidth = 0.8, colour = "#2a78d6"
+    ) +
+    geom_point(
+      aes(x = rel_wis, colour = "GAM estimate", shape = "GAM estimate"),
+      size = 3
+    ) +
+    geom_point(
+      aes(
+        x = rel_wis_unadj, colour = "Unadjusted", shape = "Unadjusted"
+      ),
+      size = 2.5
+    ) +
+    scale_x_log10(breaks = rel_wis_breaks, labels = rel_wis_labels) +
+    scale_colour_manual(
+      values = c("GAM estimate" = "#2a78d6", "Unadjusted" = "#8a8a85"),
+      name = NULL
+    ) +
+    scale_shape_manual(
+      values = c("GAM estimate" = 16, "Unadjusted" = 4),
+      name = NULL
+    ) +
+    facet_wrap(~model_type) +
+    labs(
+      x = "Relative WIS of including wastewater",
+      y = NULL,
+      caption = glue(
+        "GAM estimate: mean over the location's forecasts, with ",
+        "{level * 100}% interval. Unadjusted: ratio of mean WIS. ",
+        "Below 1: wastewater improves the forecast."
+      )
+    ) +
+    theme_bw() +
+    theme(
+      panel.grid.minor = element_blank(),
+      legend.position = "top"
+    )
+  # Keep the GAMs out of the plot environment
+  rm(gam_fits)
   return(p)
 }
 
