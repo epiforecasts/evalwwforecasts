@@ -262,6 +262,32 @@ prep_scores_long_to_model <- function(scores_long,
   return(as.data.frame(scores))
 }
 
+#' Weighted effect coding for epidemic phase
+#'
+#' Sets the contrasts of `hosp_phase` so that each phase coefficient is the
+#' deviation from the average over forecasts, weighted by the number of
+#' forecasts in each phase. The main effect of a term interacting with
+#' `hosp_phase` (e.g. `include_ww`) is then its average effect across
+#' phases rather than its effect in the reference phase. The first level
+#' (stable) has no coefficient: its deviation is minus the weighted sum of
+#' the others' deviations divided by its count.
+#'
+#' @param data Data.frame with a factor `hosp_phase`
+#'
+#' @returns `data` with weighted effect contrasts on `hosp_phase`
+#' @importFrom stats contrasts<-
+set_phase_weighted_coding <- function(data) {
+  n_phase <- table(data$hosp_phase)
+  if (any(n_phase == 0)) {
+    cli::cli_abort("Every epidemic phase must have at least one forecast.")
+  }
+  wec <- diag(length(n_phase))[, -1, drop = FALSE]
+  wec[1, ] <- -n_phase[-1] / n_phase[1]
+  dimnames(wec) <- list(names(n_phase), names(n_phase)[-1])
+  contrasts(data$hosp_phase) <- wec
+  return(data)
+}
+
 #' Fit the long-format GAM for one model type, with and without wastewater
 #'
 #' Stacks the WIS of the model with and without wastewater, for a single
@@ -270,8 +296,11 @@ prep_scores_long_to_model <- function(scores_long,
 #' and a difference smooth for the wastewater model (`by = include_ww`, an
 #' ordered factor), describing how the effect of including wastewater
 #' varies. exp(include_ww coefficient + difference smooths) is the relative
-#' WIS, and `include_ww:hosp_phase` gives the change in the relative WIS in
-#' increasing and decreasing phases relative to the stable phase.
+#' WIS. `hosp_phase` has weighted effect coding
+#' (`set_phase_weighted_coding()`), so the include_ww coefficient is the
+#' effect of wastewater averaged across phases (weighted by the number of
+#' forecasts in each) and `include_ww:hosp_phase` the deviation from it in
+#' the increasing and decreasing phases.
 #'
 #' Neither model's score appears in a denominator. In an intercept-only
 #' version, exp(include_ww coefficient) is exactly the ratio of mean scores.
@@ -303,6 +332,9 @@ fit_gam_long <- function(scores_long_to_model,
   # Ordered so `by = include_ww` gives difference smooths, but treatment
   # contrasts so the parametric include_ww term is the log relative WIS
   contrasts(data_to_fit$include_ww) <- "contr.treatment"
+  # Phase effects as deviations from the average over forecasts, so the
+  # include_ww term is the effect of wastewater averaged across phases
+  data_to_fit <- set_phase_weighted_coding(data_to_fit)
 
   gam_fit <- bam(
     wis ~ include_ww * hosp_phase +
@@ -322,13 +354,16 @@ fit_gam_long <- function(scores_long_to_model,
     data = data_to_fit,
     family = Gamma(link = "log"),
     method = "fREML",
-    discrete = TRUE
+    # Not discretised, so the smooths are centred over the forecasts rather
+    # than over the unique covariate values
+    discrete = FALSE
   )
 
   gam_fit <- add_gam_metadata(gam_fit, prepped)
   gam_fit$weighted <- FALSE
   gam_fit$long_format <- TRUE
   gam_fit$model_type <- model_type
+  gam_fit$phase_contrasts <- contrasts(data_to_fit$hosp_phase)
 
   return(gam_fit)
 }
@@ -339,8 +374,8 @@ fit_gam_long <- function(scores_long_to_model,
 #' GAM. `include_ww:model_type` is the difference in the effect of including
 #' wastewater between model types, so that the relative WIS of including
 #' wastewater is exp(include_ww) for the reference model type and
-#' exp(include_ww + include_ww:model_type) for the other, in the stable
-#' phase. Each model has its own horizon smooth. The effects of the
+#' exp(include_ww + include_ww:model_type) for the other, averaged
+#' across epidemic phases (weighted effect coding, as in `fit_gam_long()`). Each model has its own horizon smooth. The effects of the
 #' wastewater surveillance characteristics, location, forecast date and
 #' epidemic phase on the relative WIS are assumed to be shared across model
 #' types. A random effect for each location-forecast date absorbs the
@@ -359,6 +394,7 @@ fit_gam_combined <- function(scores_long_to_model,
   data_to_fit <- prepped$data |>
     mutate(ww_model = interaction(model_type, include_ww, drop = TRUE))
   contrasts(data_to_fit$include_ww) <- "contr.treatment"
+  data_to_fit <- set_phase_weighted_coding(data_to_fit)
 
   gam_fit <- bam(
     wis ~ include_ww * model_type + include_ww * hosp_phase +
@@ -378,13 +414,16 @@ fit_gam_combined <- function(scores_long_to_model,
     data = data_to_fit,
     family = Gamma(link = "log"),
     method = "fREML",
-    discrete = TRUE
+    # Not discretised, so the smooths are centred over the forecasts rather
+    # than over the unique covariate values
+    discrete = FALSE
   )
 
   gam_fit <- add_gam_metadata(gam_fit, prepped)
   gam_fit$weighted <- FALSE
   gam_fit$long_format <- TRUE
   gam_fit$model_type <- "combined"
+  gam_fit$phase_contrasts <- contrasts(data_to_fit$hosp_phase)
 
   return(gam_fit)
 }
@@ -392,7 +431,8 @@ fit_gam_combined <- function(scores_long_to_model,
 #' Relative WIS of including wastewater for each model type
 #'
 #' From the combined GAM (`fit_gam_combined()`), computes the relative WIS
-#' of including wastewater for each model type in the stable phase, and the
+#' of including wastewater for each model type averaged across epidemic
+#' phases, and the
 #' ratio between model types (the `include_ww:model_type` interaction).
 #'
 #' @param gam_fit GAM from `fit_gam_combined()`
@@ -446,22 +486,26 @@ get_plot_combined_ww_effects <- function(gam_fit, level = 0.95) {
     geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.1) +
     geom_point(color = "seagreen", size = 5) +
     geom_hline(yintercept = 1, linetype = "dashed", linewidth = 1) +
-    scale_y_log10(breaks = rel_wis_breaks, labels = rel_wis_labels) +
+    scale_y_log10(breaks = rel_wis_breaks_fine, labels = rel_wis_labels_fine) +
     labs(
-      y = "Relative WIS (stable phase, adjusted)",
+      y = "Relative WIS (adjusted)",
       x = NULL
     ) +
     theme_bw() +
     coord_flip()
+  # Keep the GAM out of the plot environment
+  rm(gam_fit)
   return(p)
 }
 
 #' Relative WIS of including wastewater by epidemic phase
 #'
 #' Computes the relative WIS of including wastewater in each hospital
-#' admissions epidemic phase, at the reference values of the other
-#' covariates, as exp(include_ww + include_ww:hosp_phase), with intervals
-#' from the coefficient covariance matrix. For the combined GAM the
+#' admissions epidemic phase, as exp(include_ww + the phase deviation),
+#' where the deviation is the phase's row of the `hosp_phase` contrasts
+#' times the `include_ww:hosp_phase` coefficients, with intervals from the
+#' coefficient covariance matrix. The smooths are at zero, i.e. averaged
+#' over the forecasts they are centred over. For the combined GAM the
 #' `include_ww:model_type` term is added for the non-reference model type.
 #'
 #' @param gam_fit GAM from `fit_gam_long()` or `fit_gam_combined()`
@@ -489,8 +533,9 @@ get_ww_effect_by_phase <- function(gam_fit, level = 0.95) {
   est <- lapply(seq_len(nrow(effects)), function(i) {
     w <- stats::setNames(rep(0, length(b)), names(b))
     w["include_wwTRUE"] <- 1
-    phase_term <- glue("include_wwTRUE:hosp_phase{effects$hosp_phase[i]}")
-    if (phase_term %in% names(w)) w[phase_term] <- 1
+    contr <- gam_fit$phase_contrasts
+    phase_terms <- paste0("include_wwTRUE:hosp_phase", colnames(contr))
+    w[phase_terms] <- contr[effects$hosp_phase[i], ]
     type_term <- glue("include_wwTRUE:model_type{effects$model_type[i]}")
     if (combined && type_term %in% names(w)) w[type_term] <- 1
     return(c(sum(w * b), sqrt(as.numeric(t(w) %*% v %*% w))))
@@ -544,7 +589,7 @@ get_plot_ww_effect_by_phase <- function(gam_fits, level = 0.95) {
       linewidth = 0.8, position = dodge
     ) +
     geom_point(size = 3, position = dodge) +
-    scale_x_log10(breaks = rel_wis_breaks, labels = rel_wis_labels) +
+    scale_x_log10(breaks = rel_wis_breaks_fine, labels = rel_wis_labels_fine) +
     scale_colour_manual(
       values = c("Separate GAM" = "#2a78d6", "Combined GAM" = "#8a8a85"),
       breaks = c("Separate GAM", "Combined GAM"),
@@ -555,8 +600,8 @@ get_plot_ww_effect_by_phase <- function(gam_fits, level = 0.95) {
       x = "Relative WIS of including wastewater (adjusted)",
       y = "Hospital admissions epidemic phase",
       caption = glue(
-        "Points and {level * 100}% intervals at the reference values of ",
-        "the other covariates. Below 1: wastewater improves the forecast."
+        "Points and {level * 100}% intervals, with the other covariates ",
+        "at their average effect. Below 1: wastewater improves the forecast."
       )
     ) +
     theme_bw() +
@@ -881,6 +926,9 @@ rel_wis_breaks <- c(1 / 3, 0.5, 2 / 3, 0.8, 0.9, 1, 1 / 0.9, 1.25, 1.5, 2, 3)
 rel_wis_labels <- c(
   "0.33", "0.5", "0.67", "0.8", "0.9", "1", "1.11", "1.25", "1.5", "2", "3"
 )
+# Finer breaks for effects close to 1
+rel_wis_breaks_fine <- c(0.9, 0.95, 0.97, 1, 1 / 0.97, 1 / 0.95, 1 / 0.9)
+rel_wis_labels_fine <- c("0.9", "0.95", "0.97", "1", "1.03", "1.05", "1.11")
 
 #' Convert a GAM covariate back to its original scale
 #'
@@ -917,8 +965,9 @@ get_gam_newdata <- function(gam_fit, n) {
     return(median(x))
   })
   names(newdata) <- vars
-  # Parametric factors (e.g. epidemic phase, model type) at their reference
-  # level, so that their interactions with include_ww drop out
+  # Parametric factors (e.g. epidemic phase, model type) at their first
+  # level; their interactions with include_ww are dropped or kept in
+  # get_rel_wis_lpmatrix()
   for (v in setdiff(names(gam_fit$model), c(vars, "wis", "include_ww"))) {
     x <- gam_fit$model[[v]]
     if (is.factor(x)) {
@@ -967,7 +1016,9 @@ get_rel_wis_lpmatrix <- function(gam_fit, var, values) {
     keep_smooth <- function(sm) {
       return(sm$term == var && sm$by == "include_ww")
     }
+    # Phase deviations are dropped, so the effect is averaged across phases
     keep_param <- grep("^include_ww", colnames(lp), value = TRUE)
+    keep_param <- keep_param[!grepl("hosp_phase", keep_param)]
   } else {
     lp <- predict(gam_fit, newdata = newdata, type = "lpmatrix")
     keep_smooth <- function(sm) {

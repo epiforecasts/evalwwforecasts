@@ -16,6 +16,7 @@ Data.frame with \code{term}, \code{rel_wis}, \code{lower} and \code{upper}
 }
 \description{
 From the combined GAM (\code{fit_gam_combined()}), computes the relative WIS
-of including wastewater for each model type in the stable phase, and the
+of including wastewater for each model type averaged across epidemic
+phases, and the
 ratio between model types (the \code{include_ww:model_type} interaction).
 }

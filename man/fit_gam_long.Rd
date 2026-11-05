@@ -34,8 +34,11 @@ shared smooth, describing how forecast difficulty varies for both models,
 and a difference smooth for the wastewater model (\code{by = include_ww}, an
 ordered factor), describing how the effect of including wastewater
 varies. exp(include_ww coefficient + difference smooths) is the relative
-WIS, and \code{include_ww:hosp_phase} gives the change in the relative WIS in
-increasing and decreasing phases relative to the stable phase.
+WIS. \code{hosp_phase} has weighted effect coding
+(\code{set_phase_weighted_coding()}), so the include_ww coefficient is the
+effect of wastewater averaged across phases (weighted by the number of
+forecasts in each) and \code{include_ww:hosp_phase} the deviation from it in
+the increasing and decreasing phases.
 }
 \details{
 Neither model's score appears in a denominator. In an intercept-only

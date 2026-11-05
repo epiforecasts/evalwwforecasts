@@ -17,8 +17,10 @@ Data.frame with \code{model_type}, \code{hosp_phase}, \code{gam}, \code{rel_wis}
 }
 \description{
 Computes the relative WIS of including wastewater in each hospital
-admissions epidemic phase, at the reference values of the other
-covariates, as exp(include_ww + include_ww:hosp_phase), with intervals
-from the coefficient covariance matrix. For the combined GAM the
+admissions epidemic phase, as exp(include_ww + the phase deviation),
+where the deviation is the phase's row of the \code{hosp_phase} contrasts
+times the \code{include_ww:hosp_phase} coefficients, with intervals from the
+coefficient covariance matrix. The smooths are at zero, i.e. averaged
+over the forecasts they are centred over. For the combined GAM the
 \code{include_ww:model_type} term is added for the non-reference model type.
 }

@@ -24,8 +24,8 @@ Fits all four models (each model type with and without wastewater) in one
 GAM. \code{include_ww:model_type} is the difference in the effect of including
 wastewater between model types, so that the relative WIS of including
 wastewater is exp(include_ww) for the reference model type and
-exp(include_ww + include_ww:model_type) for the other, in the stable
-phase. Each model has its own horizon smooth. The effects of the
+exp(include_ww + include_ww:model_type) for the other, averaged
+across epidemic phases (weighted effect coding, as in \code{fit_gam_long()}). Each model has its own horizon smooth. The effects of the
 wastewater surveillance characteristics, location, forecast date and
 epidemic phase on the relative WIS are assumed to be shared across model
 types. A random effect for each location-forecast date absorbs the
