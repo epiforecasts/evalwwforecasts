@@ -135,6 +135,22 @@ run_gam_targets <- list(
     ),
     format = "rds"
   ),
+  # Location random effect on the relative WIS of including wastewater,
+  # i.e. after adjusting for the other covariates
+  tar_target(
+    name = ww_location_random_effect,
+    command = bind_rows(lapply(
+      list(gam_results_long, gam_results_long_statistical),
+      get_ww_location_random_effect
+    ))
+  ),
+  tar_target(
+    name = plot_ww_location_random_effect,
+    command = get_plot_ww_location_random_effect(
+      list(gam_results_long, gam_results_long_statistical)
+    ),
+    format = "rds"
+  ),
   # Plots for each of the separate GAMs
   tar_target(
     name = gam_by_model_type,
@@ -144,13 +160,6 @@ run_gam_targets <- list(
     ),
     format = "rds",
     iteration = "list"
-  ),
-  tar_target(
-    name = plot_fixed_effects_location,
-    command = get_plot_effect_by_location(gam_by_model_type),
-    pattern = map(gam_by_model_type),
-    iteration = "list",
-    format = "rds"
   ),
   tar_target(
     name = plot_effect_ww,

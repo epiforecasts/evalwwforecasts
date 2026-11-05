@@ -725,67 +725,94 @@ get_plot_ww_effect_by_location <- function(gam_fits, level = 0.95) {
   return(p)
 }
 
-#' Get plot of location specific multiplicative effect
+#' Get the location random effect on the relative WIS of including wastewater
 #'
-#' @param gam_fit long-format GAM fit from `fit_gam_long()`
-#' @importFrom mgcv gam.check
-#' @importFrom ggplot2 geom_errorbar coord_flip scale_x_discrete
+#' exp(u_l), the location random effect of the wastewater difference
+#' (`s(location, bs = "re", by = include_ww)`): how much better (below 1) or
+#' worse (above 1) including wastewater does in a location than in an
+#' average location, after accounting for the other covariates, including
+#' the location's wastewater surveillance characteristics. Intervals are
+#' from the coefficient covariance matrix.
+#'
+#' @param gam_fit GAM from `fit_gam_long()`
+#' @param level Numeric, confidence level of the intervals. Default `0.95`.
+#'
+#' @returns Data.frame with `model_type`, `location`, `rel_wis`, `lower` and
+#'   `upper`
+#' @importFrom stats coef vcov qnorm
+#' @autoglobal
+get_ww_location_random_effect <- function(gam_fit, level = 0.95) {
+  z <- qnorm(1 - (1 - level) / 2)
+  sm <- Filter(
+    function(x) x$label == "s(location):include_wwTRUE",
+    gam_fit$smooth
+  )[[1]]
+  idx <- sm$first.para:sm$last.para
+  est <- coef(gam_fit)[idx]
+  se <- sqrt(diag(vcov(gam_fit))[idx])
+  effects <- data.frame(
+    model_type = gam_fit$model_type,
+    location = levels(gam_fit$model$location),
+    rel_wis = exp(est),
+    lower = exp(est - z * se),
+    upper = exp(est + z * se),
+    row.names = NULL
+  )
+  return(effects)
+}
+
+#' Plot the location random effect on the relative WIS of including
+#' wastewater
+#'
+#' One panel per model type, with exp(u_l) from
+#' `get_ww_location_random_effect()`. Locations are ordered by the estimate
+#' for the first model type, in the same order in every panel.
+#'
+#' @param gam_fits List of GAMs from `fit_gam_long()`, one per model type
+#' @inheritParams get_ww_location_random_effect
+#' @importFrom ggplot2 ggplot aes geom_vline geom_linerange geom_point
+#'   scale_x_log10 facet_wrap labs theme_bw theme element_blank
+#' @importFrom dplyr bind_rows mutate filter arrange pull
 #' @returns ggplot object
 #' @autoglobal
-get_plot_effect_by_location <- function(gam_fit) {
-  # Tables and plots that I will export to separate figures
-  par(mfrow = c(2, 2))
-  gam.check(gam_fit)
-  par(mfrow = c(1, 1))
-
-  estimates <- smooth_estimates(gam_fit)
-
-  make_ci_table <- function(smooth_name, group_var) {
-    cis <- estimates |>
-      filter(.smooth == smooth_name) |>
-      select(.smooth, {{ group_var }}, .estimate, .se) |>
-      rename(est = .estimate, se = .se) |>
-      mutate(
-        ci_lower = est - 1.96 * se,
-        ci_upper = est + 1.96 * se,
-        effect = exp(est),
-        est_lower = exp(ci_lower),
-        est_upper = exp(ci_upper),
-        excludes_zero = ci_lower > 0 | ci_upper < 0
-      ) |>
-      arrange(effect)
-    return(cis)
-  }
-
-  location_ci <- make_ci_table("s(location):include_wwTRUE", location)
-
-  knitr::kable(select(location_ci, -.smooth))
-
-  p <- ggplot(
-    location_ci,
-    aes(x = reorder(location, -effect), y = effect)
-  ) +
-    geom_errorbar(aes(ymin = est_lower, ymax = est_upper), width = 0.2) +
-    geom_point(color = "seagreen", size = 5) +
-    geom_hline(yintercept = 1, linetype = "dashed", linewidth = 1) +
-    scale_y_log10(breaks = rel_wis_breaks, labels = rel_wis_labels) +
+get_plot_ww_location_random_effect <- function(gam_fits, level = 0.95) {
+  effects <- bind_rows(lapply(gam_fits, get_ww_location_random_effect,
+    level = level
+  ))
+  loc_order <- effects |>
+    filter(model_type == effects$model_type[1]) |>
+    arrange(rel_wis) |>
+    pull(location)
+  effects <- effects |>
+    mutate(
+      model_type = factor(
+        model_type,
+        levels = c("renewal", "statistical"),
+        labels = c("Renewal model", "Simple statistical model")
+      ),
+      location = factor(location, levels = rev(loc_order))
+    )
+  p <- ggplot(effects, aes(x = rel_wis, y = location)) +
+    geom_vline(xintercept = 1, linetype = "dashed", colour = "grey40") +
+    geom_linerange(aes(xmin = lower, xmax = upper),
+      linewidth = 0.8, colour = "#2a78d6"
+    ) +
+    geom_point(size = 3, colour = "#2a78d6") +
+    scale_x_log10(breaks = rel_wis_breaks, labels = rel_wis_labels) +
+    facet_wrap(~model_type) +
     labs(
-      y = "Multiplicative effect on WIS of including wastewater",
-      x = "Location"
+      x = "Location effect on the relative WIS of including wastewater",
+      y = NULL,
+      caption = glue(
+        "exp(location random effect) with {level * 100}% interval: relative ",
+        "WIS compared with an average location,\nafter adjusting for the ",
+        "other covariates. Below 1: wastewater helps more than average."
+      )
     ) +
     theme_bw() +
-    coord_flip() +
-    theme(
-      text            = element_text(size = 27),
-      axis.text.x     = element_text(size = 24),
-      axis.text.y     = element_text(size = 24),
-      axis.title      = element_text(size = 27),
-      legend.text     = element_text(size = 24),
-      legend.title    = element_text(size = 25.5),
-      strip.text      = element_text(size = 25.5)
-    ) +
-    scale_x_discrete(labels = function(x) gsub("-", "-\n", x)) # nolint
-
+    theme(panel.grid.minor = element_blank())
+  # Keep the GAMs out of the plot environment
+  rm(gam_fits)
   return(p)
 }
 

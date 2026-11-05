@@ -141,17 +141,20 @@ utils::globalVariables(c(
   "rel_wis", # <get_plot_ww_effect_by_phase>
   "lower", # <get_plot_ww_effect_by_phase>
   "upper", # <get_plot_ww_effect_by_phase>
-  ".smooth", # <get_plot_effect_by_location>
-  ".estimate", # <get_plot_effect_by_location>
-  ".se", # <get_plot_effect_by_location>
-  "est", # <get_plot_effect_by_location>
-  "se", # <get_plot_effect_by_location>
-  "ci_lower", # <get_plot_effect_by_location>
-  "ci_upper", # <get_plot_effect_by_location>
-  "effect", # <get_plot_effect_by_location>
-  "location", # <get_plot_effect_by_location>
-  "est_lower", # <get_plot_effect_by_location>
-  "est_upper", # <get_plot_effect_by_location>
+  "location", # <get_ww_effect_by_location>
+  "wis", # <get_ww_effect_by_location>
+  "include_ww", # <get_ww_effect_by_location>
+  "model_type", # <get_plot_ww_effect_by_location>
+  "rel_wis", # <get_plot_ww_effect_by_location>
+  "location", # <get_plot_ww_effect_by_location>
+  "lower", # <get_plot_ww_effect_by_location>
+  "upper", # <get_plot_ww_effect_by_location>
+  "rel_wis_unadj", # <get_plot_ww_effect_by_location>
+  "model_type", # <get_plot_ww_location_random_effect>
+  "rel_wis", # <get_plot_ww_location_random_effect>
+  "location", # <get_plot_ww_location_random_effect>
+  "lower", # <get_plot_ww_location_random_effect>
+  "upper", # <get_plot_ww_location_random_effect>
   "term", # <get_plot_effect_ww>
   "effect", # <get_plot_effect_ww>
   "est_lower", # <get_plot_effect_ww>
