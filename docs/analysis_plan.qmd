@@ -166,9 +166,15 @@ Where the $\eta_{h,d,l,m}$ is modelled as:
 
 $$ \log(\mu_{h,d,l,m}) = \beta_0 + \beta_{ww}d_m + c_p + f(h) + b_l + f(d) + f(pop) + f(n_{sites}) + f(\nu) + f(\gamma) + f(\phi) + f(\alpha) + d_m \times \left( c^{ww}_p + g(h) + u_l + g(d) + g(pop) + g(n_{sites}) + g(\nu) + g(\gamma) + g(\phi) + g(\alpha) \right) $$
 
-Where $d_m$ is an indicator variable for whether wastewater was used to fit the model, $c_p$ is the overall effect of the epidemic phase (with stable as the reference phase), $b_l$, $f(h)$, $f(pop)$, $f(n_{sites})$, $f(\nu)$, $f(\gamma)$, $f(\phi)$ and $f(\alpha)$ are the overall effects, respectively, of location, horizon, state population, number of wastewater treatment plants, average wastewater data collection frequency $\nu$, minimum latency between the latest collection date and the forecast date $\gamma$, wastewater population coverage $\phi$, and average wastewater data variability $\alpha$. The interaction terms with $d_m$ then reflect the additional effect from incorporating wastewater of each of those variables, after already accounting for the overall impact of that variable on forecast performance across both wastewater and hospital admissions informed models. In particular, $c^{ww}_p$ is the change in the effect of incorporating wastewater in increasing and decreasing phases relative to the stable phase, so that the relative WIS in phase $p$ (at the reference values of the other covariates) is $\exp(\beta_{ww} + c^{ww}_p)$. This allows us to check whether differences in relative WIS by epidemic phase persist after adjusting for the other covariates. The formula passed to `mgcv` is provided below. In the data, `include_ww` is a numeric 0/1 indicator, where 0 represents `hosp only` and 1 represents `ww + hosp`, or an ordered factor with `hosp only` as the first level. The `by = include_ww` smooths then represent differences from the `hosp only` smooths.
+Where $d_m$ is an indicator variable for whether wastewater was used to fit the model, $c_p$ is the overall effect of the epidemic phase, $b_l$, $f(h)$, $f(pop)$, $f(n_{sites})$, $f(\nu)$, $f(\gamma)$, $f(\phi)$ and $f(\alpha)$ are the overall effects, respectively, of location, horizon, state population, number of wastewater treatment plants, average wastewater data collection frequency $\nu$, minimum latency between the latest collection date and the forecast date $\gamma$, wastewater population coverage $\phi$, and average wastewater data variability $\alpha$. The interaction terms with $d_m$ then reflect the additional effect from incorporating wastewater of each of those variables, after already accounting for the overall impact of that variable on forecast performance across both wastewater and hospital admissions informed models. The epidemic phase uses weighted effect coding: $c_p$ and $c^{ww}_p$ are deviations from the average across phases, weighted by the number of forecasts in each phase, so that $\sum_p n_p c_p = \sum_p n_p c^{ww}_p = 0$, where $n_p$ is the number of forecasts in phase $p$. $\beta_{ww}$ is then the effect of incorporating wastewater averaged across epidemic phases, and $c^{ww}_p$ is how much the effect in phase $p$ differs from that average, so that the relative WIS in phase $p$ is $\exp(\beta_{ww} + c^{ww}_p)$, with the other covariates at their average effect. This allows us to check whether differences in relative WIS by epidemic phase persist after adjusting for the other covariates. The formula passed to `mgcv` is provided below. In the data, `include_ww` is a numeric 0/1 indicator, where 0 represents `hosp only` and 1 represents `ww + hosp`, or an ordered factor with `hosp only` as the first level. The `by = include_ww` smooths then represent differences from the `hosp only` smooths.
 
 ``` r
+# Weighted effect coding for the epidemic phase (stable as the omitted level)
+n_phase <- table(data_to_fit$hosp_phase)
+wec <- diag(length(n_phase))[, -1]
+wec[1, ] <- -n_phase[-1] / n_phase[1]
+contrasts(data_to_fit$hosp_phase) <- wec
+
 gam_fit <- bam(
   wis ~ include_ww * hosp_phase +
     s(horizon, k = 4) + s(horizon, k = 4, by = include_ww) +
@@ -187,21 +193,23 @@ gam_fit <- bam(
   data = data_to_fit,
   family = Gamma(link = "log"),
   method = "fREML",
-  discrete = TRUE
+  discrete = FALSE
 )
 ```
 
-The estimated $\beta_{ww}$ reflects the adjusted impact of incorporating wastewater on forecast performance in the stable phase, taking into account the other covariates. Because of the log link, $\exp(\beta_{ww})$ is a multiplicative effect on the expected WIS. We will report the relative WIS for each epidemic phase, with 95% intervals computed from the model's linear predictor, and plot the multiplicative effects of the wastewater surveillance characteristics on the relative WIS.
+The model is fit without discretising the covariates (`discrete = FALSE`), because with discretisation the smooths are centred over the unique covariate values rather than over the forecasts, so that they would not average to zero over the forecasts for covariates with few, unevenly represented values (such as the number of sites).
+
+The estimated $\beta_{ww}$ reflects the adjusted impact of incorporating wastewater on forecast performance averaged across epidemic phases, taking into account the other covariates. Because of the log link, $\exp(\beta_{ww})$ is a multiplicative effect on the expected WIS, for a typical forecast. This weights every forecast equally on the relative scale, whereas the relative WIS (the ratio of the mean WIS) gives more weight to forecasts with a large WIS. If the improvement from incorporating wastewater is concentrated in the forecasts that are hardest to forecast, $\exp(\beta_{ww})$ will be closer to 1 than the relative WIS. We will report the relative WIS overall and for each epidemic phase, with 95% intervals computed from the model's linear predictor, and plot the multiplicative effects of the wastewater surveillance characteristics on the relative WIS. We will also report the location effect $\exp(u_l)$ for each location: how much more (below 1) or less (above 1) incorporating wastewater improves the forecasts in that location than in an average location, after accounting for the location's wastewater surveillance characteristics, the epidemic phases, horizons and forecast dates.
 
 Because epidemic phases occur in runs of consecutive weeks, the forecast date smooth for the wastewater-informed model, $g(d)$, may absorb some of the epidemic phase effect. We will therefore also fit the model with a less flexible forecast date smooth and compare the estimated epidemic phase effects. Latency was high for most locations at the same forecast dates (around the end of December and beginning of January). The forecast date smooths account for effects shared by all locations on a forecast date, so the effect of latency is estimated from differences in latency between locations on the same forecast date. We include only the minimum latency, rather than both the minimum and average latency, since the two are correlated. As there are only 16 locations, the location-level characteristics (population size, number of sites and population coverage) cannot be fully separated from each other or from the location effects.
 
-The relative WIS by epidemic phase is therefore estimated in two ways. The bootstrapped relative WIS by epidemic phase (Figure 3) is the primary, unadjusted result. The model-based estimate is adjusted for location, horizon, forecast date and the wastewater surveillance characteristics, and is exploratory. If the two agree, this strengthens the finding; if they differ, this suggests the unadjusted differences between phases are partly explained by the other covariates (for example, if increasing phases are concentrated in particular locations or periods). We will present the two estimates side by side.
+The relative WIS by epidemic phase is therefore estimated in two ways. The bootstrapped relative WIS by epidemic phase (Figure 3) is the primary, unadjusted result. The model-based estimate is adjusted for location, horizon, forecast date and the wastewater surveillance characteristics, and is exploratory. If the two agree, this strengthens the finding; if they differ, this suggests the unadjusted differences between phases are partly explained by the other covariates (for example, if increasing phases are concentrated in particular locations or periods), or that they are driven by a few forecasts with a large WIS, which count for more in the unadjusted estimate than in the model-based estimate (see above). We will present the two estimates side by side.
 
 Fitting the same model separately to each model type allows the effects of each covariate on the value of incorporating wastewater to be compared between the renewal and simple statistical models, without assuming they are shared.
 
 ##### (b) Combined model across model types
 
-To estimate directly whether the effect of incorporating wastewater differs between model types, we fit one model to the scores of all four models. Let $t_m$ be an indicator for the simple statistical model type (with the `wwinference` model as the reference). The model extends the one above with a main effect of model type and its interaction with the wastewater indicator, $\beta_t t_m + \beta_{ww,t} d_m t_m$, and a separate horizon smooth for each of the four models. The effects of the other covariates, and their interactions with $d_m$, are assumed to be shared across model types, to avoid three-way interactions which would be difficult to estimate and interpret. Since all four models forecast the same targets, they share the difficulty of each forecast (for example, if the hospital admissions data available on the forecast date were later revised substantially). We therefore add a random effect $v_{l,d}$ for each location-forecast date, so that the model type and wastewater terms reflect differences between models rather than in the difficulty of the forecast problem. The relative WIS of incorporating wastewater (in the stable phase, at the reference values of the other covariates) is then $\exp(\beta_{ww})$ for the `wwinference` model and $\exp(\beta_{ww} + \beta_{ww,t})$ for the simple statistical model, and $\exp(\beta_{ww,t})$ is the ratio between them. The formula passed to `mgcv` is:
+To estimate directly whether the effect of incorporating wastewater differs between model types, we fit one model to the scores of all four models. Let $t_m$ be an indicator for the simple statistical model type (with the `wwinference` model as the reference). The model extends the one above with a main effect of model type and its interaction with the wastewater indicator, $\beta_t t_m + \beta_{ww,t} d_m t_m$, and a separate horizon smooth for each of the four models. The effects of the other covariates, and their interactions with $d_m$, are assumed to be shared across model types, to avoid three-way interactions which would be difficult to estimate and interpret. We do not include a random effect for each location-forecast date. Although all four models share the difficulty of each forecast, with a log link such a random effect would divide the weight of each forecast by its difficulty, so that the forecasts that are hardest to forecast would count for less than in the relative WIS. The relative WIS of incorporating wastewater (averaged across epidemic phases, with the other covariates at their average effect) is then $\exp(\beta_{ww})$ for the `wwinference` model and $\exp(\beta_{ww} + \beta_{ww,t})$ for the simple statistical model, and $\exp(\beta_{ww,t})$ is the ratio between them. As the effects of the epidemic phase are assumed to be shared across model types, the relative WIS by epidemic phase is estimated from the separate models only. The formula passed to `mgcv` is:
 
 ``` r
 gam_fit <- bam(
@@ -209,7 +217,6 @@ gam_fit <- bam(
     # ww_model: the four combinations of model type and include_ww
     s(horizon, k = 4, by = ww_model) +
     s(location, bs = "re") + s(location, bs = "re", by = include_ww) +
-    s(loc_date, bs = "re") +
     s(forecast_date_num, k = 40) +
     s(forecast_date_num, k = 40, by = include_ww) +
     s(state_pop, k = 3) + s(state_pop, k = 3, by = include_ww) +
@@ -223,13 +230,13 @@ gam_fit <- bam(
   data = data_to_fit,
   family = Gamma(link = "log"),
   method = "fREML",
-  discrete = TRUE
+  discrete = FALSE
 )
 ```
 
-As the epidemic phase and the wastewater surveillance characteristics are constant within a location-forecast date, their main effects are partly absorbed by the location-forecast date random effect. Their interactions with $d_m$, which are the terms of interest, vary within a location-forecast date and are not affected.
+The epidemic phase uses the same weighted effect coding as in the separate models.
 
-Both analyses will use the same set of forecasts: location-forecast dates where any `wwinference` model failed the convergence criteria are excluded for all models, and only forecasts scored for all four models are included.
+Both analyses will use the same set of forecasts: location-forecast dates where any `wwinference` model failed the convergence criteria are excluded for all models, and only forecasts scored for all four models are included. In both analyses, the correlation between the scores of different models for the same forecast is not modelled, so the standard errors are approximate.
 
 These exploratory analyses will be used to generate hypotheses into the impact of the characteristics of wastewater surveillance system on the performance of the `wwinference` and simple statistical models.
 
@@ -279,15 +286,17 @@ Supplement:
 
 Figure 4. Exploratory model-based evaluation results.
 
-A. Multiplicative effect of including wastewater on WIS for each model type with 95% intervals, from the separate models (a) and from the combined model (b), and the ratio between model types from the combined model ($\exp(\beta_{ww,t})$)
+A. Multiplicative effect of including wastewater on WIS for each model type, averaged across epidemic phases, with 95% intervals, from the separate models (a) and from the combined model (b), and the ratio between model types from the combined model ($\exp(\beta_{ww,t})$)
 
 B. Relative WIS for each epidemic phase and model type: the unadjusted estimate with bootstrapped 95% intervals (as in Figure 3) side by side with the estimate adjusted for the other covariates ($\exp(\beta_{ww} + c^{ww}_p)$) with 95% intervals from the separate models
 
-B. Multiplicative effect on the relative WIS of the wastewater surveillance characteristics (number of sites, population coverage, average sampling frequency, minimum latency, variability in wastewater data) and state population size, on a log scale (pick a few of these).
+C. Multiplicative effect on the relative WIS of the wastewater surveillance characteristics (number of sites, population coverage, average sampling frequency, minimum latency, variability in wastewater data) and state population size, on a log scale (pick a few of these).
+
+D. Location effect on the relative WIS of including wastewater, $\exp(u_l)$, for each location and model type with 95% intervals, from the separate models: how much more (below 1) or less (above 1) incorporating wastewater improves the forecasts in that location than in an average location, after adjusting for the other covariates.
 
 Figure out how to arrange this one once we've plotted the effect sizes by these continuous variables and determined which ones are worth showing.
 
-Supplement: scatterplots of the relative WIS against each covariate, location effects, horizon and forecast date smooths, model diagnostics, and the sensitivity analysis with a less flexible forecast date smooth.
+Supplement: scatterplots of the relative WIS against each covariate, the model-based relative WIS of including wastewater in each location (combining all the terms in the model, alongside the unadjusted ratio of the mean WIS), horizon and forecast date smooths, model diagnostics, and the sensitivity analysis with a less flexible forecast date smooth.
 
 ## Evaluation of wastewater concentration forecasts
 
