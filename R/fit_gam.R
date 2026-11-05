@@ -375,7 +375,8 @@ fit_gam_long <- function(scores_long_to_model,
 #' wastewater between model types, so that the relative WIS of including
 #' wastewater is exp(include_ww) for the reference model type and
 #' exp(include_ww + include_ww:model_type) for the other, averaged
-#' across epidemic phases (weighted effect coding, as in `fit_gam_long()`). Each model has its own horizon smooth. The effects of the
+#' across epidemic phases (weighted effect coding, as in `fit_gam_long()`).
+#' Each model has its own horizon smooth. The effects of the
 #' wastewater surveillance characteristics, location, forecast date and
 #' epidemic phase on the relative WIS are assumed to be shared across model
 #' types. There is no random effect for each location-forecast date: with a
@@ -449,29 +450,29 @@ get_combined_ww_effects <- function(gam_fit, level = 0.95) {
   types <- levels(gam_fit$model$model_type)
   interaction_name <- glue("include_wwTRUE:model_type{types[2]}")
   contrasts_list <- list(
-    c("include_wwTRUE" = 1),
-    c("include_wwTRUE" = 1, stats::setNames(1, interaction_name)),
+    c(include_wwTRUE = 1),
+    c(include_wwTRUE = 1, stats::setNames(1, interaction_name)),
     stats::setNames(1, interaction_name)
   )
-  terms <- c(
+  term_labels <- c(
     glue("Including wastewater, {types[1]} model"),
     glue("Including wastewater, {types[2]} model"),
     glue("Ratio, {types[2]} vs {types[1]}")
   )
-  effects <- bind_rows(lapply(seq_along(contrasts_list), function(i) {
+  ww_effects <- bind_rows(lapply(seq_along(contrasts_list), function(i) {
     w <- rep(0, length(b))
     names(w) <- names(b)
     w[names(contrasts_list[[i]])] <- contrasts_list[[i]]
     est <- sum(w * b)
     se <- sqrt(as.numeric(t(w) %*% v %*% w))
     return(data.frame(
-      term = terms[i],
+      term = term_labels[i],
       rel_wis = exp(est),
       lower = exp(est - z * se),
       upper = exp(est + z * se)
     ))
   }))
-  return(effects)
+  return(ww_effects)
 }
 
 #' Plot the relative WIS of including wastewater for each model type
@@ -482,8 +483,8 @@ get_combined_ww_effects <- function(gam_fit, level = 0.95) {
 #' @returns ggplot object
 #' @autoglobal
 get_plot_combined_ww_effects <- function(gam_fit, level = 0.95) {
-  effects <- get_combined_ww_effects(gam_fit, level)
-  p <- ggplot(effects, aes(x = term, y = rel_wis)) +
+  ww_effects <- get_combined_ww_effects(gam_fit, level)
+  p <- ggplot(ww_effects, aes(x = term, y = rel_wis)) +
     geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.1) +
     geom_point(color = "seagreen", size = 5) +
     geom_hline(yintercept = 1, linetype = "dashed", linewidth = 1) +
@@ -527,26 +528,26 @@ get_ww_effect_by_phase <- function(gam_fit, level = 0.95) {
   } else {
     gam_fit$model_type
   }
-  effects <- expand.grid(
+  ww_effects <- expand.grid(
     model_type = types, hosp_phase = phases,
     stringsAsFactors = FALSE
   )
-  est <- lapply(seq_len(nrow(effects)), function(i) {
+  est <- lapply(seq_len(nrow(ww_effects)), function(i) {
     w <- stats::setNames(rep(0, length(b)), names(b))
     w["include_wwTRUE"] <- 1
     contr <- gam_fit$phase_contrasts
     phase_terms <- paste0("include_wwTRUE:hosp_phase", colnames(contr))
-    w[phase_terms] <- contr[effects$hosp_phase[i], ]
-    type_term <- glue("include_wwTRUE:model_type{effects$model_type[i]}")
+    w[phase_terms] <- contr[ww_effects$hosp_phase[i], ]
+    type_term <- glue("include_wwTRUE:model_type{ww_effects$model_type[i]}")
     if (combined && type_term %in% names(w)) w[type_term] <- 1
     return(c(sum(w * b), sqrt(as.numeric(t(w) %*% v %*% w))))
   })
   est <- do.call(rbind, est)
-  effects$gam <- if (combined) "combined" else "separate"
-  effects$rel_wis <- exp(est[, 1])
-  effects$lower <- exp(est[, 1] - z * est[, 2])
-  effects$upper <- exp(est[, 1] + z * est[, 2])
-  return(effects)
+  ww_effects$gam <- if (combined) "combined" else "separate"
+  ww_effects$rel_wis <- exp(est[, 1])
+  ww_effects$lower <- exp(est[, 1] - z * est[, 2])
+  ww_effects$upper <- exp(est[, 1] + z * est[, 2])
+  return(ww_effects)
 }
 
 #' Plot the relative WIS of including wastewater by epidemic phase
@@ -563,7 +564,7 @@ get_ww_effect_by_phase <- function(gam_fit, level = 0.95) {
 #' @returns ggplot object
 #' @autoglobal
 get_plot_ww_effect_by_phase <- function(gam_fits, level = 0.95) {
-  effects <- bind_rows(lapply(gam_fits, get_ww_effect_by_phase,
+  ww_effects <- bind_rows(lapply(gam_fits, get_ww_effect_by_phase,
     level = level
   )) |>
     mutate(
@@ -577,7 +578,7 @@ get_plot_ww_effect_by_phase <- function(gam_fits, level = 0.95) {
         levels = rev(c("increasing", "stable", "decreasing"))
       )
     )
-  p <- ggplot(effects, aes(x = rel_wis, y = hosp_phase)) +
+  p <- ggplot(ww_effects, aes(x = rel_wis, y = hosp_phase)) +
     geom_vline(xintercept = 1, linetype = "dashed", colour = "grey40") +
     geom_linerange(aes(xmin = lower, xmax = upper),
       linewidth = 0.8, colour = "#2a78d6"
@@ -638,7 +639,7 @@ get_ww_effect_by_location <- function(gam_fit, level = 0.95) {
       rel_wis_unadj = mean(wis[include_ww == "TRUE"]) /
         mean(wis[include_ww == "FALSE"])
     )
-  effects <- data.frame(
+  ww_effects <- data.frame(
     model_type = gam_fit$model_type,
     location = rownames(avg_diff),
     rel_wis = exp(est),
@@ -646,7 +647,7 @@ get_ww_effect_by_location <- function(gam_fit, level = 0.95) {
     upper = exp(est + z * se)
   ) |>
     left_join(unadj, by = "location")
-  return(effects)
+  return(ww_effects)
 }
 
 #' Plot the relative WIS of including wastewater by location
@@ -665,14 +666,14 @@ get_ww_effect_by_location <- function(gam_fit, level = 0.95) {
 #' @returns ggplot object
 #' @autoglobal
 get_plot_ww_effect_by_location <- function(gam_fits, level = 0.95) {
-  effects <- bind_rows(lapply(gam_fits, get_ww_effect_by_location,
+  ww_effects <- bind_rows(lapply(gam_fits, get_ww_effect_by_location,
     level = level
   ))
-  loc_order <- effects |>
-    filter(model_type == effects$model_type[1]) |>
+  loc_order <- ww_effects |>
+    filter(model_type == ww_effects$model_type[1]) |>
     arrange(rel_wis) |>
     pull(location)
-  effects <- effects |>
+  ww_effects <- ww_effects |>
     mutate(
       model_type = factor(
         model_type,
@@ -681,7 +682,7 @@ get_plot_ww_effect_by_location <- function(gam_fits, level = 0.95) {
       ),
       location = factor(location, levels = rev(loc_order))
     )
-  p <- ggplot(effects, aes(y = location)) +
+  p <- ggplot(ww_effects, aes(y = location)) +
     geom_vline(xintercept = 1, linetype = "dashed", colour = "grey40") +
     geom_linerange(aes(xmin = lower, xmax = upper),
       linewidth = 0.8, colour = "#2a78d6"
@@ -698,11 +699,11 @@ get_plot_ww_effect_by_location <- function(gam_fits, level = 0.95) {
     ) +
     scale_x_log10(breaks = rel_wis_breaks, labels = rel_wis_labels) +
     scale_colour_manual(
-      values = c("GAM estimate" = "#2a78d6", "Unadjusted" = "#8a8a85"),
+      values = c("GAM estimate" = "#2a78d6", Unadjusted = "#8a8a85"),
       name = NULL
     ) +
     scale_shape_manual(
-      values = c("GAM estimate" = 16, "Unadjusted" = 4),
+      values = c("GAM estimate" = 16, Unadjusted = 4),
       name = NULL
     ) +
     facet_wrap(~model_type) +
@@ -750,7 +751,7 @@ get_ww_location_random_effect <- function(gam_fit, level = 0.95) {
   idx <- sm$first.para:sm$last.para
   est <- coef(gam_fit)[idx]
   se <- sqrt(diag(vcov(gam_fit))[idx])
-  effects <- data.frame(
+  ww_effects <- data.frame(
     model_type = gam_fit$model_type,
     location = levels(gam_fit$model$location),
     rel_wis = exp(est),
@@ -758,7 +759,7 @@ get_ww_location_random_effect <- function(gam_fit, level = 0.95) {
     upper = exp(est + z * se),
     row.names = NULL
   )
-  return(effects)
+  return(ww_effects)
 }
 
 #' Plot the location random effect on the relative WIS of including
@@ -775,15 +776,15 @@ get_ww_location_random_effect <- function(gam_fit, level = 0.95) {
 #' @importFrom dplyr bind_rows mutate filter arrange pull
 #' @returns ggplot object
 #' @autoglobal
-get_plot_ww_location_random_effect <- function(gam_fits, level = 0.95) {
-  effects <- bind_rows(lapply(gam_fits, get_ww_location_random_effect,
+get_plot_ww_location_re <- function(gam_fits, level = 0.95) {
+  ww_effects <- bind_rows(lapply(gam_fits, get_ww_location_random_effect,
     level = level
   ))
-  loc_order <- effects |>
-    filter(model_type == effects$model_type[1]) |>
+  loc_order <- ww_effects |>
+    filter(model_type == ww_effects$model_type[1]) |>
     arrange(rel_wis) |>
     pull(location)
-  effects <- effects |>
+  ww_effects <- ww_effects |>
     mutate(
       model_type = factor(
         model_type,
@@ -792,7 +793,7 @@ get_plot_ww_location_random_effect <- function(gam_fits, level = 0.95) {
       ),
       location = factor(location, levels = rev(loc_order))
     )
-  p <- ggplot(effects, aes(x = rel_wis, y = location)) +
+  p <- ggplot(ww_effects, aes(x = rel_wis, y = location)) +
     geom_vline(xintercept = 1, linetype = "dashed", colour = "grey40") +
     geom_linerange(aes(xmin = lower, xmax = upper),
       linewidth = 0.8, colour = "#2a78d6"
@@ -979,8 +980,8 @@ get_gam_newdata <- function(gam_fit, n) {
   })
   names(newdata) <- vars
   # Parametric factors (e.g. epidemic phase, model type) at their first
-  # level; their interactions with include_ww are dropped or kept in
-  # get_rel_wis_lpmatrix()
+  # level; whether their interactions with include_ww are used is decided
+  # by get_rel_wis_lpmatrix
   for (v in setdiff(names(gam_fit$model), c(vars, "wis", "include_ww"))) {
     x <- gam_fit$model[[v]]
     if (is.factor(x)) {
@@ -1031,7 +1032,7 @@ get_rel_wis_lpmatrix <- function(gam_fit, var, values) {
     }
     # Phase deviations are dropped, so the effect is averaged across phases
     keep_param <- grep("^include_ww", colnames(lp), value = TRUE)
-    keep_param <- keep_param[!grepl("hosp_phase", keep_param)]
+    keep_param <- keep_param[!grepl("hosp_phase", keep_param, fixed = TRUE)]
   } else {
     lp <- predict(gam_fit, newdata = newdata, type = "lpmatrix")
     keep_smooth <- function(sm) {

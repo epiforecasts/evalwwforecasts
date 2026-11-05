@@ -47,6 +47,7 @@
 #' @importFrom dplyr filter mutate select left_join group_by summarise
 #'   bind_rows arrange
 #' @importFrom lubridate ymd days
+#' @importFrom stats predict
 #' @autoglobal
 fit_ww_regression <- function(hosp_data_for_fit,
                               hosp_data_for_eval,
@@ -107,9 +108,9 @@ fit_ww_regression <- function(hosp_data_for_fit,
     features$ww_growth <- vapply(
       features$origin,
       function(s) {
-        get_ww_growth(ww,
+        return(get_ww_growth(ww,
           origin = s, window = ww_window, min_span = min_ww_span
-        )
+        ))
       },
       numeric(1)
     )
@@ -143,14 +144,14 @@ fit_ww_regression <- function(hosp_data_for_fit,
       train <- filter(train, !is.na(ww_growth))
     }
     fit <- quantreg::rq(reg_formula, tau = quantiles, data = train)
-    pred <- as.numeric(stats::predict(fit, newdata = newdata))
+    pred <- as.numeric(predict(fit, newdata = newdata))
     # Avoid quantile crossing
     pred <- sort(pred)
     pred_y <- pmax(exp(newdata$anchor + pred) - 1, 0)
-    data.frame(
+    return(data.frame(
       date = forecast_date + h,
       t(stats::setNames(pred_y, paste0("q_", quantiles)))
-    )
+    ))
   })
   forecast_df <- bind_rows(forecasts)
   names(forecast_df) <- c("date", paste0("q_", quantiles))

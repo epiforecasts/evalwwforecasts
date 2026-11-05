@@ -77,6 +77,28 @@ utils::globalVariables(c(
   "phase", # <get_plot_epidemic_phase>
   "updated_hosp_7d_count", # <get_plot_epidemic_phase>
   "log_genome_copies_per_ml", # <get_plot_epidemic_phase>
+  "model", # <get_scores_all_models>
+  "include_ww", # <get_scores_all_models>
+  "location", # <get_scores_all_models>
+  "forecast_date", # <get_scores_all_models>
+  "horizon", # <get_scores_all_models>
+  "model_ww", # <get_scores_all_models>
+  "model_lab", # <get_bar_chart_wis_components>
+  "wis", # <get_bar_chart_wis_components>
+  "overprediction", # <get_bar_chart_wis_components>
+  "underprediction", # <get_bar_chart_wis_components>
+  "dispersion", # <get_bar_chart_wis_components>
+  "component", # <get_bar_chart_wis_components>
+  "value", # <get_bar_chart_wis_components>
+  "model", # <get_plot_rel_wis_by_type>
+  "horizon_week", # <get_plot_rel_wis_by_type>
+  "period", # <get_plot_rel_wis_by_type>
+  "wis", # <get_plot_rel_wis_by_type>
+  "include_ww", # <get_plot_rel_wis_by_type>
+  "model_type", # <get_plot_rel_wis_by_type>
+  "model_lab", # <get_bar_chart_wis_by_horizon>
+  "horizon_week", # <get_bar_chart_wis_by_horizon>
+  "wis", # <get_bar_chart_wis_by_horizon>
   "site", # <get_ww_phase>
   "lab", # <get_ww_phase>
   "log_genome_copies_per_ml", # <get_ww_phase>
@@ -150,11 +172,11 @@ utils::globalVariables(c(
   "lower", # <get_plot_ww_effect_by_location>
   "upper", # <get_plot_ww_effect_by_location>
   "rel_wis_unadj", # <get_plot_ww_effect_by_location>
-  "model_type", # <get_plot_ww_location_random_effect>
-  "rel_wis", # <get_plot_ww_location_random_effect>
-  "location", # <get_plot_ww_location_random_effect>
-  "lower", # <get_plot_ww_location_random_effect>
-  "upper", # <get_plot_ww_location_random_effect>
+  "model_type", # <get_plot_ww_location_re>
+  "rel_wis", # <get_plot_ww_location_re>
+  "location", # <get_plot_ww_location_re>
+  "lower", # <get_plot_ww_location_re>
+  "upper", # <get_plot_ww_location_re>
   "term", # <get_plot_effect_ww>
   "effect", # <get_plot_effect_ww>
   "est_lower", # <get_plot_effect_ww>

@@ -146,7 +146,7 @@ run_gam_targets <- list(
   ),
   tar_target(
     name = plot_ww_location_random_effect,
-    command = get_plot_ww_location_random_effect(
+    command = get_plot_ww_location_re(
       list(gam_results_long, gam_results_long_statistical)
     ),
     format = "rds"

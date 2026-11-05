@@ -42,7 +42,7 @@ get_scores_included <- function(scores) {
 #'   column for each convergence check that is `TRUE` if any run failed it,
 #'   `flag_missing_ww` (`TRUE` if wastewater data were not available) and
 #'   `reason`
-#' @importFrom dplyr filter group_by summarise arrange mutate
+#' @importFrom dplyr filter group_by summarise arrange mutate case_when
 #' @importFrom glue glue
 #' @autoglobal
 get_excluded_forecasts <- function(diagnostics) {
@@ -59,8 +59,9 @@ get_excluded_forecasts <- function(diagnostics) {
       flag_missing_ww = any(flag_missing_ww),
       .groups = "drop"
     ) |>
-    mutate(reason = dplyr::case_when(
-      flag_missing_ww & flagged_runs != "" ~ "missing wastewater; convergence",
+    mutate(reason = case_when(
+      flag_missing_ww & nzchar(flagged_runs) ~
+        "missing wastewater; convergence",
       flag_missing_ww ~ "missing wastewater",
       TRUE ~ "convergence"
     )) |>
@@ -78,6 +79,7 @@ get_excluded_forecasts <- function(diagnostics) {
 #'
 #' @returns `excluded_forecasts`, unchanged
 #' @importFrom dplyr filter distinct anti_join
+#' @importFrom cli cli_warn
 #' @autoglobal
 check_excluded_forecasts <- function(scores, excluded_forecasts) {
   flagged_in_scores <- as.data.frame(scores) |>
@@ -90,10 +92,10 @@ check_excluded_forecasts <- function(scores, excluded_forecasts) {
     by = keys
   )
   if (nrow(only_scores) > 0 || nrow(only_diagnostics) > 0) {
-    cli::cli_warn(c(
+    cli_warn(c(
       "The flagged location-forecast dates in the scores and diagnostics
       differ.",
-      "i" = "{nrow(only_scores)} flagged only in the scores and
+      i = "{nrow(only_scores)} flagged only in the scores and
       {nrow(only_diagnostics)} only in the diagnostics."
     ))
   }
